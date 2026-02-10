@@ -2,11 +2,9 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-replace-the-placeholder-support-phone-number-in-the-in-app-support-ui-with-the-user-provided-phone-support-contact-254-723169783-and-ensure-it-is-rendered-as-a-tappable-clickable-tel-link",
-      "featureTitle": "Replace the placeholder support phone number in the in-app Support UI with the user-provided phone support contact: +254 723169783, and ensure it is rendered as a tappable/clickable tel: link.",
-      "files": [
-        "frontend/src/components/support/SupportDrawer.tsx"
-      ],
+      "featureId": "feature-regenerate-the-existing-genz-app-logo-image-at-assets-generated-genz-app-logo-dim-512x512-png-so-it-is-a-crisp-sharp-512-512-png-that-still-looks-clear-when-rendered-as-a-small-rounded-app-icon-in-the-header-e-g-40-40-to-80-80-css-pixels",
+      "featureTitle": "Regenerate the existing Genz App logo image at `/assets/generated/genz-app-logo.dim_512x512.png` so it is a crisp, sharp 512×512 PNG that still looks clear when rendered as a small rounded app icon in the header (e.g., ~40×40 to ~80×80 CSS pixels).",
+      "files": [],
       "components": [
         "core-infrastructure@1.0.2",
         "shadcn-ui@1.0.0",
@@ -14,51 +12,11 @@
         "initial-app@1.0.0",
         "github-export-icp-cli@1.0.0",
         "authorization@4.0.0",
-        "blob-storage@4.0.0"
+        "blob-storage@4.0.0",
+        "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-14"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-a-visible-customer-support-contact-list-exists-in-the-support-ui-support-drawer-and-is-accessible-from-both-the-header-support-entry-and-the-footer-customer-support-entry",
-      "featureTitle": "Ensure a visible \"Customer Support\" contact list exists in the Support UI (Support drawer) and is accessible from both the header \"Support\" entry and the footer \"Customer Support\" entry.",
-      "files": [
-        "frontend/src/components/Header.tsx",
-        "frontend/src/components/support/SupportDrawer.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-15"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-fix-the-genz-app-logo-clarity-so-it-looks-sharp-when-rendered-as-a-40x40-rounded-icon-in-the-header-while-keeping-the-asset-path-assets-generated-genz-app-logo-dim-512x512-png",
-      "featureTitle": "Fix the Genz App logo clarity so it looks sharp when rendered as a 40x40 rounded icon in the header while keeping the asset path `/assets/generated/genz-app-logo.dim_512x512.png`.",
-      "files": [
-        "frontend/src/components/Header.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-16"
+        "REQ-38"
       ],
       "confidence": "high"
     }

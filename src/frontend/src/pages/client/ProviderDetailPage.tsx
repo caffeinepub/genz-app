@@ -1,12 +1,17 @@
-import { useGetProvider, useRequestLink } from '../../hooks/useQueries';
+import { useState } from 'react';
+import { useGetProvider, useRequestLink, useProviderUnlockState, useUnlockProvider, useGetMpesaConfig } from '../../hooks/useQueries';
 import { Principal } from '@icp-sdk/core/principal';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Textarea } from '../../components/ui/textarea';
+import { UnlockDetailsCard } from '../../components/providers/UnlockDetailsCard';
+import { MpesaUnlockDialog } from '../../components/payments/MpesaUnlockDialog';
+import { ConversationPanel } from '../../components/messaging/ConversationPanel';
+import { ProviderAvatar } from '../../components/providers/ProviderAvatar';
 import { ArrowLeft, MapPin, Star, Phone, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { getBusinessTypeLabel } from '../../lib/categories';
-import { useState } from 'react';
+import { calculateConnectionFee } from '../../utils/fees';
 
 interface ProviderDetailPageProps {
   providerId: string;
@@ -15,11 +20,19 @@ interface ProviderDetailPageProps {
 
 export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPageProps) {
   const [jobDescription, setJobDescription] = useState('');
+  const [mpesaDialogOpen, setMpesaDialogOpen] = useState(false);
+  
   const principal = Principal.fromText(providerId);
   const { data: provider, isLoading } = useGetProvider(principal);
+  const { data: isUnlocked, isLoading: unlockLoading } = useProviderUnlockState(providerId);
+  const { data: mpesaConfig } = useGetMpesaConfig();
+  const unlockProvider = useUnlockProvider();
   const requestLink = useRequestLink();
 
-  if (isLoading) {
+  const connectionFee = provider ? calculateConnectionFee(provider.rate) : 0n;
+  const mpesaConfigAvailable = !!mpesaConfig;
+
+  if (isLoading || unlockLoading) {
     return (
       <div className="container flex min-h-[60vh] items-center justify-center py-12">
         <div className="text-center">
@@ -47,6 +60,8 @@ export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPag
   const avgRating = ratings.length > 0
     ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
     : 0;
+
+  const profilePictureUrl = provider.profilePicture?.blob.getDirectURL();
 
   const getVerificationBadge = () => {
     if ('verified' in provider.verificationStatus) {
@@ -78,6 +93,14 @@ export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPag
         Not Verified
       </Badge>
     );
+  };
+
+  const handleUnlock = () => {
+    setMpesaDialogOpen(true);
+  };
+
+  const handlePaymentSuccess = async () => {
+    await unlockProvider.mutateAsync(providerId);
   };
 
   const handleHire = async () => {
@@ -113,18 +136,27 @@ export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPag
         </Button>
 
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+          <div className="space-y-6 lg:col-span-2">
             <Card>
               <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-2xl">{provider.name}</CardTitle>
-                    <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4" />
-                      {provider.location.address || 'Location available'}
+                <div className="flex items-start gap-4">
+                  <ProviderAvatar
+                    name={provider.name}
+                    profilePictureUrl={profilePictureUrl}
+                    size="lg"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-2xl">{provider.name}</CardTitle>
+                        <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                          <MapPin className="h-4 w-4" />
+                          {provider.location.address || 'Location available'}
+                        </div>
+                      </div>
+                      {getVerificationBadge()}
                     </div>
                   </div>
-                  {getVerificationBadge()}
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -143,14 +175,6 @@ export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPag
                     </Badge>
                   </div>
 
-                  <div>
-                    <p className="text-sm text-muted-foreground">Contact</p>
-                    <div className="mt-1 flex items-center gap-1 text-sm">
-                      <Phone className="h-3.5 w-3.5" />
-                      {provider.phoneNumber || 'Not provided'}
-                    </div>
-                  </div>
-
                   {ratings.length > 0 && (
                     <div>
                       <p className="text-sm text-muted-foreground">Rating</p>
@@ -165,6 +189,45 @@ export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPag
                 </div>
               </CardContent>
             </Card>
+
+            {/* Contact Details - Locked/Unlocked */}
+            {!isUnlocked ? (
+              <UnlockDetailsCard
+                connectionFee={connectionFee}
+                providerName={provider.name}
+                onUnlock={handleUnlock}
+                isUnlocking={unlockProvider.isPending}
+              />
+            ) : (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Contact Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Phone Number</p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        <span className="font-medium">{provider.phoneNumber || 'Not provided'}</span>
+                      </div>
+                    </div>
+
+                    <Button asChild className="w-full gap-2">
+                      <a href={`tel:${provider.phoneNumber}`}>
+                        <Phone className="h-4 w-4" />
+                        Call Provider
+                      </a>
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <ConversationPanel
+                  providerName={provider.name}
+                  providerId={providerId}
+                />
+              </>
+            )}
           </div>
 
           <div>
@@ -210,6 +273,15 @@ export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPag
           </div>
         </div>
       </div>
+
+      <MpesaUnlockDialog
+        open={mpesaDialogOpen}
+        onOpenChange={setMpesaDialogOpen}
+        connectionFee={connectionFee}
+        providerName={provider.name}
+        onPaymentSuccess={handlePaymentSuccess}
+        mpesaConfigAvailable={mpesaConfigAvailable}
+      />
     </div>
   );
 }

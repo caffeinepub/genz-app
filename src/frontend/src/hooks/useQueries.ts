@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { UserRole, BusinessType, Location, VerificationStatus, Job } from '../backend';
+import { UserRole, BusinessType, Location, VerificationStatus, Job, ProviderPreview, MPesaConfig, DocumentType, ExternalBlob } from '../backend';
 import { Principal } from '@icp-sdk/core/principal';
 
 // User Profile & Authentication
@@ -69,6 +69,21 @@ export function useCreateOrUpdateProviderProfile() {
   });
 }
 
+export function useCreateOrUpdateClientProfile() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (phoneNumber: string) => {
+      if (!actor) throw new Error('Actor not available');
+      await actor.createOrUpdateClientProfile(phoneNumber);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
 export function useGetProvider(principal: Principal) {
   const { actor, isFetching } = useActor();
 
@@ -77,6 +92,20 @@ export function useGetProvider(principal: Principal) {
     queryFn: async () => {
       if (!actor) return null;
       return actor.getProvider(principal);
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+// Provider Preview (with engagement status)
+export function useGetProviderPreview(principal: Principal) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<ProviderPreview | null>({
+    queryKey: ['providerPreview', principal.toString()],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getProviderPreview(principal);
     },
     enabled: !!actor && !isFetching,
   });
@@ -111,6 +140,21 @@ export function useGetAllProviders() {
   });
 }
 
+// Platform Stats (public, no auth required)
+export function useGetPlatformStats() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery({
+    queryKey: ['platformStats'],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getPlatformStats();
+    },
+    enabled: !!actor && !isFetching,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+  });
+}
+
 // Job Management
 export function useRequestLink() {
   const { actor } = useActor();
@@ -127,6 +171,7 @@ export function useRequestLink() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['providerPreview'] });
     },
   });
 }
@@ -160,6 +205,7 @@ export function useMarkJobCompleted() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
       queryClient.invalidateQueries({ queryKey: ['providers'] });
+      queryClient.invalidateQueries({ queryKey: ['providerPreview'] });
     },
   });
 }
@@ -175,6 +221,7 @@ export function useCancelJob() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['providerPreview'] });
     },
   });
 }
@@ -195,6 +242,98 @@ export function useUpdateVerificationStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['providers'] });
       queryClient.invalidateQueries({ queryKey: ['allProviders'] });
+    },
+  });
+}
+
+// M-Pesa Configuration
+export function useGetMpesaConfig() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<MPesaConfig | null>({
+    queryKey: ['mpesaConfig'],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getMpesaConfig();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+// Provider Unlock State (simulated client-side for now)
+// In production, backend would track unlock state per (client, provider) pair
+export function useProviderUnlockState(providerId: string) {
+  const queryClient = useQueryClient();
+  
+  return useQuery<boolean>({
+    queryKey: ['providerUnlock', providerId],
+    queryFn: () => {
+      // Check localStorage for unlock state
+      const unlocked = localStorage.getItem(`unlock_${providerId}`);
+      return unlocked === 'true';
+    },
+    staleTime: Infinity, // Don't refetch automatically
+  });
+}
+
+export function useUnlockProvider() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (providerId: string) => {
+      // Simulate payment verification delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Store unlock state
+      localStorage.setItem(`unlock_${providerId}`, 'true');
+      return true;
+    },
+    onSuccess: (_, providerId) => {
+      queryClient.invalidateQueries({ queryKey: ['providerUnlock', providerId] });
+      queryClient.invalidateQueries({ queryKey: ['provider', providerId] });
+    },
+  });
+}
+
+// Document Upload
+export function useUploadDocument() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      docType: DocumentType;
+      filename: string;
+      blob: ExternalBlob;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      const docId = await actor.uploadDocument(params.docType, params.filename, params.blob);
+      await actor.addDocumentToProvider(docId);
+      return docId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+// Profile Picture Upload
+export function useUploadProfilePicture() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      id: string;
+      blob: ExternalBlob;
+    }) => {
+      if (!actor) throw new Error('Actor not available');
+      const pictureId = await actor.uploadProfilePicture(params.id, params.blob);
+      await actor.addProfilePictureToProvider(pictureId);
+      return pictureId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['provider'] });
     },
   });
 }

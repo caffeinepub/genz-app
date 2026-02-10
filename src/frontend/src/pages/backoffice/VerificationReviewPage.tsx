@@ -19,7 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../../components/ui/dialog';
-import { CheckCircle, XCircle, Clock } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, ExternalLink, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { ProviderProfileView, VerificationStatus } from '../../backend';
 
@@ -165,7 +165,7 @@ export function VerificationReviewPage() {
         open={reviewDialog.open}
         onOpenChange={(open) => setReviewDialog({ open, provider: null })}
       >
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Review Provider</DialogTitle>
             <DialogDescription>
@@ -185,6 +185,67 @@ export function VerificationReviewPage() {
                 {reviewDialog.provider?.description || 'No description'}
               </p>
             </div>
+
+            {/* Academic Documents */}
+            <div>
+              <p className="mb-2 text-sm font-medium">Academic Qualifications</p>
+              {reviewDialog.provider?.academicDocuments && reviewDialog.provider.academicDocuments.length > 0 ? (
+                <div className="space-y-2">
+                  {reviewDialog.provider.academicDocuments.map((doc, index) => (
+                    <div key={index} className="flex items-center gap-2 rounded-lg border bg-muted/50 p-3">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <span className="flex-1 text-sm">{doc.filename}</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        asChild
+                      >
+                        <a
+                          href={doc.blob.getDirectURL()}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="gap-1"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          View
+                        </a>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No documents uploaded</p>
+              )}
+            </div>
+
+            {/* Good Conduct Certificate */}
+            <div>
+              <p className="mb-2 text-sm font-medium">Certificate of Good Conduct</p>
+              {reviewDialog.provider?.goodConductCert ? (
+                <div className="flex items-center gap-2 rounded-lg border bg-muted/50 p-3">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <span className="flex-1 text-sm">{reviewDialog.provider.goodConductCert.filename}</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    asChild
+                  >
+                    <a
+                      href={reviewDialog.provider.goodConductCert.blob.getDirectURL()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="gap-1"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      View
+                    </a>
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No certificate uploaded</p>
+              )}
+            </div>
+
             <div>
               <label className="text-sm font-medium">Rejection Reason (if rejecting)</label>
               <Textarea

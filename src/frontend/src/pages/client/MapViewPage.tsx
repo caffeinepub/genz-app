@@ -6,18 +6,19 @@ import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 
 interface MapViewPageProps {
   selectedCategory: string | null;
+  focusProvider?: string | null;
   onNavigate: (page: string, params?: any) => void;
 }
 
-export function MapViewPage({ selectedCategory, onNavigate }: MapViewPageProps) {
+export function MapViewPage({ selectedCategory, focusProvider, onNavigate }: MapViewPageProps) {
   const category = selectedCategory ? getCategoryById(selectedCategory) : null;
   const { data: providers } = useSearchProviders(category?.businessType || null);
 
-  const hasGoogleMapsKey = false; // Would check VITE_GOOGLE_MAPS_API_KEY
+  const hasGoogleMapsConfig = false; // Google Maps not configured
 
   return (
     <div className="container py-12">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-4xl">
         <Button
           variant="ghost"
           size="sm"
@@ -25,38 +26,60 @@ export function MapViewPage({ selectedCategory, onNavigate }: MapViewPageProps) 
           className="mb-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to List View
+          Back to Results
         </Button>
 
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold tracking-tight">Map View</h1>
-          <p className="mt-1 text-muted-foreground">
-            {providers?.length || 0} provider{providers?.length !== 1 ? 's' : ''} in this area
-          </p>
-        </div>
+        <h1 className="mb-6 text-3xl font-bold tracking-tight">
+          Map View - {category?.label || 'All Services'}
+        </h1>
 
-        {!hasGoogleMapsKey ? (
+        {!hasGoogleMapsConfig ? (
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Map View Unavailable</AlertTitle>
             <AlertDescription>
-              Google Maps is not configured. Please use the list view to browse providers.
-              You can still see all providers and their locations in the list.
+              Google Maps integration is not configured. You can still browse providers in list view
+              or use the "Open in Google Maps" link from provider previews to view locations externally.
             </AlertDescription>
           </Alert>
         ) : (
-          <div className="aspect-video rounded-lg border border-border bg-muted">
-            {/* Google Maps would be rendered here when configured */}
+          <div className="aspect-video rounded-lg border bg-muted">
+            {/* Google Maps would be embedded here when configured */}
             <div className="flex h-full items-center justify-center text-muted-foreground">
-              Map loading...
+              Map View
+              {focusProvider && (
+                <span className="ml-2 text-sm">
+                  (Focused on provider: {focusProvider.substring(0, 8)}...)
+                </span>
+              )}
             </div>
           </div>
         )}
 
         <div className="mt-6">
-          <Button onClick={() => onNavigate('results', { category: selectedCategory })}>
-            View as List
-          </Button>
+          <h2 className="mb-4 text-xl font-semibold">Providers in this area</h2>
+          <div className="space-y-2">
+            {providers?.map((provider) => (
+              <div
+                key={provider.principal.toString()}
+                className="flex items-center justify-between rounded-lg border p-4"
+              >
+                <div>
+                  <p className="font-medium">{provider.name}</p>
+                  <p className="text-sm text-muted-foreground">{provider.location.address}</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    onNavigate('provider-detail', { provider: provider.principal.toString() })
+                  }
+                >
+                  View Details
+                </Button>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

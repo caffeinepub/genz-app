@@ -1,51 +1,24 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T20:44:33.382Z",
+  "generatedAt": "2026-02-10T23:01:40.643Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
-        "id": "REQ-14",
-        "summary": "Replace the placeholder support phone number in the in-app Support UI with the user-provided phone support contact: +254 723169783, and ensure it is rendered as a tappable/clickable tel: link.",
+        "id": "REQ-38",
+        "summary": "Regenerate the existing Genz App logo image at `/assets/generated/genz-app-logo.dim_512x512.png` so it is a crisp, sharp 512×512 PNG that still looks clear when rendered as a small rounded app icon in the header (e.g., ~40×40 to ~80×80 CSS pixels).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/support/SupportDrawer.tsx"
+          "frontend/public/assets/generated/genz-app-logo.dim_512x512.png"
         ],
         "matchedFiles": [
-          "frontend/src/components/support/SupportDrawer.tsx"
-        ]
-      },
-      {
-        "id": "REQ-15",
-        "summary": "Ensure a visible \"Customer Support\" contact list exists in the Support UI (Support drawer) and is accessible from both the header \"Support\" entry and the footer \"Customer Support\" entry.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/support/SupportDrawer.tsx",
-          "frontend/src/components/Header.tsx",
-          "frontend/src/components/Footer.tsx",
-          "frontend/src/components/AppLayout.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/support/SupportDrawer.tsx",
-          "frontend/src/components/Header.tsx"
-        ]
-      },
-      {
-        "id": "REQ-16",
-        "summary": "Fix the Genz App logo clarity so it looks sharp when rendered as a 40x40 rounded icon in the header while keeping the asset path `/assets/generated/genz-app-logo.dim_512x512.png`.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/public/assets/generated/genz-app-logo.dim_512x512.png",
-          "frontend/src/components/Header.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/Header.tsx"
+          "frontend/public/assets/generated/genz-app-logo.dim_512x512.png"
         ]
       }
     ]
@@ -55,8 +28,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/support/SupportDrawer.tsx",
+    "frontend/public/assets/generated/genz-app-logo.dim_512x512.png",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

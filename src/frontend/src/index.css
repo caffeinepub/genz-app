@@ -85,3 +85,41 @@
     }
 }
 
+@layer components {
+    /* Fancy landing background with warm theme consistency */
+    .landing-hero-bg {
+        position: relative;
+        background-image: url('/assets/generated/genz-app-fancy-background.dim_1920x1080.png');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+    
+    .landing-hero-bg::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            to bottom,
+            oklch(var(--background) / 0.85) 0%,
+            oklch(var(--background) / 0.92) 50%,
+            oklch(var(--background) / 0.98) 100%
+        );
+        pointer-events: none;
+    }
+    
+    .landing-hero-bg > * {
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Dark mode adjustments */
+    .dark .landing-hero-bg::before {
+        background: linear-gradient(
+            to bottom,
+            oklch(var(--background) / 0.75) 0%,
+            oklch(var(--background) / 0.88) 50%,
+            oklch(var(--background) / 0.95) 100%
+        );
+    }
+}

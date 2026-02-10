@@ -1,10 +1,12 @@
-import { useSearchProviders } from '../../hooks/useQueries';
+import { useState } from 'react';
+import { useSearchProviders, useGetProviderPreview } from '../../hooks/useQueries';
 import { ProviderCard } from '../../components/providers/ProviderCard';
+import { ProviderPreviewDialog } from '../../components/providers/ProviderPreviewDialog';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { ArrowLeft, Map, Search } from 'lucide-react';
-import { useState } from 'react';
 import { getCategoryById } from '../../lib/categories';
+import { Principal } from '@icp-sdk/core/principal';
 
 interface ProviderResultsPageProps {
   selectedCategory: string | null;
@@ -13,15 +15,42 @@ interface ProviderResultsPageProps {
 
 export function ProviderResultsPage({ selectedCategory, onNavigate }: ProviderResultsPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  
   const category = selectedCategory ? getCategoryById(selectedCategory) : null;
   
   const { data: providers, isLoading } = useSearchProviders(
     category?.businessType || null
   );
 
+  const { data: preview } = useGetProviderPreview(
+    selectedProviderId ? Principal.fromText(selectedProviderId) : Principal.anonymous()
+  );
+
   const filteredProviders = providers?.filter((provider) =>
     provider.name.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
+
+  const handleProviderClick = (providerId: string) => {
+    setSelectedProviderId(providerId);
+    setPreviewOpen(true);
+  };
+
+  const handleViewDetails = () => {
+    if (selectedProviderId) {
+      setPreviewOpen(false);
+      onNavigate('provider-detail', { provider: selectedProviderId });
+    }
+  };
+
+  const handleViewOnMap = () => {
+    setPreviewOpen(false);
+    onNavigate('map-view', { 
+      category: selectedCategory,
+      focusProvider: selectedProviderId 
+    });
+  };
 
   return (
     <div className="container py-12">
@@ -88,12 +117,20 @@ export function ProviderResultsPage({ selectedCategory, onNavigate }: ProviderRe
               <ProviderCard
                 key={provider.principal.toString()}
                 provider={provider}
-                onClick={() => onNavigate('provider-detail', { provider: provider.principal.toString() })}
+                onClick={() => handleProviderClick(provider.principal.toString())}
               />
             ))}
           </div>
         )}
       </div>
+
+      <ProviderPreviewDialog
+        preview={preview || null}
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        onViewDetails={handleViewDetails}
+        onViewOnMap={handleViewOnMap}
+      />
     </div>
   );
 }

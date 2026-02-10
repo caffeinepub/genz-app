@@ -1,17 +1,21 @@
-import { useGetCallerUserProfile, useCreateOrUpdateProviderProfile } from '../../hooks/useQueries';
+import { useGetCallerUserProfile, useCreateOrUpdateProviderProfile, useUploadProfilePicture } from '../../hooks/useQueries';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { useState, useEffect } from 'react';
-import { BusinessType } from '../../backend';
+import { useState, useEffect, useRef } from 'react';
+import { BusinessType, ExternalBlob } from '../../backend';
 import { LocationPicker } from '../../components/location/LocationPicker';
+import { ProviderAvatar } from '../../components/providers/ProviderAvatar';
+import { Upload, Loader2 } from 'lucide-react';
 
 export function ProviderProfilePage() {
   const { data: userProfile, isLoading } = useGetCallerUserProfile();
   const updateProfile = useCreateOrUpdateProviderProfile();
+  const uploadPicture = useUploadProfilePicture();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState('');
   const [rate, setRate] = useState('');
@@ -19,6 +23,8 @@ export function ProviderProfilePage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState({ latitude: 0, longitude: 0, address: '' });
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | undefined>(undefined);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   useEffect(() => {
     if (userProfile?.providerProfile) {
@@ -29,12 +35,50 @@ export function ProviderProfilePage() {
       setDescription(profile.description);
       setLocation(profile.location);
       
+      if (profile.profilePicture) {
+        setProfilePictureUrl(profile.profilePicture.blob.getDirectURL());
+      }
+      
       if ('cleaning' in profile.businessType) setBusinessType('cleaning');
       else if ('catering' in profile.businessType) setBusinessType('catering');
       else if ('maintenance' in profile.businessType) setBusinessType('maintenance');
       else if ('wellness' in profile.businessType) setBusinessType('wellness');
     }
   }, [userProfile]);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size must be less than 5MB');
+      return;
+    }
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      
+      const blob = ExternalBlob.fromBytes(uint8Array).withUploadProgress((percentage) => {
+        setUploadProgress(percentage);
+      });
+
+      const pictureId = `profile_${Date.now()}_${file.name}`;
+      await uploadPicture.mutateAsync({ id: pictureId, blob });
+      
+      setUploadProgress(0);
+      alert('Profile picture uploaded successfully!');
+    } catch (error) {
+      console.error('Failed to upload profile picture:', error);
+      alert('Failed to upload profile picture. Please try again.');
+      setUploadProgress(0);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +130,52 @@ export function ProviderProfilePage() {
             Update your information to attract more clients
           </p>
         </div>
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Profile Photo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <ProviderAvatar
+                name={name || 'Provider'}
+                profilePictureUrl={profilePictureUrl}
+                size="lg"
+              />
+              <div className="flex-1">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadPicture.isPending}
+                  className="gap-2"
+                >
+                  {uploadPicture.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Uploading... {uploadProgress > 0 && `${uploadProgress}%`}
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4" />
+                      {profilePictureUrl ? 'Change Photo' : 'Upload Photo'}
+                    </>
+                  )}
+                </Button>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  JPG, PNG or GIF. Max size 5MB.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

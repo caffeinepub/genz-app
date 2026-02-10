@@ -1,12 +1,33 @@
 import { ArrowRight, Users, Shield, Star, MapPin, Briefcase, CheckCircle } from 'lucide-react';
+import { FeaturedProvidersSection } from '../components/providers/FeaturedProvidersSection';
+import { PlatformStatsSection } from '../components/landing/PlatformStatsSection';
+import { TestimonialsSection } from '../components/landing/TestimonialsSection';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useRef } from 'react';
 
 export function LandingPage() {
+  const { login, isLoggingIn } = useInternetIdentity();
+  const testimonialsSectionRef = useRef<HTMLElement>(null);
+
+  const handleGetStarted = () => {
+    login();
+  };
+
+  const handleLearnMore = () => {
+    if (testimonialsSectionRef.current) {
+      testimonialsSectionRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="container flex flex-col items-center justify-center gap-8 py-24 text-center md:py-32 lg:py-40">
+      {/* Hero Section with Fancy Background */}
+      <section className="landing-hero-bg container flex flex-col items-center justify-center gap-8 py-24 text-center md:py-32 lg:py-40">
         <div className="animate-fade-in space-y-6">
-          <div className="inline-flex items-center rounded-full border border-border bg-muted/50 px-4 py-1.5 text-sm font-medium">
+          <div className="inline-flex items-center rounded-full border border-border bg-muted/50 px-4 py-1.5 text-sm font-medium backdrop-blur-sm">
             <Briefcase className="mr-2 h-3.5 w-3.5 text-primary" />
             Connecting Kenya's Gen Z Professionals
           </div>
@@ -24,16 +45,41 @@ export function LandingPage() {
           </p>
           
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-            <button className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-8 text-sm font-medium text-primary-foreground shadow-soft transition-all hover:bg-primary/90 hover:shadow-glow">
-              Get Started
-              <ArrowRight className="h-4 w-4" />
+            <button 
+              onClick={handleGetStarted}
+              disabled={isLoggingIn}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-primary px-8 text-sm font-medium text-primary-foreground shadow-soft transition-all hover:bg-primary/90 hover:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoggingIn ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  Logging in...
+                </>
+              ) : (
+                <>
+                  Get Started
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </button>
-            <button className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-background px-8 text-sm font-medium shadow-xs transition-all hover:bg-accent hover:text-accent-foreground">
+            <button 
+              onClick={handleLearnMore}
+              className="inline-flex h-11 items-center justify-center rounded-lg border border-border bg-background/80 px-8 text-sm font-medium shadow-xs backdrop-blur-sm transition-all hover:bg-accent hover:text-accent-foreground"
+            >
               Learn More
             </button>
           </div>
         </div>
       </section>
+
+      {/* Platform Stats Section */}
+      <PlatformStatsSection />
+
+      {/* Featured Providers Section */}
+      <FeaturedProvidersSection />
+
+      {/* Testimonials Section */}
+      <TestimonialsSection ref={testimonialsSectionRef} />
 
       {/* Features Section */}
       <section id="features" className="border-t border-border/40 bg-muted/30 py-24">

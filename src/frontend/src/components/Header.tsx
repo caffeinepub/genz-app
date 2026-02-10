@@ -33,17 +33,15 @@ export function Header({ currentPage, onNavigate, userRole }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container flex h-20 items-center justify-between">
         <div className="flex items-center gap-3">
           <img 
             src="/assets/generated/genz-app-logo.dim_512x512.png" 
             alt="Genz App"
-            width={40}
-            height={40}
-            className="h-10 w-10 rounded-lg object-cover shadow-sm"
+            className="h-14 w-14 rounded-xl object-contain shadow-sm sm:h-16 sm:w-16 md:h-20 md:w-20"
             style={{ imageRendering: 'crisp-edges' }}
           />
-          <span className="text-xl font-semibold tracking-tight">
+          <span className="text-xl font-semibold tracking-tight sm:text-2xl">
             Genz App
           </span>
         </div>

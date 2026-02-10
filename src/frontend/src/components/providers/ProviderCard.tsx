@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { MapPin, Star, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { getBusinessTypeLabel } from '../../lib/categories';
+import { ProviderAvatar } from './ProviderAvatar';
 
 interface ProviderCardProps {
   provider: ProviderProfileView;
@@ -14,6 +15,8 @@ export function ProviderCard({ provider, onClick }: ProviderCardProps) {
   const avgRating = ratings.length > 0
     ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
     : 0;
+
+  const profilePictureUrl = provider.profilePicture?.blob.getDirectURL();
 
   const getVerificationBadge = () => {
     if ('verified' in provider.verificationStatus) {
@@ -53,6 +56,13 @@ export function ProviderCard({ provider, onClick }: ProviderCardProps) {
       onClick={onClick}
     >
       <CardHeader>
+        <div className="mb-3 flex justify-center">
+          <ProviderAvatar
+            name={provider.name}
+            profilePictureUrl={profilePictureUrl}
+            size="md"
+          />
+        </div>
         <div className="flex items-start justify-between">
           <CardTitle className="text-lg">{provider.name}</CardTitle>
           {getVerificationBadge()}

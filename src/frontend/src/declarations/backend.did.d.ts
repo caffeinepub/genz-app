@@ -31,6 +31,13 @@ export interface ClientProfile {
   'principal' : Principal,
   'phoneNumber' : string,
 }
+export interface Document {
+  'blob' : ExternalBlob,
+  'filename' : string,
+  'docType' : DocumentType,
+}
+export type DocumentType = { 'goodConductCertificate' : null } |
+  { 'academicQualification' : null };
 export type ExternalBlob = Uint8Array;
 export interface Job {
   'id' : string,
@@ -48,7 +55,22 @@ export interface Location {
   'longitude' : number,
   'address' : string,
 }
+export interface MPesaConfig {
+  'consumerSecret' : string,
+  'passkey' : string,
+  'shortCode' : string,
+  'consumerKey' : string,
+  'callbackUrl' : string,
+}
+export interface PlatformStats {
+  'totalProviders' : bigint,
+  'totalClients' : bigint,
+}
 export interface ProfilePicture { 'id' : string, 'blob' : ExternalBlob }
+export interface ProviderPreview {
+  'provider' : ProviderProfileView,
+  'isEngaged' : boolean,
+}
 export interface ProviderProfileView {
   'principal' : Principal,
   'name' : string,
@@ -56,9 +78,11 @@ export interface ProviderProfileView {
   'businessType' : BusinessType,
   'ratings' : Array<bigint>,
   'description' : string,
+  'academicDocuments' : Array<Document>,
   'phoneNumber' : string,
   'profilePicture' : [] | [ProfilePicture],
   'location' : Location,
+  'goodConductCert' : [] | [Document],
   'verificationStatus' : VerificationStatus,
 }
 export interface UserProfileView {
@@ -104,6 +128,8 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'addDocumentToProvider' : ActorMethod<[string], undefined>,
+  'addProfilePictureToProvider' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole__1], undefined>,
   'cancelJob' : ActorMethod<[string, string], undefined>,
   'createOrUpdateClientProfile' : ActorMethod<[string], undefined>,
@@ -115,11 +141,15 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole__1>,
   'getClient' : ActorMethod<[Principal], [] | [ClientProfile]>,
   'getJob' : ActorMethod<[string], [] | [Job]>,
+  'getMpesaConfig' : ActorMethod<[], [] | [MPesaConfig]>,
+  'getPlatformStats' : ActorMethod<[], PlatformStats>,
   'getProvider' : ActorMethod<[Principal], [] | [ProviderProfileView]>,
+  'getProviderPreview' : ActorMethod<[Principal], [] | [ProviderPreview]>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfileView]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'markJobCompleted' : ActorMethod<[string, bigint], undefined>,
   'markJobInProgress' : ActorMethod<[string], undefined>,
+  'providerHasEngagedJob' : ActorMethod<[Principal], boolean>,
   'requestLink' : ActorMethod<[Principal, bigint, string], string>,
   'saveCallerUserProfile' : ActorMethod<
     [
@@ -136,9 +166,11 @@ export interface _SERVICE {
             'businessType' : BusinessType,
             'ratings' : Array<bigint>,
             'description' : string,
+            'academicDocuments' : Array<Document>,
             'phoneNumber' : string,
             'profilePicture' : [] | [ProfilePicture],
             'location' : Location,
+            'goodConductCert' : [] | [Document],
             'verificationStatus' : VerificationStatus,
           }
         ],
@@ -150,11 +182,14 @@ export interface _SERVICE {
     [[] | [BusinessType], Location, [] | [bigint]],
     Array<ProviderProfileView>
   >,
+  'setMPesaConfig' : ActorMethod<[MPesaConfig], undefined>,
   'setUserRole' : ActorMethod<[UserRole], undefined>,
   'updateVerificationStatus' : ActorMethod<
     [Principal, VerificationStatus],
     undefined
   >,
+  'uploadDocument' : ActorMethod<[DocumentType, string, ExternalBlob], string>,
+  'uploadProfilePicture' : ActorMethod<[string, ExternalBlob], string>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

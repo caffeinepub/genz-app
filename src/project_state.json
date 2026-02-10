@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 9,
+  "projectStateVersion": 25,
   "summary": "Pivot to building \"Genz App\": an Uber/Bolt-style marketplace that connects clients with nearby service professionals in Kenya (especially Gen Z), with role-based logins, industry-based search, map-based location visibility, pricing/rates display, provider verification, ratings, and customer care access.",
   "architectural_notes": [
     "Role-based access control for three user types: provider, client, technical/back-office.",
@@ -11,15 +11,17 @@
     "In-app customer care contact entry points (e.g., call/SMS/WhatsApp).",
     "Client-side should not reveal provider contact details until provider confirms availability and payment is successful (gated disclosure).",
     "Add M-Pesa STK Push/API payment integration for connection fee collection and payout routing to configured destination.",
-    "Update primary phone support contact to +254 723 169 783 (keep payout destination 0791955725)."
+    "Update primary phone support contact to +254 723 169 783 (keep payout destination 0791955725).",
+    "Add marketing/brand assets support: a designed background theme and an in-app/hosted muted animated demo video for showcasing app flows."
   ],
   "known_issues": [
     "Build/deploy failed due to an internal configuration issue (Caffeine).",
     "Uploaded logo appears unclear/blurry in the app UI; needs a clearer 512x512 render for the 40x40 rounded header icon.",
-    "Support/contact list UI (Help/Support contacts) was not created/visible as expected."
+    "Support/contact list UI (Help/Support contacts) was not created/visible as expected.",
+    "Landing page CTAs/draft section (e.g., “Get Started”) currently appear unresponsive because they are not wired to any action/navigation."
   ],
   "isFixRequest": true,
-  "imageRequirements": "## Edit Images\n- Improve sharpness/clarity and legibility of the existing logo (genz-app-logo.dim_512x512.png > genz-app-logo.dim_512x512.png)",
+  "imageRequirements": "## Edit Images\n- Increase sharpness and edge definition; ensure clean transparency and crisp shapes at small sizes (genz-app-logo.dim_512x512.png > genz-app-logo.dim_512x512.png)",
   "existing_features": [
     {
       "id": "feature-create-a-minimal-working-app-shell-that-loads-successfully-and-displays-a-landing-page-confirming-the-app-is-set-up",
@@ -148,6 +150,166 @@
         "REQ-16"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-a-new-featured-providers-section-within-the-main-landing-page-content-that-displays-dummy-provider-profiles-for-multiple-services-at-minimum-architects-cleaners-plumbers-gardeners-and-shows-a-sample-rating-for-each-profile",
+      "title": "Add a new \"Featured Providers\" section within the main Landing page content that displays dummy provider profiles for multiple services (at minimum: Architects, Cleaners, Plumbers, Gardeners) and shows a sample rating for each profile.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-increase-the-visual-prominence-of-the-genz-app-logo-in-the-header-while-keeping-the-existing-logo-asset-path-assets-generated-genz-app-logo-dim-512x512-png-ensuring-the-logo-remains-sharp-not-blurry-and-does-not-break-the-header-layout-on-mobile-and-desktop",
+      "title": "Increase the visual prominence of the Genz App logo in the header while keeping the existing logo asset path `/assets/generated/genz-app-logo.dim_512x512.png`, ensuring the logo remains sharp (not blurry) and does not break the header layout on mobile and desktop.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-landing-page-featured-providers-dummy-provider-list-to-remove-the-architect-entry-and-replace-it-with-a-chef-entry-including-complete-dummy-profile-details-name-category-rate-rating-review-count-location-verified-flag-consistent-with-the-existing-featured-provider-cards",
+      "title": "Update the Landing Page \"Featured Providers\" dummy provider list to remove the Architect entry and replace it with a Chef entry, including complete dummy profile details (name, category, rate, rating, review count, location, verified flag) consistent with the existing featured provider cards.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-and-apply-a-fancy-brand-consistent-background-treatment-for-the-app-at-minimum-the-unauthenticated-landing-page-using-a-generated-static-background-image-stored-in-frontend-public-assets-generated-and-ensure-content-remains-readable-and-accessible-sufficient-contrast-no-interference-with-cards-text",
+      "title": "Create and apply a fancy, brand-consistent background treatment for the app (at minimum the unauthenticated Landing page), using a generated static background image stored in `frontend/public/assets/generated`, and ensure content remains readable and accessible (sufficient contrast, no interference with cards/text).",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-muted-animated-explainer-demo-video-asset-that-shows-how-genz-app-works-onboarding-browsing-services-map-view-hiring-linking-and-support-store-it-as-a-static-file-in-the-frontend-public-assets-and-embed-it-on-the-landing-page-in-a-clearly-labeled-how-it-works-demo-section-with-standard-playback-controls-and-a-poster-image",
+      "title": "Add a muted animated explainer/demo video asset that shows how Genz App works (onboarding, browsing services, map view, hiring/linking, and support), store it as a static file in the frontend public assets, and embed it on the Landing page in a clearly labeled “How it works” / “Demo” section with standard playback controls and a poster image.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-up-the-landing-page-hero-ctas-so-clicks-feel-immediately-responsive-1-get-started-must-trigger-the-real-onboarding-flow-by-prompting-internet-identity-login-if-the-user-is-logged-out-then-proceeding-to-the-existing-role-selection-onboarding-screen-2-learn-more-must-smoothly-scroll-focus-to-the-see-how-it-works-demo-video-section",
+      "title": "Wire up the Landing page hero CTAs so clicks feel immediately responsive: (1) “Get Started” must trigger the real onboarding flow by prompting Internet Identity login if the user is logged out, then proceeding to the existing role-selection onboarding screen; (2) “Learn More” must smoothly scroll/focus to the “See How It Works” (demo video) section.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-see-how-it-works-demo-video-section-feel-more-realistic-and-live-by-adding-interactive-controls-around-the-existing-video-include-a-prominent-play-demo-control-overlay-while-paused-and-a-small-set-of-clickable-chapter-highlight-buttons-e-g-onboarding-browse-services-map-view-hiring-linking-support-that-seek-the-video-to-relevant-timestamps-and-then-play",
+      "title": "Make the “See How It Works” demo video section feel more realistic and live by adding interactive controls around the existing video: include a prominent “Play Demo” control overlay (while paused) and a small set of clickable chapter/highlight buttons (e.g., Onboarding, Browse Services, Map View, Hiring/Linking, Support) that seek the video to relevant timestamps and then play.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-realistic-profile-images-for-the-dummy-featured-provider-accounts-and-render-them-in-the-featured-providers-cards-landing-page-as-visible-avatars-headshots-not-generic-icons-images-must-be-stored-as-static-assets-under-frontend-public-assets-generated-and-referenced-by-filename-in-the-featured-providers-section",
+      "title": "Add realistic profile images for the dummy/featured provider accounts and render them in the Featured Providers cards (Landing page) as visible avatars/headshots (not generic icons). Images must be stored as static assets under `frontend/public/assets/generated` and referenced by filename in the Featured Providers section.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-new-landing-page-section-that-shows-platform-adoption-stats-number-of-clients-onboard-and-number-of-service-providers-onboard-with-an-animated-count-up-countdown-style-effect-when-the-section-becomes-visible",
+      "title": "Create a new Landing page section that shows platform adoption stats: number of clients onboard and number of service providers onboard, with an animated count-up/countdown-style effect when the section becomes visible.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-provider-preview-step-before-opening-the-full-provider-detail-view-that-shows-a-the-provider-s-engagement-status-engaged-not-engaged-and-b-the-provider-s-current-approximate-location-with-an-option-to-view-it-on-google-maps",
+      "title": "Add a provider “preview” step before opening the full Provider Detail view that shows (a) the provider’s engagement status (Engaged / Not Engaged) and (b) the provider’s current/approximate location with an option to view it on Google Maps.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-gate-access-to-full-provider-profile-information-especially-the-contacts-section-behind-a-successful-connection-fee-payment-equal-to-10-of-the-provider-s-displayed-rate-and-prompt-the-client-to-pay-before-they-can-view-full-details",
+      "title": "Gate access to full provider profile information—especially the contacts section—behind a successful connection-fee payment equal to 10% of the provider’s displayed rate, and prompt the client to pay before they can view full details.",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-m-pesa-payment-initiation-verification-workflow-for-the-10-connection-fee-integrated-via-a-configurable-m-pesa-api-stk-push-style-and-use-the-verification-result-to-unlock-provider-details",
+      "title": "Add an M-Pesa payment initiation + verification workflow for the 10% connection fee, integrated via a configurable M-Pesa API (STK Push style), and use the verification result to unlock provider details.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-after-a-provider-is-unlocked-expose-communication-options-a-clickable-call-action-tel-link-and-an-in-app-messaging-interface-for-client-provider-communication",
+      "title": "After a provider is unlocked, expose communication options: a clickable call action (tel: link) and an in-app messaging interface for client↔provider communication.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-landing-page-how-it-works-demo-area-by-deleting-the-embedded-demo-video-section-from-the-landing-page-and-updating-the-hero-cta-behavior-so-there-is-no-longer-any-scroll-to-demo-interaction",
+      "title": "Remove the Landing page “How it works”/demo area by deleting the embedded demo video section from the Landing page and updating the hero CTA behavior so there is no longer any scroll-to-demo interaction.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-join-our-growing-community-stats-section-to-show-realistic-adoption-numbers-by-enforcing-a-minimum-display-of-over-200-000-clients-and-about-150-000-service-providers-while-still-using-backend-values-if-they-exceed-those-thresholds",
+      "title": "Update the “Join Our Growing Community” stats section to show realistic adoption numbers by enforcing a minimum display of over 200,000 clients and about 150,000 service providers, while still using backend values if they exceed those thresholds.",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-provider-profile-picture-upload-during-provider-profile-setup-editing-storing-the-uploaded-image-in-the-backend-and-displaying-it-in-provider-facing-and-client-facing-provider-views-where-profile-pictures-are-shown",
+      "title": "Add provider profile picture upload during provider profile setup/editing, storing the uploaded image in the backend and displaying it in provider-facing and client-facing provider views where profile pictures are shown.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-separate-provider-document-upload-sections-for-1-academic-qualification-documents-and-2-certificate-of-good-conduct-and-make-these-documents-available-to-back-office-users-for-review-as-part-of-the-provider-verification-workflow",
+      "title": "Add separate provider document upload sections for (1) Academic qualification documents and (2) Certificate of Good Conduct, and make these documents available to back-office users for review as part of the provider verification workflow.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-testimonials-section-using-dummy-testimonials-tied-to-service-providers-including-the-existing-dummy-featured-provider-identities-and-render-it-as-a-new-landing-page-section-for-social-proof",
+      "title": "Create a testimonials section using dummy testimonials tied to service providers (including the existing dummy/featured provider identities), and render it as a new Landing page section for social proof.",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-landing-page-join-our-growing-community-stats-section-so-it-always-displays-a-realistic-minimum-that-is-strictly-greater-than-200-000-for-clients-onboard-and-approximately-150-000-for-service-providers-onboard-while-still-displaying-backend-provided-totals-whenever-they-exceed-those-minimum-thresholds",
+      "title": "Update the Landing page “Join Our Growing Community” stats section so it always displays a realistic minimum that is strictly greater than 200,000 for “Clients Onboard” and approximately 150,000 for “Service Providers Onboard”, while still displaying backend-provided totals whenever they exceed those minimum thresholds.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-regenerate-the-existing-genz-app-logo-image-at-assets-generated-genz-app-logo-dim-512x512-png-so-it-is-a-crisp-sharp-512-512-png-that-still-looks-clear-when-rendered-as-a-small-rounded-app-icon-in-the-header-e-g-40-40-to-80-80-css-pixels",
+      "title": "Regenerate the existing Genz App logo image at `/assets/generated/genz-app-logo.dim_512x512.png` so it is a crisp, sharp 512×512 PNG that still looks clear when rendered as a small rounded app icon in the header (e.g., ~40×40 to ~80×80 CSS pixels).",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -227,6 +389,114 @@
       "id": "AR-13",
       "summary": "Use the user-provided uploaded image as the Genz App logo in the UI (replace generated logo asset).",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Add dummy provider profiles on the main page (e.g., architects, cleaners, plumbers, gardeners) showing sample ratings for preview/demo purposes.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Adjust the Genz App logo usage in the UI to render it intelligently larger (improve visual prominence while keeping it crisp).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Update the dummy/featured provider profiles on the landing page: remove the Architect profile, replace it with a Chef profile, and create the Chef dummy profile details.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Create a fancier/more visually engaging background for the app (landing page/UI) to improve branding and presentation.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Wire up the Landing page “Get Started” (and any currently non-responsive draft/demo CTAs) to a real action flow (e.g., role selection → login/onboarding) so clicks provide immediate, visible response.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Add realistic profile images/avatars for the dummy/featured provider accounts (use generated static assets and render them in the provider cards).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Create a landing-page stats section showing number of clients and service providers onboard, with an animated count-up/countdown-style effect.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Add a backend query API to return platform counts for the Landing page stats section (total client profiles count and total provider profiles count) in a way that works for anonymous users viewing the Landing page.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Show provider engagement/availability status (e.g., Engaged vs Not Engaged) on the provider preview/listing before viewing the full profile.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Allow clients to view a provider’s current/approximate location on Google Maps from the preview/listing before unlocking the full profile.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Gate/unlock the full provider profile details (especially contacts) behind a successful M-Pesa payment of a 10% connection fee based on the provider’s rate.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Add client↔provider communication options after unlock: clickable calling (tel link/online calling entry point) and an in-app messaging/chat platform.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Implement a backend-derived provider engagement status that clients can see in provider preview/listing, based on whether the provider currently has an active (requested or in-progress) job.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-34",
+      "summary": "During provider onboarding/profile setup, add specific document upload sections for academic qualification documents and Certificate of Good Conduct for back-office review as part of verification.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-35",
+      "summary": "Add a provider profile picture upload/selection section during provider onboarding/profile setup so provider accounts look more real.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-36",
+      "summary": "Create a testimonials section for service providers (including dummy accounts/testimonials) to display social proof in the app/landing experience.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-37",
+      "summary": "Update the “Join Our Growing Community” stats section to show realistic adoption numbers beyond 200,000 clients and around 150,000 service providers (enforce minimum display thresholds).",
+      "reqIds": [
+        "REQ-33"
+      ],
       "status": "pending"
     }
   ],

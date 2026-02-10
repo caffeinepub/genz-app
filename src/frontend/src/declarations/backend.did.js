@@ -58,6 +58,15 @@ export const ClientProfile = IDL.Record({
   'phoneNumber' : IDL.Text,
 });
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
+export const DocumentType = IDL.Variant({
+  'goodConductCertificate' : IDL.Null,
+  'academicQualification' : IDL.Null,
+});
+export const Document = IDL.Record({
+  'blob' : ExternalBlob,
+  'filename' : IDL.Text,
+  'docType' : DocumentType,
+});
 export const ProfilePicture = IDL.Record({
   'id' : IDL.Text,
   'blob' : ExternalBlob,
@@ -75,9 +84,11 @@ export const ProviderProfileView = IDL.Record({
   'businessType' : BusinessType,
   'ratings' : IDL.Vec(IDL.Nat),
   'description' : IDL.Text,
+  'academicDocuments' : IDL.Vec(Document),
   'phoneNumber' : IDL.Text,
   'profilePicture' : IDL.Opt(ProfilePicture),
   'location' : Location,
+  'goodConductCert' : IDL.Opt(Document),
   'verificationStatus' : VerificationStatus,
 });
 export const UserProfileView = IDL.Record({
@@ -97,6 +108,21 @@ export const Job = IDL.Record({
   'provider' : IDL.Principal,
   'description' : IDL.Text,
   'payment' : IDL.Nat,
+});
+export const MPesaConfig = IDL.Record({
+  'consumerSecret' : IDL.Text,
+  'passkey' : IDL.Text,
+  'shortCode' : IDL.Text,
+  'consumerKey' : IDL.Text,
+  'callbackUrl' : IDL.Text,
+});
+export const PlatformStats = IDL.Record({
+  'totalProviders' : IDL.Nat,
+  'totalClients' : IDL.Nat,
+});
+export const ProviderPreview = IDL.Record({
+  'provider' : ProviderProfileView,
+  'isEngaged' : IDL.Bool,
 });
 
 export const idlService = IDL.Service({
@@ -127,6 +153,8 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'addDocumentToProvider' : IDL.Func([IDL.Text], [], []),
+  'addProfilePictureToProvider' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
   'cancelJob' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'createOrUpdateClientProfile' : IDL.Func([IDL.Text], [], []),
@@ -139,9 +167,16 @@ export const idlService = IDL.Service({
   'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
   'getClient' : IDL.Func([IDL.Principal], [IDL.Opt(ClientProfile)], ['query']),
   'getJob' : IDL.Func([IDL.Text], [IDL.Opt(Job)], ['query']),
+  'getMpesaConfig' : IDL.Func([], [IDL.Opt(MPesaConfig)], ['query']),
+  'getPlatformStats' : IDL.Func([], [PlatformStats], ['query']),
   'getProvider' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(ProviderProfileView)],
+      ['query'],
+    ),
+  'getProviderPreview' : IDL.Func(
+      [IDL.Principal],
+      [IDL.Opt(ProviderPreview)],
       ['query'],
     ),
   'getUserProfile' : IDL.Func(
@@ -152,6 +187,7 @@ export const idlService = IDL.Service({
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'markJobCompleted' : IDL.Func([IDL.Text, IDL.Nat], [], []),
   'markJobInProgress' : IDL.Func([IDL.Text], [], []),
+  'providerHasEngagedJob' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
   'requestLink' : IDL.Func([IDL.Principal, IDL.Nat, IDL.Text], [IDL.Text], []),
   'saveCallerUserProfile' : IDL.Func(
       [
@@ -171,9 +207,11 @@ export const idlService = IDL.Service({
               'businessType' : BusinessType,
               'ratings' : IDL.Vec(IDL.Nat),
               'description' : IDL.Text,
+              'academicDocuments' : IDL.Vec(Document),
               'phoneNumber' : IDL.Text,
               'profilePicture' : IDL.Opt(ProfilePicture),
               'location' : Location,
+              'goodConductCert' : IDL.Opt(Document),
               'verificationStatus' : VerificationStatus,
             })
           ),
@@ -187,12 +225,19 @@ export const idlService = IDL.Service({
       [IDL.Vec(ProviderProfileView)],
       ['query'],
     ),
+  'setMPesaConfig' : IDL.Func([MPesaConfig], [], []),
   'setUserRole' : IDL.Func([UserRole], [], []),
   'updateVerificationStatus' : IDL.Func(
       [IDL.Principal, VerificationStatus],
       [],
       [],
     ),
+  'uploadDocument' : IDL.Func(
+      [DocumentType, IDL.Text, ExternalBlob],
+      [IDL.Text],
+      [],
+    ),
+  'uploadProfilePicture' : IDL.Func([IDL.Text, ExternalBlob], [IDL.Text], []),
 });
 
 export const idlInitArgs = [];
@@ -248,6 +293,15 @@ export const idlFactory = ({ IDL }) => {
     'phoneNumber' : IDL.Text,
   });
   const ExternalBlob = IDL.Vec(IDL.Nat8);
+  const DocumentType = IDL.Variant({
+    'goodConductCertificate' : IDL.Null,
+    'academicQualification' : IDL.Null,
+  });
+  const Document = IDL.Record({
+    'blob' : ExternalBlob,
+    'filename' : IDL.Text,
+    'docType' : DocumentType,
+  });
   const ProfilePicture = IDL.Record({ 'id' : IDL.Text, 'blob' : ExternalBlob });
   const VerificationStatus = IDL.Variant({
     'verified' : IDL.Null,
@@ -262,9 +316,11 @@ export const idlFactory = ({ IDL }) => {
     'businessType' : BusinessType,
     'ratings' : IDL.Vec(IDL.Nat),
     'description' : IDL.Text,
+    'academicDocuments' : IDL.Vec(Document),
     'phoneNumber' : IDL.Text,
     'profilePicture' : IDL.Opt(ProfilePicture),
     'location' : Location,
+    'goodConductCert' : IDL.Opt(Document),
     'verificationStatus' : VerificationStatus,
   });
   const UserProfileView = IDL.Record({
@@ -284,6 +340,21 @@ export const idlFactory = ({ IDL }) => {
     'provider' : IDL.Principal,
     'description' : IDL.Text,
     'payment' : IDL.Nat,
+  });
+  const MPesaConfig = IDL.Record({
+    'consumerSecret' : IDL.Text,
+    'passkey' : IDL.Text,
+    'shortCode' : IDL.Text,
+    'consumerKey' : IDL.Text,
+    'callbackUrl' : IDL.Text,
+  });
+  const PlatformStats = IDL.Record({
+    'totalProviders' : IDL.Nat,
+    'totalClients' : IDL.Nat,
+  });
+  const ProviderPreview = IDL.Record({
+    'provider' : ProviderProfileView,
+    'isEngaged' : IDL.Bool,
   });
   
   return IDL.Service({
@@ -314,6 +385,8 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'addDocumentToProvider' : IDL.Func([IDL.Text], [], []),
+    'addProfilePictureToProvider' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
     'cancelJob' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'createOrUpdateClientProfile' : IDL.Func([IDL.Text], [], []),
@@ -334,9 +407,16 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getJob' : IDL.Func([IDL.Text], [IDL.Opt(Job)], ['query']),
+    'getMpesaConfig' : IDL.Func([], [IDL.Opt(MPesaConfig)], ['query']),
+    'getPlatformStats' : IDL.Func([], [PlatformStats], ['query']),
     'getProvider' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(ProviderProfileView)],
+        ['query'],
+      ),
+    'getProviderPreview' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(ProviderPreview)],
         ['query'],
       ),
     'getUserProfile' : IDL.Func(
@@ -347,6 +427,7 @@ export const idlFactory = ({ IDL }) => {
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'markJobCompleted' : IDL.Func([IDL.Text, IDL.Nat], [], []),
     'markJobInProgress' : IDL.Func([IDL.Text], [], []),
+    'providerHasEngagedJob' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
     'requestLink' : IDL.Func(
         [IDL.Principal, IDL.Nat, IDL.Text],
         [IDL.Text],
@@ -370,9 +451,11 @@ export const idlFactory = ({ IDL }) => {
                 'businessType' : BusinessType,
                 'ratings' : IDL.Vec(IDL.Nat),
                 'description' : IDL.Text,
+                'academicDocuments' : IDL.Vec(Document),
                 'phoneNumber' : IDL.Text,
                 'profilePicture' : IDL.Opt(ProfilePicture),
                 'location' : Location,
+                'goodConductCert' : IDL.Opt(Document),
                 'verificationStatus' : VerificationStatus,
               })
             ),
@@ -386,12 +469,19 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(ProviderProfileView)],
         ['query'],
       ),
+    'setMPesaConfig' : IDL.Func([MPesaConfig], [], []),
     'setUserRole' : IDL.Func([UserRole], [], []),
     'updateVerificationStatus' : IDL.Func(
         [IDL.Principal, VerificationStatus],
         [],
         [],
       ),
+    'uploadDocument' : IDL.Func(
+        [DocumentType, IDL.Text, ExternalBlob],
+        [IDL.Text],
+        [],
+      ),
+    'uploadProfilePicture' : IDL.Func([IDL.Text, ExternalBlob], [IDL.Text], []),
   });
 };
 

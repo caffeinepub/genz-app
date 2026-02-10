@@ -4,10 +4,17 @@ import Principal "mo:core/Principal";
 import Text "mo:core/Text";
 import Runtime "mo:core/Runtime";
 import Iter "mo:core/Iter";
+import Nat "mo:core/Nat";
+import Blob "mo:core/Blob";
+
+
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
+import OutCall "http-outcalls/outcall";
+
+// (with annotation placement)
 
 actor {
   // Types
@@ -50,6 +57,17 @@ actor {
     #rejected : Text;
   };
 
+  public type DocumentType = {
+    #academicQualification;
+    #goodConductCertificate;
+  };
+
+  public type Document = {
+    docType : DocumentType;
+    filename : Text;
+    blob : Storage.ExternalBlob;
+  };
+
   public type ProfilePicture = {
     id : Text;
     blob : Storage.ExternalBlob;
@@ -66,6 +84,8 @@ actor {
     profilePicture : ?ProfilePicture;
     phoneNumber : Text;
     description : Text;
+    academicDocuments : List.List<Document>;
+    goodConductCert : ?Document;
   };
 
   public type ProviderProfileView = {
@@ -79,6 +99,8 @@ actor {
     profilePicture : ?ProfilePicture;
     phoneNumber : Text;
     description : Text;
+    academicDocuments : [Document];
+    goodConductCert : ?Document;
   };
 
   public type ClientProfile = {
@@ -112,6 +134,25 @@ actor {
     };
   };
 
+  // New type for stats
+  public type PlatformStats = {
+    totalClients : Nat;
+    totalProviders : Nat;
+  };
+
+  public type ProviderPreview = {
+    provider : ProviderProfileView;
+    isEngaged : Bool; // True if provider has active job
+  };
+
+  public type MPesaConfig = {
+    consumerKey : Text;
+    consumerSecret : Text;
+    shortCode : Text;
+    passkey : Text;
+    callbackUrl : Text;
+  };
+
   // Component initialization
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -122,12 +163,20 @@ actor {
   let providerProfiles = Map.empty<Principal, ProviderProfile>();
   let clientProfiles = Map.empty<Principal, ClientProfile>();
   let jobs = Map.empty<Text, Job>();
+  var mpesaConfig : ?MPesaConfig = null;
+
+  // Document storage
+  let documentStorage = Map.empty<Text, Document>();
+  let profilePictures = Map.empty<Text, ProfilePicture>();
 
   // Internal helpers for view conversion
   func convertProviderProfileToView(profile : ProviderProfile) : ProviderProfileView {
     let ratingsArray = profile.ratings.toArray();
+    let academicDocsArray = profile.academicDocuments.toArray();
     {
-      profile with ratings = ratingsArray
+      profile with
+      ratings = ratingsArray;
+      academicDocuments = academicDocsArray;
     };
   };
 
@@ -136,6 +185,12 @@ actor {
       case (null) { null };
       case (?p) { ?convertProviderProfileToView(p) };
     };
+  };
+
+  func convertProviderProfileListToView(profiles : List.List<ProviderProfile>) : List.List<ProviderProfileView> {
+    profiles.map<ProviderProfile, ProviderProfileView>(
+      func(profile) { convertProviderProfileToView(profile) }
+    );
   };
 
   func convertUserProfileToView(profile : UserProfile) : UserProfileView {
@@ -190,6 +245,8 @@ actor {
       profilePicture : ?ProfilePicture;
       phoneNumber : Text;
       description : Text;
+      academicDocuments : [Document];
+      goodConductCert : ?Document;
     };
     clientProfile : ?{
       principal : Principal;
@@ -205,7 +262,9 @@ actor {
     switch (profile.providerProfile) {
       case (?pp) {
         providerProfiles.add(caller, {
-          pp with ratings = List.empty<Nat>()
+          pp with
+          ratings = List.empty<Nat>();
+          academicDocuments = List.empty<Document>();
         });
       };
       case (null) {};
@@ -262,6 +321,16 @@ actor {
       case (null) { #unverified };
     };
 
+    let existingAcademicDocs = switch (providerProfiles.get(caller)) {
+      case (?existing) { existing.academicDocuments };
+      case (null) { List.empty<Document>() };
+    };
+
+    let existingGoodConductCert = switch (providerProfiles.get(caller)) {
+      case (?existing) { existing.goodConductCert };
+      case (null) { null };
+    };
+
     let profile : ProviderProfile = {
       principal = caller;
       name;
@@ -273,6 +342,8 @@ actor {
       profilePicture = null;
       phoneNumber;
       description;
+      academicDocuments = existingAcademicDocs;
+      goodConductCert = existingGoodConductCert;
     };
 
     providerProfiles.add(caller, profile);
@@ -298,6 +369,92 @@ actor {
     clientProfiles.add(caller, profile);
   };
 
+  // Document upload functions
+  public shared ({ caller }) func uploadDocument(
+    docType : DocumentType,
+    filename : Text,
+    blob : Storage.ExternalBlob,
+  ) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can upload documents");
+    };
+
+    let document : Document = {
+      docType;
+      filename;
+      blob;
+    };
+
+    let docId = filename;
+    documentStorage.add(docId, document);
+    docId;
+  };
+
+  public shared ({ caller }) func addDocumentToProvider(docId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can add documents to profiles");
+    };
+
+    let providerProfile = getProviderInternal(caller);
+
+    let document = switch (documentStorage.get(docId)) {
+      case (?doc) { doc };
+      case (null) { Runtime.trap("Document not found") };
+    };
+
+    switch (document.docType) {
+      case (#academicQualification) {
+        let newAcademicDocs = providerProfile.academicDocuments.clone();
+        newAcademicDocs.add(document);
+        let updatedProfile = {
+          providerProfile with academicDocuments = newAcademicDocs;
+        };
+        providerProfiles.add(caller, updatedProfile);
+      };
+      case (#goodConductCertificate) {
+        let updatedProfile = {
+          providerProfile with goodConductCert = ?document;
+        };
+        providerProfiles.add(caller, updatedProfile);
+      };
+    };
+  };
+
+  public shared ({ caller }) func uploadProfilePicture(
+    id : Text,
+    blob : Storage.ExternalBlob,
+  ) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can upload profile pictures");
+    };
+
+    let picture : ProfilePicture = {
+      id;
+      blob;
+    };
+
+    profilePictures.add(id, picture);
+    id;
+  };
+
+  public shared ({ caller }) func addProfilePictureToProvider(pictureId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can add profile pictures to profiles");
+    };
+
+    let providerProfile = getProviderInternal(caller);
+
+    let picture = switch (profilePictures.get(pictureId)) {
+      case (?pic) { pic };
+      case (null) { Runtime.trap("Profile picture not found") };
+    };
+
+    let updatedProfile = {
+      providerProfile with profilePicture = ?picture;
+    };
+    providerProfiles.add(caller, updatedProfile);
+  };
+
   // Provider search
   public query ({ caller }) func searchProviders(
     filterBusinessType : ?BusinessType,
@@ -314,6 +471,31 @@ actor {
       }
     );
     filtered.map<ProviderProfile, ProviderProfileView>(convertProviderProfileToView).toArray();
+  };
+
+  public query ({ caller }) func getProviderPreview(provider : Principal) : async ?ProviderPreview {
+    let profile = providerProfiles.get(provider);
+    switch (profile) {
+      case (null) { null };
+      case (?p) {
+        let activeJobs = jobs.values().filter(func(j) { j.provider == provider });
+        let hasEngagedJob = switch (activeJobs.next()) {
+          case (null) { false };
+          case (?firstJob) {
+            switch (firstJob.status) {
+              case (#requested) { true };
+              case (#inProgress) { true };
+              case (_) { false };
+            };
+          };
+        };
+
+        ?{
+          provider = convertProviderProfileToView(p);
+          isEngaged = hasEngagedJob;
+        };
+      };
+    };
   };
 
   // Job functions
@@ -336,7 +518,7 @@ actor {
       case (?_) {};
     };
 
-    let jobId = provider.toText() # caller.toText() # jobDescription # Nat.toText(payment);
+    let jobId = provider.toText() # caller.toText() # jobDescription # payment.toText();
 
     let job : Job = {
       id = jobId;
@@ -349,6 +531,20 @@ actor {
 
     jobs.add(jobId, job);
     jobId;
+  };
+
+  public query ({ caller }) func providerHasEngagedJob(provider : Principal) : async Bool {
+    let activeJobs = jobs.values().filter(func(j) { j.provider == provider });
+    switch (activeJobs.next()) {
+      case (null) { false };
+      case (?firstJob) {
+        switch (firstJob.status) {
+          case (#requested) { true };
+          case (#inProgress) { true };
+          case (_) { false };
+        };
+      };
+    };
   };
 
   public shared ({ caller }) func markJobInProgress(jobId : Text) : async () {
@@ -475,5 +671,28 @@ actor {
       };
       case (null) { null };
     };
+  };
+
+  // Public stats for landing page
+  public query ({ caller }) func getPlatformStats() : async PlatformStats {
+    {
+      totalClients = clientProfiles.size();
+      totalProviders = providerProfiles.size();
+    };
+  };
+
+  // M-Pesa Payment integration (config)
+  public shared ({ caller }) func setMPesaConfig(config : MPesaConfig) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admin users can set M-Pesa config");
+    };
+    mpesaConfig := ?config;
+  };
+
+  public query ({ caller }) func getMpesaConfig() : async ?MPesaConfig {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      return null;
+    };
+    mpesaConfig;
   };
 };
