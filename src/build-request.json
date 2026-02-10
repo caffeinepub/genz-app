@@ -1,39 +1,60 @@
 {
   "kind": "build_request",
-  "title": "Regenerate Genz App logo asset for crisp header rendering",
+  "title": "Replace current Genz App logo with a newly proposed logo inspired by the user’s logo",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-38",
-      "text": "Regenerate the existing Genz App logo image at `/assets/generated/genz-app-logo.dim_512x512.png` so it is a crisp, sharp 512×512 PNG that still looks clear when rendered as a small rounded app icon in the header (e.g., ~40×40 to ~80×80 CSS pixels).",
+      "id": "REQ-40",
+      "text": "Replace the current Genz App logo by regenerating the existing static logo asset at `/assets/generated/genz-app-logo.dim_512x512.png` with a new proposed logo design that borrows key visual ideas from the user’s original logo (overall concept, recognizable motifs, and brand feel) while still being an original, clean, modern mark appropriate for a Kenyan services marketplace.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-4"
         ],
         "quotes": [
-          "regenerate"
+          "remove the logo and propose yours, but borrowing the ideas from my logo"
         ]
       },
       "acceptanceCriteria": [
-        "The file `frontend/public/assets/generated/genz-app-logo.dim_512x512.png` exists and is a valid 512×512 PNG.",
-        "The logo appears sharp (not blurry/pixelated) when displayed in the header at the current responsive sizes (see `frontend/src/components/Header.tsx` where it is shown with rounded corners).",
-        "The public asset path remains exactly `/assets/generated/genz-app-logo.dim_512x512.png` (no filename/path changes required elsewhere)."
+        "`frontend/public/assets/generated/genz-app-logo.dim_512x512.png` is updated to the newly proposed logo design (512×512 PNG).",
+        "The logo has good contrast on light backgrounds, clean edges, and looks sharp when rendered small (approximately 40×40 to 80×80 CSS pixels) with rounded corners.",
+        "The app header continues to load the logo from `/assets/generated/genz-app-logo.dim_512x512.png` without any broken-image icon, layout shifts, or console errors."
+      ]
+    },
+    {
+      "id": "REQ-41",
+      "text": "Verify and adjust (if needed) the header logo rendering so the new logo remains visually clear and well-aligned across breakpoints without changing the logo asset path and without breaking the header layout on mobile and desktop.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "remove the logo and propose yours, but borrowing the ideas from my logo"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On mobile and desktop, the header brand area (logo + “Genz App” text) remains vertically centered and does not overflow or overlap navigation controls.",
+        "The logo remains crisp (no unintended blur) and preserves its aspect ratio (no stretching/squashing).",
+        "No changes are made to authentication/navigation behavior while adjusting logo rendering."
       ]
     }
   ],
   "constraints": [
-    "Do not change the logo public asset path `/assets/generated/genz-app-logo.dim_512x512.png`.",
-    "Do not edit files under `frontend/src/components/ui` or other immutable paths listed in SYSTEM_CONTEXT."
+    "Keep using the existing logo asset path `/assets/generated/genz-app-logo.dim_512x512.png` (do not introduce a new path).",
+    "Store/serve the logo as a static asset under `frontend/public/assets/generated` (no backend image serving).",
+    "Do not edit any files under `frontend/src/components/ui` or other immutable paths listed in SYSTEM_CONTEXT.",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Do not redesign the header layout, navigation, or typography.",
-    "Do not change the app name or any user-facing copy."
+    "Do not rename the product (must remain “Genz App”).",
+    "Do not redesign unrelated UI sections (landing page content, categories, provider cards, payments, support) beyond what is necessary to ensure the new logo renders correctly.",
+    "Do not add new authentication methods or third-party integrations."
   ],
   "imageRequirements": {
     "required": [],
     "edits": [
-      "Increase sharpness and edge definition; ensure clean transparency and crisp shapes at small sizes (genz-app-logo.dim_512x512.png > genz-app-logo.dim_512x512.png)"
+      "Create a new proposed logo inspired by the user’s original logo (genz-app-logo.dim_512x512.png > genz-app-logo.dim_512x512.png)"
     ]
   },
   "userProfileUpdate": {

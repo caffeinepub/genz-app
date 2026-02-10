@@ -1,7 +1,7 @@
 {
   "frontend/src/App.tsx": "Main app component with role-based routing, authentication flow, and page navigation for clients, providers, and back-office users with fixed type-safe navigation.",
   "frontend/src/components/AppLayout.tsx": "Layout wrapper component that renders header, main content area, footer, and support drawer with navigation props.",
-  "frontend/src/components/Header.tsx": "Responsive header with larger Genz App logo (14-20px responsive sizing), role-based navigation menu, login button, and mobile menu support with crisp rendering.",
+  "frontend/src/components/Header.tsx": "Responsive header with Genz App logo (12-14px responsive sizing), role-based navigation menu, login button, and mobile menu support with clean rendering optimized for the new simplified logo design.",
   "frontend/src/components/Footer.tsx": "Footer component with Genz App branding, support link, and caffeine.ai attribution with UTM tracking.",
   "frontend/src/pages/LandingPage.tsx": "Landing page with hero section, platform stats, featured providers, testimonials section, features, and about sections; Learn More button scrolls to testimonials section.",
   "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including provider profile, document uploads, profile picture uploads, and state management with proper invalidation.",
@@ -35,5 +35,5 @@
   "frontend/src/components/messaging/ConversationPanel.tsx": "In-app messaging panel for client-provider communication with message history, manual refresh, and send functionality (simulated client-side for now).",
   "frontend/src/components/landing/TestimonialsSection.tsx": "Testimonials section displaying client reviews with star ratings, reviewer names, and associated provider information using dummy data tied to featured provider identities.",
   "frontend/src/components/providers/ProviderAvatar.tsx": "Reusable avatar component that displays provider profile pictures with fallback to initials when no picture is available.",
-  "frontend/public/assets/generated/genz-app-logo.dim_512x512.png": "Regenerated 512×512 PNG logo with crisp vector-based design featuring a stylized \"G\" and connection symbols in warm gradient colors, optimized for sharp rendering at small sizes in the header."
+  "frontend/public/assets/generated/genz-app-logo.dim_512x512.png": "512×512 PNG of the full Genz Kenya logo with detailed branding, figure, tools, Kenya flag elements, and \"Empowering Careers\" tagline on transparent background."
 }

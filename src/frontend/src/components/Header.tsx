@@ -38,8 +38,7 @@ export function Header({ currentPage, onNavigate, userRole }: HeaderProps) {
           <img 
             src="/assets/generated/genz-app-logo.dim_512x512.png" 
             alt="Genz App"
-            className="h-14 w-14 rounded-xl object-contain shadow-sm sm:h-16 sm:w-16 md:h-20 md:w-20"
-            style={{ imageRendering: 'crisp-edges' }}
+            className="h-12 w-12 rounded-lg object-contain sm:h-14 sm:w-14"
           />
           <span className="text-xl font-semibold tracking-tight sm:text-2xl">
             Genz App

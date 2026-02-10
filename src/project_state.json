@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 25,
+  "projectStateVersion": 29,
   "summary": "Pivot to building \"Genz App\": an Uber/Bolt-style marketplace that connects clients with nearby service professionals in Kenya (especially Gen Z), with role-based logins, industry-based search, map-based location visibility, pricing/rates display, provider verification, ratings, and customer care access.",
   "architectural_notes": [
     "Role-based access control for three user types: provider, client, technical/back-office.",
@@ -18,10 +18,11 @@
     "Build/deploy failed due to an internal configuration issue (Caffeine).",
     "Uploaded logo appears unclear/blurry in the app UI; needs a clearer 512x512 render for the 40x40 rounded header icon.",
     "Support/contact list UI (Help/Support contacts) was not created/visible as expected.",
-    "Landing page CTAs/draft section (e.g., “Get Started”) currently appear unresponsive because they are not wired to any action/navigation."
+    "Landing page CTAs/draft section (e.g., “Get Started”) currently appear unresponsive because they are not wired to any action/navigation.",
+    "App still not displaying for the user; likely related to missing/broken logo asset at `/assets/generated/genz-app-logo.dim_512x512.png` causing header image load failure."
   ],
-  "isFixRequest": true,
-  "imageRequirements": "## Edit Images\n- Increase sharpness and edge definition; ensure clean transparency and crisp shapes at small sizes (genz-app-logo.dim_512x512.png > genz-app-logo.dim_512x512.png)",
+  "isFixRequest": false,
+  "imageRequirements": "## Edit Images\n- Create a new proposed logo inspired by the user’s original logo (genz-app-logo.dim_512x512.png > genz-app-logo.dim_512x512.png)",
   "existing_features": [
     {
       "id": "feature-create-a-minimal-working-app-shell-that-loads-successfully-and-displays-a-landing-page-confirming-the-app-is-set-up",
@@ -310,6 +311,30 @@
         "REQ-38"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-replace-the-existing-static-logo-asset-at-assets-generated-genz-app-logo-dim-512x512-png-with-a-regenerated-crisp-512-512-png-derived-from-the-user-uploaded-image-gemini-generated-image-g3cec6g3cec6g3ce-1-removebg-preview-png-ensuring-the-header-logo-no-longer-shows-a-broken-image-icon-and-remains-sharp-when-rendered-at-small-sizes-approximately-40-40-to-80-80-css-pixels-with-rounded-corners-on-light-backgrounds",
+      "title": "Replace the existing static logo asset at `/assets/generated/genz-app-logo.dim_512x512.png` with a regenerated, crisp 512×512 PNG derived from the user-uploaded image `Gemini_Generated_Image_g3cec6g3cec6g3ce__1_-removebg-preview.png`, ensuring the header logo no longer shows a broken-image icon and remains sharp when rendered at small sizes (approximately 40×40 to 80×80 CSS pixels) with rounded corners on light backgrounds.",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-current-genz-app-logo-by-regenerating-the-existing-static-logo-asset-at-assets-generated-genz-app-logo-dim-512x512-png-with-a-new-proposed-logo-design-that-borrows-key-visual-ideas-from-the-user-s-original-logo-overall-concept-recognizable-motifs-and-brand-feel-while-still-being-an-original-clean-modern-mark-appropriate-for-a-kenyan-services-marketplace",
+      "title": "Replace the current Genz App logo by regenerating the existing static logo asset at `/assets/generated/genz-app-logo.dim_512x512.png` with a new proposed logo design that borrows key visual ideas from the user’s original logo (overall concept, recognizable motifs, and brand feel) while still being an original, clean, modern mark appropriate for a Kenyan services marketplace.",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-and-adjust-if-needed-the-header-logo-rendering-so-the-new-logo-remains-visually-clear-and-well-aligned-across-breakpoints-without-changing-the-logo-asset-path-and-without-breaking-the-header-layout-on-mobile-and-desktop",
+      "title": "Verify and adjust (if needed) the header logo rendering so the new logo remains visually clear and well-aligned across breakpoints without changing the logo asset path and without breaking the header layout on mobile and desktop.",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -497,6 +522,12 @@
       "reqIds": [
         "REQ-33"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-38",
+      "summary": "Remove the current uploaded/logo asset and create a new proposed Genz App logo inspired by (borrowing ideas from) the user’s original logo; update the app to use the new logo asset.",
+      "reqIds": [],
       "status": "pending"
     }
   ],

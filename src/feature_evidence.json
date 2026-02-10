@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-regenerate-the-existing-genz-app-logo-image-at-assets-generated-genz-app-logo-dim-512x512-png-so-it-is-a-crisp-sharp-512-512-png-that-still-looks-clear-when-rendered-as-a-small-rounded-app-icon-in-the-header-e-g-40-40-to-80-80-css-pixels",
-      "featureTitle": "Regenerate the existing Genz App logo image at `/assets/generated/genz-app-logo.dim_512x512.png` so it is a crisp, sharp 512×512 PNG that still looks clear when rendered as a small rounded app icon in the header (e.g., ~40×40 to ~80×80 CSS pixels).",
+      "featureId": "feature-replace-the-current-genz-app-logo-by-regenerating-the-existing-static-logo-asset-at-assets-generated-genz-app-logo-dim-512x512-png-with-a-new-proposed-logo-design-that-borrows-key-visual-ideas-from-the-user-s-original-logo-overall-concept-recognizable-motifs-and-brand-feel-while-still-being-an-original-clean-modern-mark-appropriate-for-a-kenyan-services-marketplace",
+      "featureTitle": "Replace the current Genz App logo by regenerating the existing static logo asset at `/assets/generated/genz-app-logo.dim_512x512.png` with a new proposed logo design that borrows key visual ideas from the user’s original logo (overall concept, recognizable motifs, and brand feel) while still being an original, clean, modern mark appropriate for a Kenyan services marketplace.",
       "files": [],
       "components": [
         "core-infrastructure@1.0.2",
@@ -16,7 +16,28 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-38"
+        "REQ-40"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-verify-and-adjust-if-needed-the-header-logo-rendering-so-the-new-logo-remains-visually-clear-and-well-aligned-across-breakpoints-without-changing-the-logo-asset-path-and-without-breaking-the-header-layout-on-mobile-and-desktop",
+      "featureTitle": "Verify and adjust (if needed) the header logo rendering so the new logo remains visually clear and well-aligned across breakpoints without changing the logo asset path and without breaking the header layout on mobile and desktop.",
+      "files": [
+        "frontend/src/components/Header.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-41"
       ],
       "confidence": "high"
     }

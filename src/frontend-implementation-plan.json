@@ -1,21 +1,37 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Regenerate Genz App logo asset for crisp header rendering",
+  "title": "Update Genz App static logo asset and ensure header logo rendering remains crisp and aligned",
   "requirements": [
     {
-      "id": "REQ-38",
-      "summary": "Regenerate the Genz App logo PNG asset as a crisp 512×512 image while keeping the existing public path used by the header icon.",
+      "id": "REQ-40",
+      "summary": "Regenerate the existing static Genz App logo asset at the same path with a new proposed design inspired by the user’s logo.",
       "acceptanceCriteria": [
-        "The file `frontend/public/assets/generated/genz-app-logo.dim_512x512.png` exists and is a valid 512×512 PNG.",
-        "The logo appears sharp (not blurry/pixelated) when displayed in the header at the current responsive sizes (see `frontend/src/components/Header.tsx` where it is shown with rounded corners).",
-        "The public asset path remains exactly `/assets/generated/genz-app-logo.dim_512x512.png` (no filename/path changes required elsewhere)."
+        "`frontend/public/assets/generated/genz-app-logo.dim_512x512.png` is updated to the newly proposed logo design (512×512 PNG).",
+        "The logo has good contrast on light backgrounds, clean edges, and looks sharp when rendered small (approximately 40×40 to 80×80 CSS pixels) with rounded corners.",
+        "The app header continues to load the logo from `/assets/generated/genz-app-logo.dim_512x512.png` without any broken-image icon, layout shifts, or console errors."
       ],
       "file_operations": [
         {
           "path": "frontend/public/assets/generated/genz-app-logo.dim_512x512.png",
-          "operation": "create",
-          "description": "Regenerate/replace the logo image as a sharp, clean, transparency-preserving 512×512 PNG optimized to render crisply when downscaled to ~40–80 CSS pixels with rounded corners in the header. Keep the public asset path exactly `/assets/generated/genz-app-logo.dim_512x512.png`."
+          "operation": "modify",
+          "description": "Replace the existing 512×512 PNG at frontend/public/assets/generated/genz-app-logo.dim_512x512.png with the newly proposed, original logo design inspired by the user’s logo, ensuring clean edges and strong contrast on light backgrounds."
+        }
+      ]
+    },
+    {
+      "id": "REQ-41",
+      "summary": "Adjust header logo rendering styles to keep the new logo crisp, centered, and responsive across breakpoints without changing navigation/auth behavior or the asset path.",
+      "acceptanceCriteria": [
+        "On mobile and desktop, the header brand area (logo + “Genz App” text) remains vertically centered and does not overflow or overlap navigation controls.",
+        "The logo remains crisp (no unintended blur) and preserves its aspect ratio (no stretching/squashing).",
+        "No changes are made to authentication/navigation behavior while adjusting logo rendering."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Refine the header brand area styling for the logo + “Genz App” text to ensure consistent vertical centering and non-overflow across breakpoints; keep using /assets/generated/genz-app-logo.dim_512x512.png, preserve aspect ratio, and avoid any changes to auth/nav behavior (only presentation/layout tweaks)."
         }
       ]
     }
