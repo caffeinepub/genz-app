@@ -12,7 +12,8 @@ import {
 } from '../ui/drawer';
 
 export function SupportDrawer() {
-  const supportPhone = '+254 700 000 000';
+  const supportPhone = '+254 723169783';
+  const supportPhoneHref = 'tel:+254723169783';
   const supportEmail = 'support@genzapp.co.ke';
 
   return (
@@ -34,7 +35,7 @@ export function SupportDrawer() {
               <div className="flex-1">
                 <p className="text-sm font-medium">Phone Support</p>
                 <a
-                  href={`tel:${supportPhone}`}
+                  href={supportPhoneHref}
                   className="text-sm text-primary hover:underline"
                 >
                   {supportPhone}

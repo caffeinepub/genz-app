@@ -1,10 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Replace the existing Genz App logo asset with the user-uploaded logo while keeping the same static asset path used by the header.
+**Goal:** Make the Support UI show the correct phone support contact and ensure the app logo renders sharply in the header.
 
 **Planned changes:**
-- Update `frontend/public/assets/generated/genz-app-logo.dim_512x512.png` to match the uploaded logo image.
-- Ensure the updated logo is a 512x512 PNG and renders crisply at 40x40 with rounded corners without unintended cropping.
+- Update the Support UI to display a “Customer Support” contact list that includes a “Phone Support” item with the exact number “+254 723169783”.
+- Make the phone number tappable/clickable using a `tel:` link to initiate a call on supported devices/browsers.
+- Ensure the Support drawer/contact list is accessible from both the header “Support” entry and the footer “Customer Support” entry.
+- Improve the clarity of the existing logo image asset while keeping the exact path `/assets/generated/genz-app-logo.dim_512x512.png` and ensuring it looks crisp when shown as a 40x40 rounded header icon.
 
-**User-visible outcome:** The app header displays the new uploaded Genz logo at the same location, loading from the existing `/assets/generated/genz-app-logo.dim_512x512.png` path.
+**User-visible outcome:** Users can open Support from the header or footer to see a Customer Support contact list and tap “+254 723169783” to call support, and the header logo appears sharp instead of blurry.

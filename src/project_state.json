@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 7,
+  "projectStateVersion": 9,
   "summary": "Pivot to building \"Genz App\": an Uber/Bolt-style marketplace that connects clients with nearby service professionals in Kenya (especially Gen Z), with role-based logins, industry-based search, map-based location visibility, pricing/rates display, provider verification, ratings, and customer care access.",
   "architectural_notes": [
     "Role-based access control for three user types: provider, client, technical/back-office.",
@@ -11,13 +11,15 @@
     "In-app customer care contact entry points (e.g., call/SMS/WhatsApp).",
     "Client-side should not reveal provider contact details until provider confirms availability and payment is successful (gated disclosure).",
     "Add M-Pesa STK Push/API payment integration for connection fee collection and payout routing to configured destination.",
-    "Add configuration for payout destination and primary support contact numbers (provided: payout 0791955725; main 0795532919)."
+    "Update primary phone support contact to +254 723 169 783 (keep payout destination 0791955725)."
   ],
   "known_issues": [
-    "Build/deploy failed due to an internal configuration issue (Caffeine)."
+    "Build/deploy failed due to an internal configuration issue (Caffeine).",
+    "Uploaded logo appears unclear/blurry in the app UI; needs a clearer 512x512 render for the 40x40 rounded header icon.",
+    "Support/contact list UI (Help/Support contacts) was not created/visible as expected."
   ],
-  "isFixRequest": false,
-  "imageRequirements": "## Edit Images\n- Use the uploaded logo image as the app logo (Gemini_Generated_Image_f7iz8qf7iz8qf7iz.png > genz-app-logo.dim_512x512.png)",
+  "isFixRequest": true,
+  "imageRequirements": "## Edit Images\n- Improve sharpness/clarity and legibility of the existing logo (genz-app-logo.dim_512x512.png > genz-app-logo.dim_512x512.png)",
   "existing_features": [
     {
       "id": "feature-create-a-minimal-working-app-shell-that-loads-successfully-and-displays-a-landing-page-confirming-the-app-is-set-up",
@@ -120,6 +122,30 @@
       "title": "Replace the current Genz App logo asset with the user-uploaded logo image so the header brand icon uses the uploaded logo while keeping the existing asset path `/assets/generated/genz-app-logo.dim_512x512.png`. Ensure the resulting logo file is a 512x512 PNG and looks good when rendered as a 40x40 image with rounded corners in the header.",
       "reqIds": [
         "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-placeholder-support-phone-number-in-the-in-app-support-ui-with-the-user-provided-phone-support-contact-254-723169783-and-ensure-it-is-rendered-as-a-tappable-clickable-tel-link",
+      "title": "Replace the placeholder support phone number in the in-app Support UI with the user-provided phone support contact: +254 723169783, and ensure it is rendered as a tappable/clickable tel: link.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-a-visible-customer-support-contact-list-exists-in-the-support-ui-support-drawer-and-is-accessible-from-both-the-header-support-entry-and-the-footer-customer-support-entry",
+      "title": "Ensure a visible \"Customer Support\" contact list exists in the Support UI (Support drawer) and is accessible from both the header \"Support\" entry and the footer \"Customer Support\" entry.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-genz-app-logo-clarity-so-it-looks-sharp-when-rendered-as-a-40x40-rounded-icon-in-the-header-while-keeping-the-asset-path-assets-generated-genz-app-logo-dim-512x512-png",
+      "title": "Fix the Genz App logo clarity so it looks sharp when rendered as a 40x40 rounded icon in the header while keeping the asset path `/assets/generated/genz-app-logo.dim_512x512.png`.",
+      "reqIds": [
+        "REQ-16"
       ],
       "version": 1
     }

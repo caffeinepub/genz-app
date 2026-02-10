@@ -1,26 +1,72 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Swap header logo to uploaded Genz App image while preserving asset path",
+  "title": "Support contact fixes and sharper header logo",
   "requirements": [
     {
-      "id": "REQ-13",
-      "summary": "Replace the existing logo asset with the uploaded image while keeping the same static asset path and ensuring crisp, uncropped header rendering at 40x40 with rounded corners.",
+      "id": "REQ-14",
+      "summary": "Update the Support UI phone contact to +254 723169783 and render it as a tel: link.",
       "acceptanceCriteria": [
-        "The file `frontend/public/assets/generated/genz-app-logo.dim_512x512.png` is replaced/updated to visually match the uploaded logo.",
-        "The header continues to load the logo from `/assets/generated/genz-app-logo.dim_512x512.png` (no broken images).",
-        "The logo renders crisply in the header at 40x40, with no unintended cropping of the central mark/text."
+        "Opening the Support UI shows a \"Phone Support\" entry with the exact number \"+254 723169783\".",
+        "Clicking/tapping the phone number uses a tel: link that initiates a call to +254 723169783 on supported devices/browsers."
       ],
       "file_operations": [
         {
-          "path": "frontend/public/assets/generated/genz-app-logo.dim_512x512.png",
-          "operation": "create",
-          "description": "Replace/update the static logo file at this exact path using the uploaded asset `Gemini_Generated_Image_f7iz8qf7iz8qf7iz.png`, ensuring the resulting file is a 512x512 PNG and optimized to render clearly at 40x40."
+          "path": "frontend/src/components/support/SupportDrawer.tsx",
+          "operation": "modify",
+          "description": "Replace the placeholder phone number with the exact display value \"+254 723169783\" and ensure the anchor uses a valid tel: href (e.g., a sanitized digits-only variant) while keeping the visible text exactly as specified."
+        }
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "summary": "Ensure the Support drawer visibly contains a Customer Support contact list and is reachable from both header and footer triggers.",
+      "acceptanceCriteria": [
+        "From the header \"Support\" button, the Support drawer opens and displays the support contacts list.",
+        "From the footer \"Customer Support\" button, the Support drawer opens and displays the support contacts list.",
+        "The Support drawer contains at least one contact item labeled in English (e.g., \"Phone Support\") and includes +254 723169783."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/support/SupportDrawer.tsx",
+          "operation": "modify",
+          "description": "Confirm the drawer content clearly presents a visible English-labeled contact list section (including \"Phone Support\") and that it includes +254 723169783 (displayed) to satisfy the required minimum contact item."
         },
         {
           "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Adjust the header logo <img> rendering to avoid unintended cropping at 40x40 (e.g., prefer contain-like behavior over cover while preserving rounded corners), and keep the src path exactly `/assets/generated/genz-app-logo.dim_512x512.png`. Verify the component's usage instructions before implementing."
+          "description": "Verify the header \"Support\" control opens the Support drawer reliably (via the existing trigger element) and keep the behavior consistent for both desktop and mobile menus."
+        },
+        {
+          "path": "frontend/src/components/Footer.tsx",
+          "operation": "modify",
+          "description": "Verify the footer \"Customer Support\" control opens the Support drawer reliably (via the existing trigger element)."
+        },
+        {
+          "path": "frontend/src/components/AppLayout.tsx",
+          "operation": "modify",
+          "description": "Confirm the SupportDrawer is mounted in the shared layout so the drawer and its trigger are present across pages where header/footer are rendered."
+        }
+      ]
+    },
+    {
+      "id": "REQ-16",
+      "summary": "Improve header logo sharpness at 40x40 rounded display while keeping the same asset path reference in Header.tsx.",
+      "acceptanceCriteria": [
+        "The file `/assets/generated/genz-app-logo.dim_512x512.png` remains a 512x512 PNG.",
+        "When displayed in the header at 40x40 with rounded corners, the logo appears crisp (not blurry/pixelated) at normal zoom and on high-DPI screens.",
+        "No code changes alter the logo image path used by `frontend/src/components/Header.tsx` (it must continue to reference `/assets/generated/genz-app-logo.dim_512x512.png`)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/public/assets/generated/genz-app-logo.dim_512x512.png",
+          "operation": "modify",
+          "description": "Replace the existing generated logo file with an improved sharpness/clarity version while keeping it a 512x512 PNG and keeping the exact same filename and location."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Keep the logo src path exactly \"/assets/generated/genz-app-logo.dim_512x512.png\" but adjust rendering attributes/classes as needed (e.g., explicit width/height, fitting mode) to avoid browser blur when shown as a 40x40 rounded icon."
         }
       ]
     }
