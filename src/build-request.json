@@ -1,0 +1,50 @@
+{
+  "kind": "build_request",
+  "title": "Replace Genz App logo with the user-uploaded image",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-13",
+      "text": "Replace the current Genz App logo asset with the user-uploaded logo image so the header brand icon uses the uploaded logo while keeping the existing asset path `/assets/generated/genz-app-logo.dim_512x512.png`. Ensure the resulting logo file is a 512x512 PNG and looks good when rendered as a 40x40 image with rounded corners in the header.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-9"
+        ],
+        "quotes": [
+          "use the above image as the apps logo"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The file `frontend/public/assets/generated/genz-app-logo.dim_512x512.png` is replaced/updated to visually match the uploaded logo.",
+        "The header continues to load the logo from `/assets/generated/genz-app-logo.dim_512x512.png` (no broken images).",
+        "The logo renders crisply in the header at 40x40, with no unintended cropping of the central mark/text."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not edit files under frontend/src/components/ui (read-only).",
+    "Serve the logo as a static asset from `frontend/public/assets/generated` (no backend image serving)."
+  ],
+  "nonGoals": [
+    "Do not implement M-Pesa/STK Push payments in this change.",
+    "Do not change provider/client contact detail visibility or connection-fee workflows in this change.",
+    "Do not redesign the header layout beyond what is required to swap the logo image."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": [
+      "Use the uploaded logo image as the app logo (Gemini_Generated_Image_f7iz8qf7iz8qf7iz.png > genz-app-logo.dim_512x512.png)"
+    ]
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Swap header logo to uploaded Genz App image while preserving asset path",
+  "requirements": [
+    {
+      "id": "REQ-13",
+      "summary": "Replace the existing logo asset with the uploaded image while keeping the same static asset path and ensuring crisp, uncropped header rendering at 40x40 with rounded corners.",
+      "acceptanceCriteria": [
+        "The file `frontend/public/assets/generated/genz-app-logo.dim_512x512.png` is replaced/updated to visually match the uploaded logo.",
+        "The header continues to load the logo from `/assets/generated/genz-app-logo.dim_512x512.png` (no broken images).",
+        "The logo renders crisply in the header at 40x40, with no unintended cropping of the central mark/text."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/public/assets/generated/genz-app-logo.dim_512x512.png",
+          "operation": "create",
+          "description": "Replace/update the static logo file at this exact path using the uploaded asset `Gemini_Generated_Image_f7iz8qf7iz8qf7iz.png`, ensuring the resulting file is a 512x512 PNG and optimized to render clearly at 40x40."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Adjust the header logo <img> rendering to avoid unintended cropping at 40x40 (e.g., prefer contain-like behavior over cover while preserving rounded corners), and keep the src path exactly `/assets/generated/genz-app-logo.dim_512x512.png`. Verify the component's usage instructions before implementing."
+        }
+      ]
+    }
+  ]
+}

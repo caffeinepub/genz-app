@@ -1,0 +1,210 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 7,
+  "summary": "Pivot to building \"Genz App\": an Uber/Bolt-style marketplace that connects clients with nearby service professionals in Kenya (especially Gen Z), with role-based logins, industry-based search, map-based location visibility, pricing/rates display, provider verification, ratings, and customer care access.",
+  "architectural_notes": [
+    "Role-based access control for three user types: provider, client, technical/back-office.",
+    "Google Maps integration required for real-time/approximate location display and proximity-based discovery.",
+    "Provider onboarding includes document upload and back-office verification workflow.",
+    "Marketplace linking model: clients browse providers by category and see rates before engaging.",
+    "Reputation system: 5-star ratings after job completion.",
+    "In-app customer care contact entry points (e.g., call/SMS/WhatsApp).",
+    "Client-side should not reveal provider contact details until provider confirms availability and payment is successful (gated disclosure).",
+    "Add M-Pesa STK Push/API payment integration for connection fee collection and payout routing to configured destination.",
+    "Add configuration for payout destination and primary support contact numbers (provided: payout 0791955725; main 0795532919)."
+  ],
+  "known_issues": [
+    "Build/deploy failed due to an internal configuration issue (Caffeine)."
+  ],
+  "isFixRequest": false,
+  "imageRequirements": "## Edit Images\n- Use the uploaded logo image as the app logo (Gemini_Generated_Image_f7iz8qf7iz8qf7iz.png > genz-app-logo.dim_512x512.png)",
+  "existing_features": [
+    {
+      "id": "feature-create-a-minimal-working-app-shell-that-loads-successfully-and-displays-a-landing-page-confirming-the-app-is-set-up",
+      "title": "Create a minimal, working app shell that loads successfully and displays a landing page confirming the app is set up.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-simple-navigation-layout-header-main-content-area-that-can-scale-to-additional-pages-later",
+      "title": "Add a simple navigation layout (header + main content area) that can scale to additional pages later.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-coherent-visual-theme-colors-typography-spacing-component-styling-and-apply-it-consistently-across-the-landing-page-and-navigation-do-not-use-a-blue-purple-color-scheme",
+      "title": "Implement a coherent visual theme (colors, typography, spacing, component styling) and apply it consistently across the landing page and navigation. Do not use a blue/purple color scheme.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-rebrand-the-existing-app-shell-ui-to-genz-app-and-replace-the-current-landing-page-copy-with-an-english-kenya-focused-marketplace-description-for-connecting-clients-with-nearby-service-professionals-e-g-cleaners-gardeners-dog-groomers-plumbers-chefs-electricians",
+      "title": "Rebrand the existing app shell UI to “Genz App” and replace the current landing-page copy with an English, Kenya-focused marketplace description for connecting clients with nearby service professionals (e.g., cleaners, gardeners, dog groomers, plumbers, chefs, electricians).",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-role-based-onboarding-and-login-flow-with-three-user-categories-service-provider-service-seeker-client-and-technical-back-office-team-using-internet-identity-for-authentication-and-backend-stored-role-selection-assignment",
+      "title": "Implement role-based onboarding and login flow with three user categories: Service Provider, Service Seeker (client), and Technical/Back-office team, using Internet Identity for authentication and backend-stored role selection/assignment.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-service-industries-categories-and-enable-clients-to-browse-and-search-categories-to-discover-nearby-providers-offering-the-selected-service",
+      "title": "Create service industries/categories and enable clients to browse and search categories to discover nearby providers offering the selected service.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-provider-profiles-that-include-offered-categories-a-displayed-rate-price-and-an-approximate-location-latitude-longitude-for-proximity-based-discovery-allow-providers-to-create-update-their-profile",
+      "title": "Add provider profiles that include offered categories, a displayed rate/price, and an approximate location (latitude/longitude) for proximity-based discovery; allow providers to create/update their profile.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-map-based-location-view-using-google-maps-that-displays-client-and-provider-locations-with-graceful-fallback-when-a-google-maps-api-key-is-not-configured",
+      "title": "Add a map-based location view using Google Maps that displays client and provider locations (with graceful fallback when a Google Maps API key is not configured).",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-back-office-verification-workflow-providers-can-upload-verification-documents-technical-back-office-users-can-review-submissions-and-mark-providers-as-verified-rejected-with-an-optional-note-verification-status-is-visible-to-clients",
+      "title": "Implement a back-office verification workflow: providers can upload verification documents; Technical/Back-office users can review submissions and mark providers as Verified/Rejected with an optional note; verification status is visible to clients.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-minimal-job-linking-flow-and-5-star-rating-system-clients-can-link-hire-a-provider-at-the-displayed-rate-mark-the-job-as-completed-and-submit-a-1-5-star-rating-provider-average-rating-is-displayed-in-search-results-and-provider-details",
+      "title": "Implement a minimal job/linking flow and 5-star rating system: clients can “link/hire” a provider at the displayed rate, mark the job as completed, and submit a 1–5 star rating; provider average rating is displayed in search results and provider details.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-always-available-customer-care-contact-information-in-the-app-ui-e-g-header-footer-and-a-persistent-help-support-entry-with-clearly-labeled-phone-lines-text-must-be-in-english-and-easy-to-find-while-using-the-app",
+      "title": "Add always-available customer care contact information in the app UI (e.g., header/footer and a persistent “Help/Support” entry) with clearly labeled phone lines; text must be in English and easy to find while using the app.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-generate-and-use-custom-static-brand-images-for-the-genz-app-logo-category-icons-and-render-them-in-the-ui-from-frontend-public-assets-generated-no-backend-image-serving",
+      "title": "Generate and use custom static brand images for the Genz App (logo + category icons) and render them in the UI from frontend/public/assets/generated (no backend image serving).",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-current-genz-app-logo-asset-with-the-user-uploaded-logo-image-so-the-header-brand-icon-uses-the-uploaded-logo-while-keeping-the-existing-asset-path-assets-generated-genz-app-logo-dim-512x512-png-ensure-the-resulting-logo-file-is-a-512x512-png-and-looks-good-when-rendered-as-a-40x40-image-with-rounded-corners-in-the-header",
+      "title": "Replace the current Genz App logo asset with the user-uploaded logo image so the header brand icon uses the uploaded logo while keeping the existing asset path `/assets/generated/genz-app-logo.dim_512x512.png`. Ensure the resulting logo file is a 512x512 PNG and looks good when rendered as a 40x40 image with rounded corners in the header.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Define three main login/user categories: Service Providers, Service Seekers (clients), and Technical/Back-office team.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Create service industries/categories (e.g., cleaning, gardening, dog grooming, plumbing, chef, electrician) that users can browse/search to find providers.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Enable location-based discovery and display of client/provider locations using Google Maps integration.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Show provider rates/pricing to clients for linking/hiring a specific service provider.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Back-office verification flow for service providers to upload documents, and for the technical team to review/verify (especially for specialized services).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Post-job client rating system using 5-star ratings for service providers.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Add user-friendly customer care/contact lines accessible within the app.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Hide service provider contact details from clients until a connection is approved (availability confirmation) and any required fee is paid.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Add provider availability confirmation step: when a client requests to contact a provider, the system asks the provider to confirm availability before sharing contact details.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Implement a 10% connection fee charged to the client (based on the provider’s quoted rate) before releasing provider contact details.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Integrate M-Pesa payments (STK Push/API) to automatically collect the 10% connection fee and route funds to a configured payout destination (bank/M-Pesa).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Add admin-configurable payout and primary support contact settings (provided payout: 0791955725; main contact: 0795532919).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Use the user-provided uploaded image as the Genz App logo in the UI (replace generated logo asset).",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Genz App",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

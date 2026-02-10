@@ -1,0 +1,25 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-replace-the-current-genz-app-logo-asset-with-the-user-uploaded-logo-image-so-the-header-brand-icon-uses-the-uploaded-logo-while-keeping-the-existing-asset-path-assets-generated-genz-app-logo-dim-512x512-png-ensure-the-resulting-logo-file-is-a-512x512-png-and-looks-good-when-rendered-as-a-40x40-image-with-rounded-corners-in-the-header",
+      "featureTitle": "Replace the current Genz App logo asset with the user-uploaded logo image so the header brand icon uses the uploaded logo while keeping the existing asset path `/assets/generated/genz-app-logo.dim_512x512.png`. Ensure the resulting logo file is a 512x512 PNG and looks good when rendered as a 40x40 image with rounded corners in the header.",
+      "files": [
+        "frontend/src/components/Header.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-13"
+      ],
+      "confidence": "high"
+    }
+  ]
+}
