@@ -1,4 +1,4 @@
-import { ArrowRight, Users, Shield, Star, MapPin, Briefcase, CheckCircle } from 'lucide-react';
+import { ArrowRight, Users, Shield, Star, MapPin, Briefcase, CheckCircle, AlertCircle } from 'lucide-react';
 import { FeaturedProvidersSection } from '../components/providers/FeaturedProvidersSection';
 import { PlatformStatsSection } from '../components/landing/PlatformStatsSection';
 import { TestimonialsSection } from '../components/landing/TestimonialsSection';
@@ -68,6 +68,46 @@ export function LandingPage() {
             >
               Learn More
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Troubleshooting Access Issues Section */}
+      <section className="border-t border-border/40 bg-warning/5 py-12">
+        <div className="container">
+          <div className="mx-auto max-w-3xl">
+            <div className="rounded-xl border border-warning/20 bg-card p-6 shadow-xs md:p-8">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="h-6 w-6 text-warning" />
+                </div>
+                <div className="flex-1 space-y-3">
+                  <h2 className="text-xl font-semibold">
+                    Troubleshooting Access Issues
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    If you see an error message like <strong>"Canister ID Not Resolved"</strong> or <strong>"Error 400"</strong>, 
+                    it means you're using an old or incorrect link to access Genz App.
+                  </p>
+                  <div className="rounded-lg bg-muted/50 p-4 space-y-2">
+                    <p className="text-sm font-medium">
+                      The correct URL for Genz App is:
+                    </p>
+                    <code className="block rounded bg-background px-3 py-2 text-sm font-mono text-primary border border-border">
+                      https://genz-app.icp0.io
+                    </code>
+                  </div>
+                  <div className="space-y-2 text-sm text-muted-foreground">
+                    <p className="font-medium text-foreground">To fix this issue:</p>
+                    <ol className="list-decimal list-inside space-y-1 ml-2">
+                      <li>Delete any old bookmarks or home screen shortcuts for Genz App</li>
+                      <li>Open the correct URL above in your browser</li>
+                      <li>If installing as a PWA, create a new home screen shortcut from the correct URL</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

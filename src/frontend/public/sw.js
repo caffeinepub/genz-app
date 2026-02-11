@@ -36,8 +36,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip authenticated requests (backend canister calls)
   const url = new URL(event.request.url);
+
+  // CRITICAL: Never intercept .well-known paths (IC domain verification)
+  if (url.pathname.startsWith('/.well-known/')) {
+    return;
+  }
+
+  // Skip authenticated requests (backend canister calls)
   if (url.hostname.includes('ic0.app') || url.hostname.includes('icp0.io') || url.hostname.includes('localhost')) {
     if (url.pathname.includes('/api/') || url.search.includes('canisterId=')) {
       return;

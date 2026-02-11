@@ -1,99 +1,74 @@
 {
   "kind": "build_request",
-  "title": "Enable PWA “Install to Home Screen” for Genz App",
-  "priority": "normal",
+  "title": "Fix production access error: “Canister ID Not Resolved” on https://genz-app.icp0.io",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-49",
-      "text": "Add PWA installability metadata by creating a web app manifest and linking it from the app HTML so mobile browsers can offer “Install to Home Screen” for Genz App.",
+      "id": "REQ-53",
+      "text": "Add an IC domain verification file at `frontend/public/.well-known/ic-domains` that includes the domain `genz-app.icp0.io` so the boundary node can recognize the domain and route requests to the correct canister.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-install"
+          "msg-1"
         ],
         "quotes": [
-          "install to home screen"
+          "this is the feedback am getting kindly resolve it"
         ]
       },
       "acceptanceCriteria": [
-        "A `manifest.webmanifest` file exists under the frontend public/static serving path and contains: app name “Genz App”, a short_name, start_url, display mode suitable for standalone install, theme_color/background_color values, and icon entries for at least 192x192 and 512x512 images.",
-        "`frontend/index.html` includes a `<link rel=\"manifest\" ...>` referencing the manifest.",
-        "User-facing name shown by the install prompt is “Genz App”."
+        "A new static file exists at `frontend/public/.well-known/ic-domains`.",
+        "The file contains `genz-app.icp0.io` on its own line (or in an accepted IC domain list format).",
+        "Requesting `https://genz-app.icp0.io/.well-known/ic-domains` returns HTTP 200 and includes `genz-app.icp0.io`."
       ]
     },
     {
-      "id": "REQ-50",
-      "text": "Add a service worker that enables basic PWA behavior for installability and provides safe, minimal offline support for the static app shell without interfering with authenticated API calls.",
+      "id": "REQ-54",
+      "text": "Ensure the `.well-known` domain verification path is not broken by the service worker caching strategy and is always fetched from network (or safely served) without causing navigation failures.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-install"
+          "msg-1"
         ],
         "quotes": [
-          "install to home screen"
+          "Error 400 Canister ID Not Resolved"
         ]
       },
       "acceptanceCriteria": [
-        "A service worker file exists under the frontend public/static serving path and is registered by code that runs at runtime (without editing immutable `frontend/src/main.tsx`).",
-        "The service worker precaches core static assets needed to load the UI shell (e.g., index.html and built JS/CSS assets) and uses a conservative strategy that does not cache authenticated backend requests.",
-        "With the device in airplane mode after a successful first load, reopening the installed app shows at least a basic offline page/shell (not a browser network error)."
+        "The service worker does not interfere with fetching `/.well-known/ic-domains` (it should succeed even on first load and after refresh).",
+        "No redirect loop or offline fallback is triggered for `/.well-known/ic-domains` when the network is available."
       ]
     },
     {
-      "id": "REQ-51",
-      "text": "Implement an in-app install prompt UI that appears only when installation is available, and provide clear manual “Add to Home Screen” instructions for iOS Safari where the standard install prompt is not available.",
+      "id": "REQ-55",
+      "text": "Add a simple public troubleshooting/help section in the unauthenticated Landing page that explains, in English, what to do if the user sees “Canister ID Not Resolved”, including the correct URL `https://genz-app.icp0.io` and instructions to remove old bookmarks/shortcuts and retry.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-install"
+          "msg-1"
         ],
         "quotes": [
-          "install to home screen"
+          "this is the feedback am getting kindly resolve it"
         ]
       },
       "acceptanceCriteria": [
-        "On supported browsers (e.g., Chrome/Edge Android), when the `beforeinstallprompt` event is available, the app displays an “Install Genz App” call-to-action (e.g., in the header or landing page) that triggers the native install prompt when clicked.",
-        "On iOS Safari, the app displays a user-facing help/instructions UI (English) explaining how to add to home screen (e.g., “Tap Share, then ‘Add to Home Screen’.”).",
-        "The install UI does not show once the app is already installed (detect installed display-mode) and does not show if the browser does not support installation.",
-        "All new user-facing text is in English."
-      ]
-    },
-    {
-      "id": "REQ-52",
-      "text": "Update `frontend/index.html` with appropriate PWA-related meta tags for better mobile install experience.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-install"
-        ],
-        "quotes": [
-          "install to home screen"
-        ]
-      },
-      "acceptanceCriteria": [
-        "`frontend/index.html` includes `theme-color` meta consistent with the manifest.",
-        "`frontend/index.html` includes iOS-related meta/link tags as appropriate (e.g., `apple-touch-icon` and/or `apple-mobile-web-app-capable`) pointing to existing public icon assets.",
-        "The document title is updated to a user-appropriate title (e.g., “Genz App”) rather than scaffold text."
+        "The Landing page contains a clearly titled section (e.g., “Troubleshooting Access Issues”).",
+        "The section explicitly includes the exact URL `https://genz-app.icp0.io` in visible text.",
+        "The section instructs users to delete old bookmarks/home-screen shortcuts and reopen the correct URL."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, or anything under `frontend/src/components/ui` (compose these components instead).",
-    "Do not introduce additional backend canisters/services; keep backend unchanged unless strictly required for installability (it should not be).",
-    "All user-facing text added or modified must be in English."
+    "Use English for all user-facing text.",
+    "Do not edit any files under `frontend/src/components/ui` (compose them instead).",
+    "Do not edit files listed as immutable in SYSTEM_CONTEXT.",
+    "Backend must remain a single Motoko actor; only add `backend/migration.mo` if a state upgrade is required."
   ],
   "nonGoals": [
-    "Generating an Android APK file.",
-    "Implementing push notifications.",
-    "Implementing background sync or complex offline-first data caching for dynamic provider/job data.",
-    "Adding third-party authentication beyond Internet Identity."
+    "Changing the app’s product features (categories, payments, verification, messaging) beyond what is required to resolve the access error.",
+    "Implementing custom domain support beyond fixing `genz-app.icp0.io` resolution and adding the IC domain verification file."
   ],
   "imageRequirements": {
-    "required": [
-      "App icon (pwa-icon.dim_192x192.png)",
-      "App icon (pwa-icon.dim_512x512.png)",
-      "Maskable app icon (pwa-icon-maskable.dim_512x512.png)"
-    ],
+    "required": [],
     "edits": []
   }
 }

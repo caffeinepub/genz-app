@@ -1,110 +1,52 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Enable PWA installability for Genz App (manifest, service worker, install prompt UI)",
+  "title": "Fix ICP0 domain routing verification and prevent service worker interference",
   "requirements": [
     {
-      "id": "REQ-49",
-      "summary": "Add PWA installability metadata via a web app manifest and link it from the root HTML so browsers can offer “Install to Home Screen”.",
+      "id": "REQ-53",
+      "summary": "Add IC domain verification file so boundary nodes can route genz-app.icp0.io correctly.",
       "acceptanceCriteria": [
-        "A `manifest.webmanifest` file exists under the frontend public/static serving path and contains: app name “Genz App”, a short_name, start_url, display mode suitable for standalone install, theme_color/background_color values, and icon entries for at least 192x192 and 512x512 images.",
-        "`frontend/index.html` includes a `<link rel=\"manifest\" ...>` referencing the manifest.",
-        "User-facing name shown by the install prompt is “Genz App”."
+        "A new static file exists at `frontend/public/.well-known/ic-domains`.",
+        "The file contains `genz-app.icp0.io` on its own line (or in an accepted IC domain list format).",
+        "Requesting `https://genz-app.icp0.io/.well-known/ic-domains` returns HTTP 200 and includes `genz-app.icp0.io`."
       ],
       "file_operations": [
         {
-          "path": "frontend/public/manifest.webmanifest",
+          "path": "frontend/public/.well-known/ic-domains",
           "operation": "create",
-          "description": "Create a PWA manifest for “Genz App” including name/short_name, start_url, display=standalone, theme_color/background_color, and icon entries referencing the generated icon assets under the public path."
-        },
-        {
-          "path": "frontend/public/assets/generated/pwa-icon.dim_192x192.png",
-          "operation": "create",
-          "description": "Add the required PWA app icon asset at frontend/public/assets/generated/pwa-icon.dim_192x192.png for manifest icon usage."
-        },
-        {
-          "path": "frontend/public/assets/generated/pwa-icon.dim_512x512.png",
-          "operation": "create",
-          "description": "Add the required PWA app icon asset at frontend/public/assets/generated/pwa-icon.dim_512x512.png for manifest icon usage."
-        },
-        {
-          "path": "frontend/public/assets/generated/pwa-icon-maskable.dim_512x512.png",
-          "operation": "create",
-          "description": "Add the required maskable PWA icon asset at frontend/public/assets/generated/pwa-icon-maskable.dim_512x512.png and reference it from the manifest with purpose=maskable."
-        },
-        {
-          "path": "frontend/index.html",
-          "operation": "modify",
-          "description": "Link the manifest in the document head with a <link rel=\"manifest\"> tag referencing the public manifest path."
+          "description": "Create the IC domain verification allowlist file and include `genz-app.icp0.io` on its own line so the boundary node can validate and route requests."
         }
       ]
     },
     {
-      "id": "REQ-50",
-      "summary": "Add and register a conservative service worker to enable basic installability and minimal offline support for the static app shell without caching authenticated requests.",
+      "id": "REQ-54",
+      "summary": "Ensure service worker never breaks or reroutes requests to the .well-known IC domain verification file.",
       "acceptanceCriteria": [
-        "A service worker file exists under the frontend public/static serving path and is registered by code that runs at runtime (without editing immutable `frontend/src/main.tsx`).",
-        "The service worker precaches core static assets needed to load the UI shell (e.g., index.html and built JS/CSS assets) and uses a conservative strategy that does not cache authenticated backend requests.",
-        "With the device in airplane mode after a successful first load, reopening the installed app shows at least a basic offline page/shell (not a browser network error)."
+        "The service worker does not interfere with fetching `/.well-known/ic-domains` (it should succeed even on first load and after refresh).",
+        "No redirect loop or offline fallback is triggered for `/.well-known/ic-domains` when the network is available."
       ],
       "file_operations": [
         {
           "path": "frontend/public/sw.js",
-          "operation": "create",
-          "description": "Create a minimal service worker under the public/static path that precaches the app shell and uses a conservative fetch strategy (navigation requests fall back to cached shell/offline page; do not cache authenticated or non-GET requests)."
-        },
-        {
-          "path": "frontend/public/offline.html",
-          "operation": "create",
-          "description": "Create a simple offline fallback page that can be served by the service worker when navigation occurs offline and no cached shell is available."
-        },
-        {
-          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Register the service worker at runtime (without modifying frontend/src/main.tsx) and ensure registration happens once on app load."
+          "description": "Update the fetch handler to explicitly bypass caching and offline fallbacks for requests under `/.well-known/` (including `/.well-known/ic-domains`), ensuring they are served from the network (or pass through untouched) and never trigger navigation fallback behavior."
         }
       ]
     },
     {
-      "id": "REQ-51",
-      "summary": "Implement an in-app install prompt UI that appears only when installation is available, with iOS Safari manual “Add to Home Screen” instructions.",
+      "id": "REQ-55",
+      "summary": "Add a public troubleshooting/help section on the unauthenticated Landing page for “Canister ID Not Resolved” errors.",
       "acceptanceCriteria": [
-        "On supported browsers (e.g., Chrome/Edge Android), when the `beforeinstallprompt` event is available, the app displays an “Install Genz App” call-to-action (e.g., in the header or landing page) that triggers the native install prompt when clicked.",
-        "On iOS Safari, the app displays a user-facing help/instructions UI (English) explaining how to add to home screen (e.g., “Tap Share, then ‘Add to Home Screen’.”).",
-        "The install UI does not show once the app is already installed (detect installed display-mode) and does not show if the browser does not support installation.",
-        "All new user-facing text is in English."
+        "The Landing page contains a clearly titled section (e.g., “Troubleshooting Access Issues”).",
+        "The section explicitly includes the exact URL `https://genz-app.icp0.io` in visible text.",
+        "The section instructs users to delete old bookmarks/home-screen shortcuts and reopen the correct URL."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/usePWAInstallPrompt.ts",
-          "operation": "create",
-          "description": "Add a hook to manage PWA install prompt state: capture beforeinstallprompt, detect installed display-mode, and detect iOS Safari to show manual instructions when appropriate."
-        },
-        {
-          "path": "frontend/src/components/pwa/InstallPromptBanner.tsx",
-          "operation": "create",
-          "description": "Create an install prompt UI component that (1) shows an “Install Genz App” CTA when beforeinstallprompt is available, (2) shows iOS Safari “Add to Home Screen” instructions in English, and (3) hides itself when already installed or unsupported."
-        },
-        {
-          "path": "frontend/src/components/Header.tsx",
+          "path": "frontend/src/pages/LandingPage.tsx",
           "operation": "modify",
-          "description": "Wire the in-app install prompt UI into the existing header so it is reachable without adding new routes/pages (compose existing shadcn/ui Button where appropriate; verify the component's usage instructions before implementing)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-52",
-      "summary": "Update root HTML with PWA-related meta tags (theme-color, iOS install tags, and title) for a better mobile install experience.",
-      "acceptanceCriteria": [
-        "`frontend/index.html` includes `theme-color` meta consistent with the manifest.",
-        "`frontend/index.html` includes iOS-related meta/link tags as appropriate (e.g., `apple-touch-icon` and/or `apple-mobile-web-app-capable`) pointing to existing public icon assets.",
-        "The document title is updated to a user-appropriate title (e.g., “Genz App”) rather than scaffold text."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/index.html",
-          "operation": "modify",
-          "description": "Update the document title to “Genz App”; add meta name=theme-color matching the manifest; add iOS install-related meta/link tags (including apple-touch-icon) referencing frontend/public/assets/generated/pwa-icon.dim_192x192.png and/or frontend/public/assets/generated/pwa-icon.dim_512x512.png as appropriate."
+          "description": "Add an English-only, clearly titled troubleshooting/help section to the unauthenticated landing page explaining what to do if the user sees “Canister ID Not Resolved”, explicitly showing `https://genz-app.icp0.io` and instructing users to remove old bookmarks/home-screen shortcuts and retry."
         }
       ]
     }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 41,
+  "projectStateVersion": 43,
   "summary": "Pivot to building \"Genz App\": an Uber/Bolt-style marketplace that connects clients with nearby service professionals in Kenya (especially Gen Z), with role-based logins, industry-based search, map-based location visibility, pricing/rates display, provider verification, ratings, and customer care access.",
   "architectural_notes": [
     "Role-based access control for three user types: provider, client, technical/back-office.",
@@ -20,10 +20,10 @@
     "Support/contact list UI (Help/Support contacts) was not created/visible as expected.",
     "Landing page CTAs/draft section (e.g., “Get Started”) currently appear unresponsive because they are not wired to any action/navigation.",
     "App still not displaying for the user; likely related to missing/broken logo asset at `/assets/generated/genz-app-logo.dim_512x512.png` causing header image load failure.",
-    "User wants the broken/unloaded header logo image removed while keeping the “Genz App” text; current logo asset/load path is still causing a broken image in the header."
+    "User wants the broken/unloaded header logo image removed while keeping the “Genz App” text; current logo asset/load path is still causing a broken image in the header.",
+    "Production/live app link https://genz-app.icp0.io not working for user; user reports error feedback (previously seen: “Error 400 – Canister ID Not Resolved”), indicating deployment/canister resolution issue."
   ],
-  "isFixRequest": false,
-  "imageRequirements": "## Required Images\n- App icon (pwa-icon.dim_192x192.png)\n- App icon (pwa-icon.dim_512x512.png)\n- Maskable app icon (pwa-icon-maskable.dim_512x512.png)",
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-create-a-minimal-working-app-shell-that-loads-successfully-and-displays-a-landing-page-confirming-the-app-is-set-up",
@@ -422,6 +422,30 @@
       "title": "Update `frontend/index.html` with appropriate PWA-related meta tags for better mobile install experience.",
       "reqIds": [
         "REQ-52"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-ic-domain-verification-file-at-frontend-public-well-known-ic-domains-that-includes-the-domain-genz-app-icp0-io-so-the-boundary-node-can-recognize-the-domain-and-route-requests-to-the-correct-canister",
+      "title": "Add an IC domain verification file at `frontend/public/.well-known/ic-domains` that includes the domain `genz-app.icp0.io` so the boundary node can recognize the domain and route requests to the correct canister.",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-well-known-domain-verification-path-is-not-broken-by-the-service-worker-caching-strategy-and-is-always-fetched-from-network-or-safely-served-without-causing-navigation-failures",
+      "title": "Ensure the `.well-known` domain verification path is not broken by the service worker caching strategy and is always fetched from network (or safely served) without causing navigation failures.",
+      "reqIds": [
+        "REQ-54"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-simple-public-troubleshooting-help-section-in-the-unauthenticated-landing-page-that-explains-in-english-what-to-do-if-the-user-sees-canister-id-not-resolved-including-the-correct-url-https-genz-app-icp0-io-and-instructions-to-remove-old-bookmarks-shortcuts-and-retry",
+      "title": "Add a simple public troubleshooting/help section in the unauthenticated Landing page that explains, in English, what to do if the user sees “Canister ID Not Resolved”, including the correct URL `https://genz-app.icp0.io` and instructions to remove old bookmarks/shortcuts and retry.",
+      "reqIds": [
+        "REQ-55"
       ],
       "version": 1
     }

@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-pwa-installability-metadata-by-creating-a-web-app-manifest-and-linking-it-from-the-app-html-so-mobile-browsers-can-offer-install-to-home-screen-for-genz-app",
-      "featureTitle": "Add PWA installability metadata by creating a web app manifest and linking it from the app HTML so mobile browsers can offer “Install to Home Screen” for Genz App.",
+      "featureId": "feature-add-an-ic-domain-verification-file-at-frontend-public-well-known-ic-domains-that-includes-the-domain-genz-app-icp0-io-so-the-boundary-node-can-recognize-the-domain-and-route-requests-to-the-correct-canister",
+      "featureTitle": "Add an IC domain verification file at `frontend/public/.well-known/ic-domains` that includes the domain `genz-app.icp0.io` so the boundary node can recognize the domain and route requests to the correct canister.",
       "files": [
-        "frontend/index.html",
-        "frontend/public/manifest.webmanifest"
+        "frontend/public/.well-known/ic-domains"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -19,17 +18,15 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-49"
+        "REQ-53"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-service-worker-that-enables-basic-pwa-behavior-for-installability-and-provides-safe-minimal-offline-support-for-the-static-app-shell-without-interfering-with-authenticated-api-calls",
-      "featureTitle": "Add a service worker that enables basic PWA behavior for installability and provides safe, minimal offline support for the static app shell without interfering with authenticated API calls.",
+      "featureId": "feature-ensure-the-well-known-domain-verification-path-is-not-broken-by-the-service-worker-caching-strategy-and-is-always-fetched-from-network-or-safely-served-without-causing-navigation-failures",
+      "featureTitle": "Ensure the `.well-known` domain verification path is not broken by the service worker caching strategy and is always fetched from network (or safely served) without causing navigation failures.",
       "files": [
-        "frontend/public/offline.html",
-        "frontend/public/sw.js",
-        "frontend/src/App.tsx"
+        "frontend/public/sw.js"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -42,17 +39,15 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-50"
+        "REQ-54"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-an-in-app-install-prompt-ui-that-appears-only-when-installation-is-available-and-provide-clear-manual-add-to-home-screen-instructions-for-ios-safari-where-the-standard-install-prompt-is-not-available",
-      "featureTitle": "Implement an in-app install prompt UI that appears only when installation is available, and provide clear manual “Add to Home Screen” instructions for iOS Safari where the standard install prompt is not available.",
+      "featureId": "feature-add-a-simple-public-troubleshooting-help-section-in-the-unauthenticated-landing-page-that-explains-in-english-what-to-do-if-the-user-sees-canister-id-not-resolved-including-the-correct-url-https-genz-app-icp0-io-and-instructions-to-remove-old-bookmarks-shortcuts-and-retry",
+      "featureTitle": "Add a simple public troubleshooting/help section in the unauthenticated Landing page that explains, in English, what to do if the user sees “Canister ID Not Resolved”, including the correct URL `https://genz-app.icp0.io` and instructions to remove old bookmarks/shortcuts and retry.",
       "files": [
-        "frontend/src/components/Header.tsx",
-        "frontend/src/components/pwa/InstallPromptBanner.tsx",
-        "frontend/src/hooks/usePWAInstallPrompt.ts"
+        "frontend/src/pages/LandingPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -65,28 +60,7 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-51"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-frontend-index-html-with-appropriate-pwa-related-meta-tags-for-better-mobile-install-experience",
-      "featureTitle": "Update `frontend/index.html` with appropriate PWA-related meta tags for better mobile install experience.",
-      "files": [
-        "frontend/index.html"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-52"
+        "REQ-55"
       ],
       "confidence": "high"
     }

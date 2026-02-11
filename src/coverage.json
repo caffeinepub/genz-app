@@ -1,73 +1,46 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T23:59:09.838Z",
+  "generatedAt": "2026-02-11T00:30:31.302Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 4,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-49",
-        "summary": "Add PWA installability metadata by creating a web app manifest and linking it from the app HTML so mobile browsers can offer “Install to Home Screen” for Genz App.",
+        "id": "REQ-53",
+        "summary": "Add an IC domain verification file at `frontend/public/.well-known/ic-domains` that includes the domain `genz-app.icp0.io` so the boundary node can recognize the domain and route requests to the correct canister.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/public/manifest.webmanifest",
-          "frontend/public/assets/generated/pwa-icon.dim_192x192.png",
-          "frontend/public/assets/generated/pwa-icon.dim_512x512.png",
-          "frontend/public/assets/generated/pwa-icon-maskable.dim_512x512.png",
-          "frontend/index.html"
+          "frontend/public/.well-known/ic-domains"
         ],
         "matchedFiles": [
-          "frontend/public/manifest.webmanifest",
-          "frontend/public/assets/generated/pwa-icon.dim_192x192.png",
-          "frontend/public/assets/generated/pwa-icon.dim_512x512.png",
-          "frontend/public/assets/generated/pwa-icon-maskable.dim_512x512.png",
-          "frontend/index.html"
+          "frontend/public/.well-known/ic-domains"
         ]
       },
       {
-        "id": "REQ-50",
-        "summary": "Add a service worker that enables basic PWA behavior for installability and provides safe, minimal offline support for the static app shell without interfering with authenticated API calls.",
+        "id": "REQ-54",
+        "summary": "Ensure the `.well-known` domain verification path is not broken by the service worker caching strategy and is always fetched from network (or safely served) without causing navigation failures.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/public/sw.js",
-          "frontend/public/offline.html",
-          "frontend/src/App.tsx"
+          "frontend/public/sw.js"
         ],
         "matchedFiles": [
-          "frontend/public/sw.js",
-          "frontend/public/offline.html",
-          "frontend/src/App.tsx"
+          "frontend/public/sw.js"
         ]
       },
       {
-        "id": "REQ-51",
-        "summary": "Implement an in-app install prompt UI that appears only when installation is available, and provide clear manual “Add to Home Screen” instructions for iOS Safari where the standard install prompt is not available.",
+        "id": "REQ-55",
+        "summary": "Add a simple public troubleshooting/help section in the unauthenticated Landing page that explains, in English, what to do if the user sees “Canister ID Not Resolved”, including the correct URL `https://genz-app.icp0.io` and instructions to remove old bookmarks/shortcuts and retry.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/usePWAInstallPrompt.ts",
-          "frontend/src/components/pwa/InstallPromptBanner.tsx",
-          "frontend/src/components/Header.tsx"
+          "frontend/src/pages/LandingPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/usePWAInstallPrompt.ts",
-          "frontend/src/components/pwa/InstallPromptBanner.tsx",
-          "frontend/src/components/Header.tsx"
-        ]
-      },
-      {
-        "id": "REQ-52",
-        "summary": "Update `frontend/index.html` with appropriate PWA-related meta tags for better mobile install experience.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/index.html"
-        ],
-        "matchedFiles": [
-          "frontend/index.html"
+          "frontend/src/pages/LandingPage.tsx"
         ]
       }
     ]
@@ -77,17 +50,9 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/index.html",
-    "frontend/public/assets/generated/pwa-icon-maskable.dim_512x512.png",
-    "frontend/public/assets/generated/pwa-icon.dim_192x192.png",
-    "frontend/public/assets/generated/pwa-icon.dim_512x512.png",
-    "frontend/public/manifest.webmanifest",
-    "frontend/public/offline.html",
+    "frontend/public/.well-known/ic-domains",
     "frontend/public/sw.js",
-    "frontend/src/App.tsx",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/pwa/InstallPromptBanner.tsx",
-    "frontend/src/hooks/usePWAInstallPrompt.ts",
+    "frontend/src/pages/LandingPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",
