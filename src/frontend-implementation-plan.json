@@ -1,52 +1,37 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix ICP0 domain routing verification and prevent service worker interference",
+  "title": "Remove Landing troubleshooting section and clean up LandingPage imports",
   "requirements": [
     {
-      "id": "REQ-53",
-      "summary": "Add IC domain verification file so boundary nodes can route genz-app.icp0.io correctly.",
+      "id": "REQ-56",
+      "summary": "Remove the “Troubleshooting Access Issues” section from the unauthenticated Landing page while preserving the remaining section order and layout.",
       "acceptanceCriteria": [
-        "A new static file exists at `frontend/public/.well-known/ic-domains`.",
-        "The file contains `genz-app.icp0.io` on its own line (or in an accepted IC domain list format).",
-        "Requesting `https://genz-app.icp0.io/.well-known/ic-domains` returns HTTP 200 and includes `genz-app.icp0.io`."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/public/.well-known/ic-domains",
-          "operation": "create",
-          "description": "Create the IC domain verification allowlist file and include `genz-app.icp0.io` on its own line so the boundary node can validate and route requests."
-        }
-      ]
-    },
-    {
-      "id": "REQ-54",
-      "summary": "Ensure service worker never breaks or reroutes requests to the .well-known IC domain verification file.",
-      "acceptanceCriteria": [
-        "The service worker does not interfere with fetching `/.well-known/ic-domains` (it should succeed even on first load and after refresh).",
-        "No redirect loop or offline fallback is triggered for `/.well-known/ic-domains` when the network is available."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/public/sw.js",
-          "operation": "modify",
-          "description": "Update the fetch handler to explicitly bypass caching and offline fallbacks for requests under `/.well-known/` (including `/.well-known/ic-domains`), ensuring they are served from the network (or pass through untouched) and never trigger navigation fallback behavior."
-        }
-      ]
-    },
-    {
-      "id": "REQ-55",
-      "summary": "Add a public troubleshooting/help section on the unauthenticated Landing page for “Canister ID Not Resolved” errors.",
-      "acceptanceCriteria": [
-        "The Landing page contains a clearly titled section (e.g., “Troubleshooting Access Issues”).",
-        "The section explicitly includes the exact URL `https://genz-app.icp0.io` in visible text.",
-        "The section instructs users to delete old bookmarks/home-screen shortcuts and reopen the correct URL."
+        "The Landing page no longer renders a section titled “Troubleshooting Access Issues”.",
+        "No Landing page content mentions “Canister ID Not Resolved” or “Error 400”.",
+        "No Landing page content displays the URL `https://genz-app.icp0.io` as part of troubleshooting guidance.",
+        "The page layout still renders correctly with the remaining sections (Hero, Platform Stats, Featured Providers, Testimonials, Features, About) in the expected order."
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/LandingPage.tsx",
           "operation": "modify",
-          "description": "Add an English-only, clearly titled troubleshooting/help section to the unauthenticated landing page explaining what to do if the user sees “Canister ID Not Resolved”, explicitly showing `https://genz-app.icp0.io` and instructing users to remove old bookmarks/home-screen shortcuts and retry."
+          "description": "Delete the entire JSX block for the “Troubleshooting Access Issues” section (heading, explanatory text, displayed URL, and instruction list) so the Landing page renders Hero followed immediately by Platform Stats, then Featured Providers, Testimonials, Features, and About (same order as before)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-57",
+      "summary": "Remove unused imports/code left behind in LandingPage after deleting the troubleshooting section.",
+      "acceptanceCriteria": [
+        "`frontend/src/pages/LandingPage.tsx` has no unused imports related to the removed troubleshooting section.",
+        "The frontend builds without lint/type errors caused by the removal."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/LandingPage.tsx",
+          "operation": "modify",
+          "description": "Remove any now-unused imports and variables introduced solely for the troubleshooting section (e.g., remove the `AlertCircle` icon import from `lucide-react` if it is no longer referenced) and ensure the file has no unused import warnings."
         }
       ]
     }

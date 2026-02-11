@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix production access on `https://genz-app.icp0.io` by resolving the “Canister ID Not Resolved” error and providing basic user guidance.
+**Goal:** Remove the “Troubleshooting Access Issues” section from the unauthenticated Landing page while keeping the rest of the page intact.
 
 **Planned changes:**
-- Add IC domain verification file at `frontend/public/.well-known/ic-domains` containing `genz-app.icp0.io`.
-- Update the service worker/caching behavior so `/.well-known/ic-domains` is not blocked or incorrectly served by offline/navigation fallbacks and can be fetched successfully from the network.
-- Add a small “Troubleshooting Access Issues” section to the unauthenticated Landing page in English, explicitly showing `https://genz-app.icp0.io` and instructing users to remove old bookmarks/shortcuts and retry.
+- Delete the entire “Troubleshooting Access Issues” section from `frontend/src/pages/LandingPage.tsx`, including its heading, explanatory text (“Canister ID Not Resolved” / “Error 400”), the displayed URL `https://genz-app.icp0.io`, and the step-by-step instructions list.
+- Ensure the remaining Landing page sections (Hero, Platform Stats, Featured Providers, Testimonials, Features, About) still render correctly in the expected order without layout issues.
+- Remove any now-unused imports or code related to the removed section (e.g., `AlertCircle`) and confirm the frontend builds cleanly without lint/type errors.
 
-**User-visible outcome:** Users can load the app at `https://genz-app.icp0.io` without the “Canister ID Not Resolved” error, and the Landing page provides clear steps to follow if the error appears.
+**User-visible outcome:** The Landing page no longer shows troubleshooting guidance, and all other existing Landing page sections continue to display normally.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 43,
+  "projectStateVersion": 45,
   "summary": "Pivot to building \"Genz App\": an Uber/Bolt-style marketplace that connects clients with nearby service professionals in Kenya (especially Gen Z), with role-based logins, industry-based search, map-based location visibility, pricing/rates display, provider verification, ratings, and customer care access.",
   "architectural_notes": [
     "Role-based access control for three user types: provider, client, technical/back-office.",
@@ -23,7 +23,7 @@
     "User wants the broken/unloaded header logo image removed while keeping the “Genz App” text; current logo asset/load path is still causing a broken image in the header.",
     "Production/live app link https://genz-app.icp0.io not working for user; user reports error feedback (previously seen: “Error 400 – Canister ID Not Resolved”), indicating deployment/canister resolution issue."
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-create-a-minimal-working-app-shell-that-loads-successfully-and-displays-a-landing-page-confirming-the-app-is-set-up",
@@ -448,6 +448,22 @@
         "REQ-55"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-remove-the-entire-troubleshooting-access-issues-section-from-the-unauthenticated-landing-page-including-its-heading-explanatory-text-about-canister-id-not-resolved-error-400-the-displayed-url-https-genz-app-icp0-io-and-the-step-by-step-instructions-list",
+      "title": "Remove the entire “Troubleshooting Access Issues” section from the unauthenticated Landing page, including its heading, explanatory text about “Canister ID Not Resolved” / “Error 400”, the displayed URL `https://genz-app.icp0.io`, and the step-by-step instructions list.",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-clean-up-any-unused-imports-or-code-left-behind-by-removing-the-troubleshooting-section-from-frontend-src-pages-landingpage-tsx-for-example-remove-the-alertcircle-icon-import-if-it-is-no-longer-used",
+      "title": "Clean up any unused imports or code left behind by removing the troubleshooting section from `frontend/src/pages/LandingPage.tsx` (for example, remove the `AlertCircle` icon import if it is no longer used).",
+      "reqIds": [
+        "REQ-57"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -672,6 +688,12 @@
       "summary": "Set up PWA “Install to Home Screen” flow so Genz App can be installed on a phone like a native app icon (web app installability).",
       "reqIds": [],
       "status": "in_progress"
+    },
+    {
+      "id": "AR-44",
+      "summary": "Remove the “Troubleshooting Access Issues” section (Canister ID Not Resolved/Error 400 guidance and correct URL instructions) from the Landing page.",
+      "reqIds": [],
+      "status": "pending"
     }
   ],
   "projectName": "Genz App",

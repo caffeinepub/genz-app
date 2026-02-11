@@ -1,74 +1,66 @@
 {
   "kind": "build_request",
-  "title": "Fix production access error: “Canister ID Not Resolved” on https://genz-app.icp0.io",
-  "priority": "high",
+  "title": "Remove Landing Page troubleshooting access issues section",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-53",
-      "text": "Add an IC domain verification file at `frontend/public/.well-known/ic-domains` that includes the domain `genz-app.icp0.io` so the boundary node can recognize the domain and route requests to the correct canister.",
+      "id": "REQ-56",
+      "text": "Remove the entire “Troubleshooting Access Issues” section from the unauthenticated Landing page, including its heading, explanatory text about “Canister ID Not Resolved” / “Error 400”, the displayed URL `https://genz-app.icp0.io`, and the step-by-step instructions list.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "this is the feedback am getting kindly resolve it"
+          "remove this section"
         ]
       },
       "acceptanceCriteria": [
-        "A new static file exists at `frontend/public/.well-known/ic-domains`.",
-        "The file contains `genz-app.icp0.io` on its own line (or in an accepted IC domain list format).",
-        "Requesting `https://genz-app.icp0.io/.well-known/ic-domains` returns HTTP 200 and includes `genz-app.icp0.io`."
+        "The Landing page no longer renders a section titled “Troubleshooting Access Issues”.",
+        "No Landing page content mentions “Canister ID Not Resolved” or “Error 400”.",
+        "No Landing page content displays the URL `https://genz-app.icp0.io` as part of troubleshooting guidance.",
+        "The page layout still renders correctly with the remaining sections (Hero, Platform Stats, Featured Providers, Testimonials, Features, About) in the expected order."
       ]
     },
     {
-      "id": "REQ-54",
-      "text": "Ensure the `.well-known` domain verification path is not broken by the service worker caching strategy and is always fetched from network (or safely served) without causing navigation failures.",
+      "id": "REQ-57",
+      "text": "Clean up any unused imports or code left behind by removing the troubleshooting section from `frontend/src/pages/LandingPage.tsx` (for example, remove the `AlertCircle` icon import if it is no longer used).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "Error 400 Canister ID Not Resolved"
+          "remove this section"
         ]
       },
       "acceptanceCriteria": [
-        "The service worker does not interfere with fetching `/.well-known/ic-domains` (it should succeed even on first load and after refresh).",
-        "No redirect loop or offline fallback is triggered for `/.well-known/ic-domains` when the network is available."
-      ]
-    },
-    {
-      "id": "REQ-55",
-      "text": "Add a simple public troubleshooting/help section in the unauthenticated Landing page that explains, in English, what to do if the user sees “Canister ID Not Resolved”, including the correct URL `https://genz-app.icp0.io` and instructions to remove old bookmarks/shortcuts and retry.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "this is the feedback am getting kindly resolve it"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The Landing page contains a clearly titled section (e.g., “Troubleshooting Access Issues”).",
-        "The section explicitly includes the exact URL `https://genz-app.icp0.io` in visible text.",
-        "The section instructs users to delete old bookmarks/home-screen shortcuts and reopen the correct URL."
+        "`frontend/src/pages/LandingPage.tsx` has no unused imports related to the removed troubleshooting section.",
+        "The frontend builds without lint/type errors caused by the removal."
       ]
     }
   ],
   "constraints": [
-    "Use English for all user-facing text.",
-    "Do not edit any files under `frontend/src/components/ui` (compose them instead).",
-    "Do not edit files listed as immutable in SYSTEM_CONTEXT.",
-    "Backend must remain a single Motoko actor; only add `backend/migration.mo` if a state upgrade is required."
+    "Use English for any user-facing text.",
+    "Do not edit files under frontend/src/components/ui (read-only).",
+    "Do not change the service worker, PWA manifest, or `.well-known/ic-domains` behavior as part of this change."
   ],
   "nonGoals": [
-    "Changing the app’s product features (categories, payments, verification, messaging) beyond what is required to resolve the access error.",
-    "Implementing custom domain support beyond fixing `genz-app.icp0.io` resolution and adding the IC domain verification file."
+    "Do not add replacement troubleshooting content elsewhere in the app.",
+    "Do not change the existing Landing page CTA behavior (e.g., “Get Started” login flow, “Learn More” scroll target) except as required to remove the troubleshooting section."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

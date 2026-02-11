@@ -3,7 +3,7 @@
   "frontend/src/components/AppLayout.tsx": "Layout wrapper component that renders header, main content area, footer, and support drawer with navigation props.",
   "frontend/src/components/Header.tsx": "Responsive header with Genz App branding, role-based navigation, login button, mobile menu, and optional \"Install\" button in desktop/mobile nav when PWA installation is available.",
   "frontend/src/components/Footer.tsx": "Footer component with Genz App branding, support link, and caffeine.ai attribution with UTM tracking.",
-  "frontend/src/pages/LandingPage.tsx": "Landing page with hero section, troubleshooting section for \"Canister ID Not Resolved\" errors showing the correct URL, platform stats, featured providers, testimonials, features, and about sections.",
+  "frontend/src/pages/LandingPage.tsx": "Landing page with hero section, platform stats, featured providers, testimonials, features, and about sections without the troubleshooting section.",
   "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including provider profile, document uploads, profile picture uploads, and state management with proper invalidation.",
   "frontend/src/index.css": "Global styles with warm OKLCH color palette and new landing-hero-bg component class that applies the fancy background image with gradient overlay for readability in both light and dark modes.",
   "frontend/tailwind.config.js": "Tailwind configuration with custom font families, extended shadows, and animation utilities.",

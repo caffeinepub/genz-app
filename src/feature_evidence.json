@@ -2,50 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-an-ic-domain-verification-file-at-frontend-public-well-known-ic-domains-that-includes-the-domain-genz-app-icp0-io-so-the-boundary-node-can-recognize-the-domain-and-route-requests-to-the-correct-canister",
-      "featureTitle": "Add an IC domain verification file at `frontend/public/.well-known/ic-domains` that includes the domain `genz-app.icp0.io` so the boundary node can recognize the domain and route requests to the correct canister.",
-      "files": [
-        "frontend/public/.well-known/ic-domains"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-53"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-the-well-known-domain-verification-path-is-not-broken-by-the-service-worker-caching-strategy-and-is-always-fetched-from-network-or-safely-served-without-causing-navigation-failures",
-      "featureTitle": "Ensure the `.well-known` domain verification path is not broken by the service worker caching strategy and is always fetched from network (or safely served) without causing navigation failures.",
-      "files": [
-        "frontend/public/sw.js"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-54"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-simple-public-troubleshooting-help-section-in-the-unauthenticated-landing-page-that-explains-in-english-what-to-do-if-the-user-sees-canister-id-not-resolved-including-the-correct-url-https-genz-app-icp0-io-and-instructions-to-remove-old-bookmarks-shortcuts-and-retry",
-      "featureTitle": "Add a simple public troubleshooting/help section in the unauthenticated Landing page that explains, in English, what to do if the user sees “Canister ID Not Resolved”, including the correct URL `https://genz-app.icp0.io` and instructions to remove old bookmarks/shortcuts and retry.",
+      "featureId": "feature-remove-the-entire-troubleshooting-access-issues-section-from-the-unauthenticated-landing-page-including-its-heading-explanatory-text-about-canister-id-not-resolved-error-400-the-displayed-url-https-genz-app-icp0-io-and-the-step-by-step-instructions-list",
+      "featureTitle": "Remove the entire “Troubleshooting Access Issues” section from the unauthenticated Landing page, including its heading, explanatory text about “Canister ID Not Resolved” / “Error 400”, the displayed URL `https://genz-app.icp0.io`, and the step-by-step instructions list.",
       "files": [
         "frontend/src/pages/LandingPage.tsx"
       ],
@@ -60,7 +18,28 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-55"
+        "REQ-56"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-clean-up-any-unused-imports-or-code-left-behind-by-removing-the-troubleshooting-section-from-frontend-src-pages-landingpage-tsx-for-example-remove-the-alertcircle-icon-import-if-it-is-no-longer-used",
+      "featureTitle": "Clean up any unused imports or code left behind by removing the troubleshooting section from `frontend/src/pages/LandingPage.tsx` (for example, remove the `AlertCircle` icon import if it is no longer used).",
+      "files": [
+        "frontend/src/pages/LandingPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-57"
       ],
       "confidence": "high"
     }

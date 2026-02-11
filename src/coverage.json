@@ -1,40 +1,29 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T00:30:31.302Z",
+  "generatedAt": "2026-02-11T00:36:33.751Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-53",
-        "summary": "Add an IC domain verification file at `frontend/public/.well-known/ic-domains` that includes the domain `genz-app.icp0.io` so the boundary node can recognize the domain and route requests to the correct canister.",
+        "id": "REQ-56",
+        "summary": "Remove the entire “Troubleshooting Access Issues” section from the unauthenticated Landing page, including its heading, explanatory text about “Canister ID Not Resolved” / “Error 400”, the displayed URL `https://genz-app.icp0.io`, and the step-by-step instructions list.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/public/.well-known/ic-domains"
+          "frontend/src/pages/LandingPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/public/.well-known/ic-domains"
+          "frontend/src/pages/LandingPage.tsx"
         ]
       },
       {
-        "id": "REQ-54",
-        "summary": "Ensure the `.well-known` domain verification path is not broken by the service worker caching strategy and is always fetched from network (or safely served) without causing navigation failures.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/public/sw.js"
-        ],
-        "matchedFiles": [
-          "frontend/public/sw.js"
-        ]
-      },
-      {
-        "id": "REQ-55",
-        "summary": "Add a simple public troubleshooting/help section in the unauthenticated Landing page that explains, in English, what to do if the user sees “Canister ID Not Resolved”, including the correct URL `https://genz-app.icp0.io` and instructions to remove old bookmarks/shortcuts and retry.",
+        "id": "REQ-57",
+        "summary": "Clean up any unused imports or code left behind by removing the troubleshooting section from `frontend/src/pages/LandingPage.tsx` (for example, remove the `AlertCircle` icon import if it is no longer used).",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/pages/LandingPage.tsx"
@@ -50,8 +39,6 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/public/.well-known/ic-domains",
-    "frontend/public/sw.js",
     "frontend/src/pages/LandingPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
