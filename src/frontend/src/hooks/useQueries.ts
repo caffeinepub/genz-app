@@ -1,13 +1,23 @@
-import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { UserRole, BusinessType, Location, VerificationStatus, Job, MPesaConfig, DocumentType, ExternalBlob, ProviderProfileView, OtpRole, ProviderProfileUpdate } from '../backend';
 import { Principal } from '@icp-sdk/core/principal';
+import {
+  UserProfileView,
+  ProviderProfileView,
+  ClientProfile,
+  Location,
+  OtpRole,
+  ProviderProfileUpdate,
+  BusinessType,
+  PlatformStats,
+  MPesaConfig,
+} from '../backend';
+import { getCategoryById } from '../lib/categories';
 
-// User Profile & Authentication
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
 
-  const query = useQuery({
+  const query = useQuery<UserProfileView | null>({
     queryKey: ['currentUserProfile'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
@@ -24,235 +34,63 @@ export function useGetCallerUserProfile() {
   };
 }
 
-// OTP Functions
-export function useInitiateOtp() {
-  const { actor } = useActor();
-
-  return useMutation({
-    mutationFn: async (params: { phoneNumber: string; role: OtpRole }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.initiateOtp(params.phoneNumber, params.role);
-    },
-  });
-}
-
-export function useVerifyOtp() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (code: string) => {
-      if (!actor) throw new Error('Actor not available');
-      try {
-        return await actor.verifyOtp(code);
-      } catch (error: any) {
-        // Translate backend traps into user-friendly messages
-        if (error.message?.includes('OTP expired')) {
-          throw new Error('Verification code has expired. Please request a new one.');
-        } else if (error.message?.includes('Invalid OTP')) {
-          throw new Error('Invalid verification code. Please try again.');
-        } else if (error.message?.includes('No pending OTP')) {
-          throw new Error('No verification code found. Please request a new one.');
-        }
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      // Invalidate user profile to reflect verification status
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-    },
-  });
-}
-
-// Location Update Functions
-export function useUpdateProviderPinnedLocation() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (location: Location) => {
-      if (!actor) throw new Error('Actor not available');
-      try {
-        await actor.updateProviderLocation(
-          location.latitude,
-          location.longitude,
-          location.address
-        );
-      } catch (error: any) {
-        // Translate authorization errors
-        if (error.message?.includes('not a provider') || error.message?.includes('Unauthorized')) {
-          throw new Error('You must be a service provider to update your location');
-        }
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['provider'] });
-    },
-  });
-}
-
-export function useUpdateClientPinnedLocation() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (location: Location) => {
-      if (!actor) throw new Error('Actor not available');
-      try {
-        await actor.updateClientPinnedLocation(
-          location.latitude,
-          location.longitude,
-          location.address
-        );
-      } catch (error: any) {
-        // Translate authorization errors
-        if (error.message?.includes('not found') || error.message?.includes('Unauthorized')) {
-          throw new Error('You must be a client to update your location');
-        }
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-    },
-  });
-}
-
-// Provider Profile Update
-export function useUpdateProviderProfile() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (update: ProviderProfileUpdate) => {
-      if (!actor) throw new Error('Actor not available');
-      try {
-        await actor.updateProviderProfile(update);
-      } catch (error: any) {
-        // Translate backend errors into user-friendly messages
-        if (error.message?.includes('not a provider') || error.message?.includes('Unauthorized')) {
-          throw new Error('Only service providers can update their profile');
-        } else if (error.message?.includes('Bio-data') || error.message?.includes('cannot be changed')) {
-          throw new Error('Bio-data fields from your ID document cannot be modified');
-        } else if (error.message?.includes('Profile already exists')) {
-          throw new Error('Profile already exists. Use the update function to modify editable fields.');
-        }
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      // Invalidate queries to refresh profile data
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['provider'] });
-      queryClient.invalidateQueries({ queryKey: ['providerResults'] });
-    },
-  });
-}
-
-// Provider Engagement Functions
-export function useSetEngaged() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (hours: number) => {
-      if (!actor) throw new Error('Actor not available');
-      try {
-        return await actor.setEngaged(BigInt(hours));
-      } catch (error: any) {
-        // Translate backend errors into user-friendly messages
-        if (error.message?.includes('not a provider') || error.message?.includes('Unauthorized')) {
-          throw new Error('Only service providers can set engagement status');
-        } else if (error.message?.includes('hours')) {
-          throw new Error('Please enter a valid number of hours (1-24)');
-        }
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      // Invalidate queries to refresh engagement state
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['provider'] });
-      queryClient.invalidateQueries({ queryKey: ['providerResults'] });
-    },
-  });
-}
-
-export function useDisengage() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      try {
-        await actor.disengage();
-      } catch (error: any) {
-        // Translate backend errors into user-friendly messages
-        if (error.message?.includes('not a provider') || error.message?.includes('Unauthorized')) {
-          throw new Error('Only service providers can update engagement status');
-        }
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      // Invalidate queries to refresh engagement state
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['provider'] });
-      queryClient.invalidateQueries({ queryKey: ['providerResults'] });
-    },
-  });
-}
-
 export function useGetProvider(
-  principal: Principal,
-  options?: Partial<UseQueryOptions<ProviderProfileView | null>>
+  provider: Principal,
+  options?: { enabled?: boolean; refetchInterval?: number | false }
 ) {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
-    queryKey: ['provider', principal.toString()],
+  return useQuery<ProviderProfileView | null>({
+    queryKey: ['provider', provider.toString()],
     queryFn: async () => {
       if (!actor) return null;
-      return actor.getProvider(principal);
+      return actor.getProvider(provider);
     },
-    enabled: !!actor && !isFetching,
-    ...options,
+    enabled: !!actor && !isFetching && (options?.enabled ?? true),
+    refetchInterval: options?.refetchInterval,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 }
 
-// Provider Results for browsing/search
-export function useGetProviderResults(category: BusinessType | null) {
+export function useGetProviderResults(categoryId: string | null) {
   const { actor, isFetching } = useActor();
 
   return useQuery<ProviderProfileView[]>({
-    queryKey: ['providerResults', category],
+    queryKey: ['providerResults', categoryId],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getProviderResults(category);
+      if (!actor) return [];
+      
+      // Convert categoryId to BusinessType for backend query
+      let categoryFilter: BusinessType | null = null;
+      if (categoryId) {
+        const category = getCategoryById(categoryId);
+        if (category) {
+          categoryFilter = category.businessType;
+        }
+      }
+      
+      return actor.getProviderResults(categoryFilter);
     },
     enabled: !!actor && !isFetching,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 }
 
-// Platform Stats (public, no auth required)
 export function useGetPlatformStats() {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
+  return useQuery<PlatformStats>({
     queryKey: ['platformStats'],
     queryFn: async () => {
-      if (!actor) return null;
+      if (!actor) throw new Error('Actor not available');
       return actor.getPlatformStats();
     },
     enabled: !!actor && !isFetching,
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 }
 
-// M-Pesa Configuration
 export function useGetMpesaConfig() {
   const { actor, isFetching } = useActor();
 
@@ -266,35 +104,176 @@ export function useGetMpesaConfig() {
   });
 }
 
-// Provider Unlock State (simulated client-side for now)
-export function useProviderUnlockState(providerId: string) {
-  const queryClient = useQueryClient();
-  
-  return useQuery<boolean>({
-    queryKey: ['providerUnlock', providerId],
-    queryFn: () => {
-      // Check localStorage for unlock state
-      const unlocked = localStorage.getItem(`unlock_${providerId}`);
-      return unlocked === 'true';
+export function useInitiateOtp() {
+  const { actor } = useActor();
+
+  return useMutation({
+    mutationFn: async ({ phoneNumber, role }: { phoneNumber: string; role: OtpRole }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.initiateOtp(phoneNumber, role);
     },
-    staleTime: Infinity, // Don't refetch automatically
   });
 }
 
-export function useUnlockProvider() {
+export function useVerifyOtp() {
+  const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (providerId: string) => {
-      // Simulate payment verification delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      // Store unlock state
-      localStorage.setItem(`unlock_${providerId}`, 'true');
-      return true;
+    mutationFn: async (code: string) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.verifyOtp(code);
     },
-    onSuccess: (_, providerId) => {
-      queryClient.invalidateQueries({ queryKey: ['providerUnlock', providerId] });
-      queryClient.invalidateQueries({ queryKey: ['provider', providerId] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+export function useUpdateClientPinnedLocation() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (location: Location) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateClientPinnedLocation(location.latitude, location.longitude, location.address);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+export function useUpdateProviderPinnedLocation() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (location: Location) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateProviderLocation(location.latitude, location.longitude, location.address);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+export function useSetEngaged() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (hours: number) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.setEngaged(BigInt(hours));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+export function useDisengage() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.disengage();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+export function useUpdateProviderProfile() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (update: ProviderProfileUpdate) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateProviderProfile(update);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['providerResults'] });
+      queryClient.invalidateQueries({ queryKey: ['provider'] });
+    },
+  });
+}
+
+// Admin operations for provider dataset management
+export function useIsCallerAdmin() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<boolean>({
+    queryKey: ['isCallerAdmin'],
+    queryFn: async () => {
+      if (!actor) return false;
+      return actor.isCallerAdmin();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useRemoveAllProviders() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.removeAllProviders();
+    },
+    onSuccess: () => {
+      // Invalidate all provider-related caches
+      queryClient.invalidateQueries({ queryKey: ['providerResults'] });
+      queryClient.invalidateQueries({ queryKey: ['provider'] });
+      queryClient.invalidateQueries({ queryKey: ['platformStats'] });
+    },
+  });
+}
+
+export function useSeedProviders() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (providers: Array<[Principal, ProviderProfileView]>) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.seedProviders(providers);
+    },
+    onSuccess: () => {
+      // Invalidate all provider-related caches
+      queryClient.invalidateQueries({ queryKey: ['providerResults'] });
+      queryClient.invalidateQueries({ queryKey: ['provider'] });
+      queryClient.invalidateQueries({ queryKey: ['platformStats'] });
+    },
+  });
+}
+
+// Placeholder hooks for features not yet implemented in backend
+export function useProviderUnlockState(providerId: string) {
+  // Return a query-like object with data property
+  return {
+    data: false,
+    isLoading: false,
+    isError: false,
+    error: null,
+  };
+}
+
+export function useUnlockProvider() {
+  return useMutation({
+    mutationFn: async (providerId: string) => {
+      // Placeholder - backend doesn't support this yet
+      console.log('Unlock provider:', providerId);
+      return true;
     },
   });
 }

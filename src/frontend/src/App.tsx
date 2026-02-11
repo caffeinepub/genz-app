@@ -16,20 +16,25 @@ import { VerificationUploadPage } from './pages/provider/VerificationUploadPage'
 import { VerificationReviewPage } from './pages/backoffice/VerificationReviewPage';
 import { ClientAccessPage } from './pages/auth/ClientAccessPage';
 import { ProviderAccessPage } from './pages/auth/ProviderAccessPage';
+import { UserRole } from './backend';
+import { Toaster } from './components/ui/sonner';
+import { ThemeProvider } from 'next-themes';
 import { InstallPromptBanner } from './components/pwa/InstallPromptBanner';
 import { UpdateAvailableBanner } from './components/pwa/UpdateAvailableBanner';
-import { UserRole, BusinessType } from './backend';
+import { getCategoryById } from './lib/categories';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5,
+      staleTime: 0,
+      refetchOnMount: 'always',
       refetchOnWindowFocus: false,
+      retry: 1,
     },
   },
 });
 
-type Page = 
+type Page =
   | 'landing'
   | 'client-access'
   | 'provider-access'
@@ -43,204 +48,152 @@ type Page =
   | 'verification-upload'
   | 'verification-review';
 
-function AppContent() {
+function App() {
+  const [currentPage, setCurrentPage] = useState<Page>('landing');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
+  const [focusProviderId, setFocusProviderId] = useState<string | null>(null);
+
   const { identity, isInitializing } = useInternetIdentity();
   const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-  const [currentPage, setCurrentPage] = useState<Page>('landing');
-  const [selectedBusinessType, setSelectedBusinessType] = useState<BusinessType | null>(null);
-  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
 
   const isAuthenticated = !!identity;
-  const showOnboarding = isAuthenticated && !profileLoading && isFetched && userProfile === null;
+  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
 
-  // Register service worker with version parameter
   useEffect(() => {
     if ('serviceWorker' in navigator) {
-      // Use a version derived from the current build
-      // In production, Vite generates hashed asset URLs, so we can use the script URL as version indicator
-      const version = import.meta.url ? new URL(import.meta.url).searchParams.get('v') || Date.now().toString() : Date.now().toString();
-      
-      navigator.serviceWorker
-        .register(`/sw.js?v=${version}`)
-        .then((registration) => {
-          console.log('Service Worker registered with version:', version);
-        })
-        .catch((error) => {
-          console.error('Service Worker registration failed:', error);
-        });
+      navigator.serviceWorker.register('/sw.js').catch((error) => {
+        console.error('Service Worker registration failed:', error);
+      });
     }
   }, []);
 
-  // Define navigate handler before conditional returns
-  const navigate = (page: string, params?: { businessType?: BusinessType | null; provider?: string; focusProvider?: string }) => {
-    if (params?.businessType !== undefined) setSelectedBusinessType(params.businessType);
-    if (params?.provider) setSelectedProvider(params.provider);
-    if (params?.focusProvider) setSelectedProvider(params.focusProvider);
+  const handleNavigate = (page: string, params?: any) => {
     setCurrentPage(page as Page);
+    if (params?.categoryId !== undefined) {
+      setSelectedCategoryId(params.categoryId);
+    }
+    if (params?.provider) {
+      setSelectedProviderId(params.provider);
+    }
+    if (params?.focusProvider) {
+      setFocusProviderId(params.focusProvider);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  const userRole = userProfile?.role;
 
   if (isInitializing || (isAuthenticated && profileLoading)) {
     return (
-      <AppLayout currentPage={currentPage} onNavigate={navigate}>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-center">
-            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-            <p className="mt-4 text-sm text-muted-foreground">Loading...</p>
-          </div>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
         </div>
-      </AppLayout>
+      </ThemeProvider>
     );
   }
 
-  if (showOnboarding) {
+  if (showProfileSetup) {
     return (
-      <AppLayout currentPage={currentPage} onNavigate={navigate}>
-        <RoleOnboarding />
-      </AppLayout>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <QueryClientProvider client={queryClient}>
+          <AppLayout currentPage="landing" onNavigate={handleNavigate}>
+            <RoleOnboarding />
+          </AppLayout>
+          <Toaster />
+        </QueryClientProvider>
+      </ThemeProvider>
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <AppLayout currentPage={currentPage} onNavigate={navigate}>
-        <LandingPage 
-          isAuthenticated={false}
-          onNavigate={navigate}
+  const userRole = userProfile?.role;
+
+  let content: React.ReactNode;
+
+  switch (currentPage) {
+    case 'landing':
+      content = (
+        <LandingPage
+          isAuthenticated={isAuthenticated}
+          userRole={userRole}
+          profileLoading={profileLoading}
+          onNavigate={handleNavigate}
         />
+      );
+      break;
+    case 'client-access':
+      content = <ClientAccessPage onComplete={() => handleNavigate('landing')} />;
+      break;
+    case 'provider-access':
+      content = <ProviderAccessPage onComplete={() => handleNavigate('landing')} />;
+      break;
+    case 'categories':
+      content = <CategoriesPage onNavigate={handleNavigate} />;
+      break;
+    case 'results':
+      const category = selectedCategoryId ? getCategoryById(selectedCategoryId) : null;
+      content = (
+        <ProviderResultsPage
+          categoryId={selectedCategoryId}
+          categoryLabel={category?.label || null}
+          onNavigate={handleNavigate}
+        />
+      );
+      break;
+    case 'provider-detail':
+      content = (
+        <ProviderDetailPage
+          providerId={selectedProviderId || ''}
+          onNavigate={handleNavigate}
+        />
+      );
+      break;
+    case 'map-view':
+      const mapCategory = selectedCategoryId ? getCategoryById(selectedCategoryId) : null;
+      content = (
+        <MapViewPage
+          selectedCategory={mapCategory?.businessType || null}
+          focusProvider={focusProviderId}
+          onNavigate={handleNavigate}
+        />
+      );
+      break;
+    case 'my-jobs':
+      content = <MyJobsPage onNavigate={handleNavigate} />;
+      break;
+    case 'client-profile':
+      content = <ClientProfilePage />;
+      break;
+    case 'provider-profile':
+      content = <ProviderProfilePage />;
+      break;
+    case 'verification-upload':
+      content = <VerificationUploadPage />;
+      break;
+    case 'verification-review':
+      content = <VerificationReviewPage />;
+      break;
+    default:
+      content = (
+        <LandingPage
+          isAuthenticated={isAuthenticated}
+          userRole={userRole}
+          profileLoading={profileLoading}
+          onNavigate={handleNavigate}
+        />
+      );
+  }
+
+  return (
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <QueryClientProvider client={queryClient}>
+        <AppLayout currentPage={currentPage} onNavigate={handleNavigate} userRole={userRole}>
+          {content}
+        </AppLayout>
         <InstallPromptBanner />
         <UpdateAvailableBanner />
-      </AppLayout>
-    );
-  }
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'landing':
-        return (
-          <LandingPage
-            isAuthenticated={isAuthenticated}
-            userRole={userRole}
-            profileLoading={profileLoading}
-            onNavigate={navigate}
-          />
-        );
-      case 'client-access':
-        return (
-          <ClientAccessPage
-            onComplete={() => navigate('categories')}
-          />
-        );
-      case 'provider-access':
-        return (
-          <ProviderAccessPage
-            onComplete={() => navigate('provider-profile')}
-          />
-        );
-      case 'categories':
-        return userRole === UserRole.client ? (
-          <CategoriesPage onNavigate={navigate} />
-        ) : (
-          <AccessDenied />
-        );
-      case 'results':
-        return userRole === UserRole.client ? (
-          <ProviderResultsPage 
-            businessType={selectedBusinessType} 
-            onNavigate={navigate}
-          />
-        ) : (
-          <AccessDenied />
-        );
-      case 'provider-detail':
-        return userRole === UserRole.client && selectedProvider ? (
-          <ProviderDetailPage 
-            providerId={selectedProvider}
-            onNavigate={navigate}
-          />
-        ) : (
-          <AccessDenied />
-        );
-      case 'map-view':
-        return userRole === UserRole.client ? (
-          <MapViewPage 
-            selectedCategory={selectedBusinessType}
-            onNavigate={navigate}
-            focusProvider={selectedProvider}
-          />
-        ) : (
-          <AccessDenied />
-        );
-      case 'my-jobs':
-        return userRole === UserRole.client ? (
-          <MyJobsPage onNavigate={navigate} />
-        ) : (
-          <AccessDenied />
-        );
-      case 'client-profile':
-        return userRole === UserRole.client ? (
-          <ClientProfilePage />
-        ) : (
-          <AccessDenied />
-        );
-      case 'provider-profile':
-        return userRole === UserRole.provider ? (
-          <ProviderProfilePage />
-        ) : (
-          <AccessDenied />
-        );
-      case 'verification-upload':
-        return userRole === UserRole.provider ? (
-          <VerificationUploadPage />
-        ) : (
-          <AccessDenied />
-        );
-      case 'verification-review':
-        return userRole === UserRole.backOffice ? (
-          <VerificationReviewPage />
-        ) : (
-          <AccessDenied />
-        );
-      default:
-        if (userRole === UserRole.client) {
-          return <CategoriesPage onNavigate={navigate} />;
-        } else if (userRole === UserRole.provider) {
-          return <ProviderProfilePage />;
-        } else if (userRole === UserRole.backOffice) {
-          return <VerificationReviewPage />;
-        }
-        return <LandingPage isAuthenticated={isAuthenticated} onNavigate={navigate} />;
-    }
-  };
-
-  return (
-    <AppLayout currentPage={currentPage} onNavigate={navigate}>
-      {renderPage()}
-      <InstallPromptBanner />
-      <UpdateAvailableBanner />
-    </AppLayout>
-  );
-}
-
-function AccessDenied() {
-  return (
-    <div className="container mx-auto max-w-2xl px-4 py-12">
-      <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-8 text-center">
-        <h2 className="text-2xl font-bold text-destructive">Access Denied</h2>
-        <p className="mt-2 text-muted-foreground">
-          You do not have permission to view this page.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <AppContent />
-    </QueryClientProvider>
+        <Toaster />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

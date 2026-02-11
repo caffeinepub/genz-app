@@ -37,7 +37,7 @@ export function ProviderProfilePage() {
   const [editMode, setEditMode] = useState(false);
   const [editDraft, setEditDraft] = useState<{
     rate: string;
-    businessType: BusinessType;
+    category: string;
     description: string;
     location: Location;
   } | null>(null);
@@ -102,9 +102,14 @@ export function ProviderProfilePage() {
   const handleEnterEditMode = () => {
     if (!providerProfile) return;
     
+    // Find the category ID that matches the provider's category
+    const matchingCategory = CATEGORIES.find(
+      (cat) => JSON.stringify(cat.businessType) === JSON.stringify(providerProfile.category || providerProfile.businessType)
+    );
+    
     setEditDraft({
       rate: String(Number(providerProfile.rate)),
-      businessType: providerProfile.businessType,
+      category: matchingCategory?.id || '',
       description: providerProfile.description,
       location: providerProfile.location,
     });
@@ -126,16 +131,32 @@ export function ProviderProfilePage() {
       return;
     }
 
+    // Validate category selection
+    if (!editDraft.category) {
+      toast.error('Please select a service category');
+      return;
+    }
+
     // Validate location
     if (!editDraft.location.address) {
       toast.error('Please enter a valid address');
       return;
     }
 
+    const selectedCategory = CATEGORIES.find((cat) => cat.id === editDraft.category);
+    if (!selectedCategory) {
+      toast.error('Invalid category selected');
+      return;
+    }
+
     // Check if anything changed
+    const currentCategoryId = CATEGORIES.find(
+      (cat) => JSON.stringify(cat.businessType) === JSON.stringify(providerProfile.category || providerProfile.businessType)
+    )?.id;
+
     const hasChanges = 
       String(Number(providerProfile.rate)) !== editDraft.rate ||
-      JSON.stringify(providerProfile.businessType) !== JSON.stringify(editDraft.businessType) ||
+      currentCategoryId !== editDraft.category ||
       providerProfile.description !== editDraft.description ||
       JSON.stringify(providerProfile.location) !== JSON.stringify(editDraft.location);
 
@@ -147,10 +168,11 @@ export function ProviderProfilePage() {
 
     const update: ProviderProfileUpdate = {
       rate: BigInt(Math.round(rateNum)),
-      businessType: editDraft.businessType,
+      businessType: selectedCategory.businessType,
       description: editDraft.description,
       location: editDraft.location,
       profilePicture: providerProfile.profilePicture || undefined,
+      category: selectedCategory.businessType,
     };
 
     try {
@@ -191,6 +213,11 @@ export function ProviderProfilePage() {
   const remainingTimeText = formatRemainingTime(providerProfile.engagementEndTime);
   const isUpdatingEngagement = setEngagedMutation.isPending || disengageMutation.isPending;
   const isSaving = updateProfileMutation.isPending;
+
+  // Get current category label
+  const currentCategory = CATEGORIES.find(
+    (cat) => JSON.stringify(cat.businessType) === JSON.stringify(providerProfile.category || providerProfile.businessType)
+  );
 
   return (
     <div className="container mx-auto max-w-3xl px-4 py-12">
@@ -309,26 +336,28 @@ export function ProviderProfilePage() {
             {editMode && editDraft ? (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-businessType">Service Category</Label>
+                  <Label htmlFor="edit-category">Service Category *</Label>
                   <Select
-                    value={JSON.stringify(editDraft.businessType)}
+                    value={editDraft.category}
                     onValueChange={(value) => {
-                      const businessType = JSON.parse(value) as BusinessType;
-                      setEditDraft({ ...editDraft, businessType });
+                      setEditDraft({ ...editDraft, category: value });
                     }}
                     disabled={isSaving}
                   >
-                    <SelectTrigger id="edit-businessType">
-                      <SelectValue />
+                    <SelectTrigger id="edit-category">
+                      <SelectValue placeholder="Select a category..." />
                     </SelectTrigger>
                     <SelectContent>
                       {CATEGORIES.map((cat) => (
-                        <SelectItem key={cat.id} value={JSON.stringify(cat.businessType)}>
+                        <SelectItem key={cat.id} value={cat.id}>
                           {cat.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground">
+                    You will only appear in this category when clients search for services
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -346,43 +375,40 @@ export function ProviderProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-description">Description</Label>
+                  <Label htmlFor="edit-description">Service Description</Label>
                   <Textarea
                     id="edit-description"
                     value={editDraft.description}
                     onChange={(e) => setEditDraft({ ...editDraft, description: e.target.value })}
-                    placeholder="Describe your services and experience"
+                    placeholder="Describe your services..."
                     rows={4}
                     disabled={isSaving}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    Pinned Location
-                  </Label>
-                  <LocationPicker 
-                    value={editDraft.location} 
+                  <Label>Service Location</Label>
+                  <LocationPicker
+                    value={editDraft.location}
                     onChange={(loc) => setEditDraft({ ...editDraft, location: loc })}
                   />
                 </div>
 
                 <div className="flex gap-3 pt-4">
-                  <Button
-                    onClick={handleSaveChanges}
-                    disabled={isSaving}
-                    className="flex-1 gap-2"
-                  >
-                    <Save className="h-4 w-4" />
-                    {isSaving ? 'Saving...' : 'Update Profile'}
+                  <Button onClick={handleSaveChanges} disabled={isSaving} className="flex-1 gap-2">
+                    {isSaving ? (
+                      <>
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4" />
+                        Update Profile
+                      </>
+                    )}
                   </Button>
-                  <Button
-                    onClick={handleCancelEdit}
-                    disabled={isSaving}
-                    variant="outline"
-                    className="gap-2"
-                  >
+                  <Button onClick={handleCancelEdit} variant="outline" disabled={isSaving} className="gap-2">
                     <X className="h-4 w-4" />
                     Cancel
                   </Button>
@@ -390,10 +416,10 @@ export function ProviderProfilePage() {
               </>
             ) : (
               <>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div>
                     <Label className="text-xs text-muted-foreground">Service Category</Label>
-                    <p className="text-sm font-medium">{getBusinessTypeLabel(providerProfile.businessType)}</p>
+                    <p className="text-sm font-medium">{currentCategory?.label || 'Not set'}</p>
                   </div>
 
                   <div>
@@ -402,30 +428,15 @@ export function ProviderProfilePage() {
                   </div>
 
                   <div>
-                    <Label className="text-xs text-muted-foreground">Description</Label>
-                    <p className="text-sm whitespace-pre-wrap">{providerProfile.description || 'No description provided'}</p>
+                    <Label className="text-xs text-muted-foreground">Service Description</Label>
+                    <p className="text-sm">{providerProfile.description || 'No description provided'}</p>
                   </div>
 
                   <div>
-                    <Label className="text-xs text-muted-foreground flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      Pinned Location
-                    </Label>
-                    <p className="text-sm">{providerProfile.location.address || 'No address provided'}</p>
-                    {(providerProfile.location.latitude !== 0 || providerProfile.location.longitude !== 0) && (
-                      <p className="text-xs text-muted-foreground">
-                        {providerProfile.location.latitude.toFixed(6)}, {providerProfile.location.longitude.toFixed(6)}
-                      </p>
-                    )}
+                    <Label className="text-xs text-muted-foreground">Service Location</Label>
+                    <p className="text-sm">{providerProfile.location.address || 'No location set'}</p>
                   </div>
                 </div>
-
-                <Alert className="mt-4">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="text-sm">
-                    To update your profile information, click the "Change Info" button above. You can modify your service category, hourly rate, description, and location.
-                  </AlertDescription>
-                </Alert>
               </>
             )}
           </CardContent>

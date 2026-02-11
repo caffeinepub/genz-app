@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 67,
+  "projectStateVersion": 73,
   "summary": "Pivot to building \"Genz App\": an Uber/Bolt-style marketplace that connects clients with nearby service professionals in Kenya (especially Gen Z), with role-based logins, industry-based search, map-based location visibility, pricing/rates display, provider verification, ratings, and customer care access.",
   "architectural_notes": [
     "Role-based access control for three user types: provider, client, technical/back-office.",
@@ -26,7 +26,7 @@
     "Service Provider cannot see the Engaged/Not Engaged engagement toggle on the Provider Profile page; user appears to be seeing an older/outdated UI block instead (likely stale cached frontend or not on latest deployment/version).",
     "Service Provider profile page lacks a visible “Update/Save” action when making changes, preventing providers from submitting updates."
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-create-a-minimal-working-app-shell-that-loads-successfully-and-displays-a-landing-page-confirming-the-app-is-set-up",
@@ -723,6 +723,54 @@
         "REQ-99"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-ensure-navigating-back-and-forth-between-client-pages-categories-provider-results-provider-detail-back-always-shows-fresh-backend-data-not-stale-react-query-cache-so-engagement-availability-changes-are-reflected-immediately-after-navigation",
+      "title": "Ensure navigating back and forth between client pages (Categories → Provider Results → Provider Detail → back) always shows fresh backend data (not stale React Query cache), so engagement/availability changes are reflected immediately after navigation.",
+      "reqIds": [
+        "REQ-100"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-react-query-configuration-for-provider-related-queries-so-they-behave-as-always-fresh-on-mount-navigation-while-keeping-non-live-pages-unaffected-specifically-ensure-provider-list-and-provider-detail-queries-do-not-use-the-global-5-minute-staleness-window-when-the-goal-is-live-connection",
+      "title": "Update React Query configuration for provider-related queries so they behave as “always fresh on mount/navigation” while keeping non-live pages unaffected; specifically ensure provider list and provider detail queries do not use the global 5-minute staleness window when the goal is live connection.",
+      "reqIds": [
+        "REQ-101"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-navigation-aware-cache-invalidation-refetch-for-live-connection-surfaces-when-the-app-navigates-into-provider-results-or-provider-detail-invalidate-refetch-the-provider-related-query-keys-required-to-render-those-screens-accurately",
+      "title": "Add navigation-aware cache invalidation/refetch for live connection surfaces: when the app navigates into Provider Results or Provider Detail, invalidate/refetch the provider-related query keys required to render those screens accurately.",
+      "reqIds": [
+        "REQ-102"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-category-navigation-and-provider-results-fetching-so-provider-listing-is-requested-by-the-selected-category-s-unique-category-id-not-only-by-businesstype-and-ensure-the-ui-displays-results-consistent-with-strict-filtering",
+      "title": "Update the frontend category navigation and provider results fetching so provider listing is requested by the selected category’s unique category id (not only by BusinessType), and ensure the UI displays results consistent with strict filtering.",
+      "reqIds": [
+        "REQ-106"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-service-provider-profile-setup-edit-flow-so-the-provider-must-choose-exactly-one-category-from-the-predefined-list-and-saving-the-provider-profile-persists-the-chosen-category-id-to-the-backend-so-later-client-browsing-uses-it-for-strict-filtering",
+      "title": "Update the Service Provider profile setup/edit flow so the provider must choose exactly one category from the predefined list, and saving the provider profile persists the chosen category id to the backend (so later client browsing uses it for strict filtering).",
+      "reqIds": [
+        "REQ-107"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-simple-technical-team-back-office-ui-control-that-allows-an-authenticated-back-office-admin-user-to-run-1-the-provider-reset-and-2-the-provider-seeding-actions-with-clear-english-confirmation-prompts-and-success-error-feedback",
+      "title": "Add a simple Technical Team (Back-office) UI control that allows an authenticated back-office/admin user to run (1) the provider reset and (2) the provider seeding actions, with clear English confirmation prompts and success/error feedback.",
+      "reqIds": [
+        "REQ-110"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -1103,6 +1151,70 @@
       "summary": "Add/extend a backend query API that returns a list of provider profiles suitable for client browsing (including each provider’s current engagement state), and ensure it is callable by authenticated clients.",
       "reqIds": [
         "REQ-97"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-72",
+      "summary": "Ensure client↔provider views always load fresh/live data when users navigate back and forth (avoid stale UI by refetching/invalidating caches on navigation and ensuring the latest engagement/provider state is shown).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-73",
+      "summary": "Technical/Back-office verification page: list all pending accounts awaiting verification, grouped by category; when an account is verified, its full entry should visually turn green.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-74",
+      "summary": "Enforce strict single-category membership for service providers: each provider must be linked to exactly one category (source of truth in backend), registration must require category selection from a predefined list, and all provider listing/search queries must hard-filter so a provider appears only in their selected category.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-75",
+      "summary": "Add a backend “source of truth” category identifier for providers so each provider is linked to exactly one category, and enforce that this category is required at provider profile creation and preserved across updates.",
+      "reqIds": [
+        "REQ-103"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-76",
+      "summary": "Update the backend provider listing query used by clients so it hard-filters by the provider’s stored category identifier, ensuring a provider only appears in their registered category; also support an “All Providers” mode that returns all providers regardless of category.",
+      "reqIds": [
+        "REQ-104"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-77",
+      "summary": "Add a conditional state migration so existing provider profiles without the new category identifier are upgraded safely without breaking reads/writes, and ensure category-specific queries remain strict after upgrade.",
+      "reqIds": [
+        "REQ-105"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-78",
+      "summary": "Remove all existing service provider accounts/data (seed/mock/demo providers) and create new service provider entries that appear only under specific service categories (category-specific provider seeding/setup).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-79",
+      "summary": "Add an admin-only backend operation that deletes/removes all existing Service Provider accounts/data from the canister state (at minimum: providerProfiles entries and their provider role assignment), so that client browsing returns zero providers immediately after the reset.",
+      "reqIds": [
+        "REQ-108"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-80",
+      "summary": "Add an admin-only backend operation to seed a new set of service provider entries that are tied to specific service categories so they only appear when clients browse those categories (and do not appear in unrelated categories).",
+      "reqIds": [
+        "REQ-109"
       ],
       "status": "pending"
     }

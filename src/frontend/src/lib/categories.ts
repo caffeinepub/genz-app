@@ -205,6 +205,11 @@ export function getCategoryById(id: string): Category | undefined {
   return CATEGORIES.find((cat) => cat.id === id);
 }
 
+export function getCategoryLabelById(id: string): string {
+  const category = getCategoryById(id);
+  return category ? category.label : 'Unknown Category';
+}
+
 export function getBusinessTypeLabel(businessType: BusinessType): string {
   if ('cleaning' in businessType) return 'Cleaning';
   if ('catering' in businessType) return 'Catering';

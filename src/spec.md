@@ -1,12 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the Client “Provider Results” page to show real provider profiles from the backend (optionally filtered by category/businessType) and clearly display each provider’s Engaged / Not Engaged status.
+**Goal:** Allow an admin/back-office user to wipe all existing service providers and seed a fresh set of category-specific providers so browsing results reflect the new dataset immediately.
 
 **Planned changes:**
-- Backend: add/extend an authenticated query that returns a list of provider profiles for client browsing, optionally filtered by BusinessType, including `isEngaged` and `engagementEndTime` (treat past `engagementEndTime` as Not Engaged).
-- Frontend: replace the current empty/mock provider array on `ProviderResultsPage` with React Query fetching from the backend list query, including loading and error UI with English text and a retry action.
-- Frontend: update provider cards in the results grid to show an English engagement status indicator (Engaged / Not Engaged) based on the backend list query data, while preserving the existing preview dialog behavior and polling when the dialog is open.
-- Frontend: ensure provider counts and empty-state messaging reflect real backend results (including a “no providers for this category” empty-state when appropriate).
+- Add an admin-only backend operation to delete all existing service provider data (at minimum providerProfiles entries and provider role assignments) and ensure stats/results return zero providers after reset.
+- Add an admin-only backend operation to seed multiple realistic provider profiles with a stored category so they appear only in matching category browsing, and also appear in “All Providers” mode.
+- Add a simple back-office UI with two actions (“Delete All Providers” and “Seed Category Providers”), including confirmation for deletion, clear English success/error feedback, and invalidation of provider-related cached queries on success.
 
-**User-visible outcome:** A logged-in client can browse a non-empty list of providers (or a correct empty-state), filter by category or view all providers, see accurate provider counts, and view each provider’s Engaged / Not Engaged status directly on the results cards.
+**User-visible outcome:** An authenticated admin can delete all providers (immediately making browsing return no providers) and then seed a new set of providers that show up only in their respective categories (and in the all-providers view), with clear confirmation and feedback in the back-office UI.

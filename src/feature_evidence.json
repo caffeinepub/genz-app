@@ -2,53 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-replace-the-empty-mock-provider-list-on-the-client-provider-results-page-with-real-backend-data-so-a-logged-in-client-can-see-every-service-provider-for-the-selected-category-and-also-support-viewing-all-providers-when-no-category-filter-is-provided",
-      "featureTitle": "Replace the empty/mock provider list on the Client \"Provider Results\" page with real backend data so a logged-in client can see every service provider for the selected category (and also support viewing \"All Providers\" when no category filter is provided).",
-      "files": [
-        "frontend/src/pages/client/ProviderResultsPage.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-96"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-the-client-provider-listing-ui-so-each-provider-card-clearly-shows-engagement-status-engaged-not-engaged-in-english-for-every-provider-in-the-results-grid",
-      "featureTitle": "Update the client provider listing UI so each provider card clearly shows engagement status (Engaged / Not Engaged) in English, for every provider in the results grid.",
-      "files": [
-        "frontend/src/components/providers/ProviderCard.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-98"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-react-query-wiring-for-the-new-updated-provider-list-query-and-integrate-it-into-frontend-src-pages-client-providerresultspage-tsx-including-loading-and-error-states-with-english-user-facing-text",
-      "featureTitle": "Add React Query wiring for the new/updated provider list query and integrate it into `frontend/src/pages/client/ProviderResultsPage.tsx`, including loading and error states with English user-facing text.",
+      "featureId": "feature-add-a-simple-technical-team-back-office-ui-control-that-allows-an-authenticated-back-office-admin-user-to-run-1-the-provider-reset-and-2-the-provider-seeding-actions-with-clear-english-confirmation-prompts-and-success-error-feedback",
+      "featureTitle": "Add a simple Technical Team (Back-office) UI control that allows an authenticated back-office/admin user to run (1) the provider reset and (2) the provider seeding actions, with clear English confirmation prompts and success/error feedback.",
       "files": [
         "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/client/ProviderResultsPage.tsx"
+        "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx",
+        "frontend/src/pages/backoffice/VerificationReviewPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -61,7 +20,7 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-99"
+        "REQ-110"
       ],
       "confidence": "high"
     }

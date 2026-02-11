@@ -1,8 +1,12 @@
-import { useGetCallerUserProfile } from '../../hooks/useQueries';
+import { useGetCallerUserProfile, useIsCallerAdmin } from '../../hooks/useQueries';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { ProviderDatasetToolsPanel } from './ProviderDatasetToolsPanel';
 
 export function VerificationReviewPage() {
-  const { data: userProfile, isLoading } = useGetCallerUserProfile();
+  const { data: userProfile, isLoading: profileLoading } = useGetCallerUserProfile();
+  const { data: isAdmin, isLoading: adminLoading } = useIsCallerAdmin();
+
+  const isLoading = profileLoading || adminLoading;
 
   if (isLoading) {
     return (
@@ -25,16 +29,20 @@ export function VerificationReviewPage() {
           </p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Provider Verification</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="py-12 text-center text-muted-foreground">
-              Provider verification functionality will be available in a future update.
-            </div>
-          </CardContent>
-        </Card>
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Provider Verification</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="py-12 text-center text-muted-foreground">
+                Provider verification functionality will be available in a future update.
+              </div>
+            </CardContent>
+          </Card>
+
+          <ProviderDatasetToolsPanel isAdmin={isAdmin ?? false} />
+        </div>
       </div>
     </div>
   );

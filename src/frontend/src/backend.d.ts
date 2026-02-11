@@ -23,6 +23,7 @@ export interface ProviderProfileView {
     ratings: Array<bigint>;
     description: string;
     academicDocuments: Array<Document>;
+    category?: BusinessType;
     phoneNumber: string;
     profilePicture?: ProfilePicture;
     location: Location;
@@ -148,6 +149,7 @@ export interface ProviderProfileUpdate {
     rate: bigint;
     businessType: BusinessType;
     description: string;
+    category: BusinessType;
     profilePicture?: ProfilePicture;
     location: Location;
 }
@@ -248,6 +250,7 @@ export interface backendInterface {
         code: string;
     }>;
     isCallerAdmin(): Promise<boolean>;
+    removeAllProviders(): Promise<void>;
     saveCallerUserProfile(profile: {
         role: UserRole;
         clientProfile?: {
@@ -261,6 +264,7 @@ export interface backendInterface {
             ratings: Array<bigint>;
             description: string;
             academicDocuments: Array<Document>;
+            category: BusinessType;
             phoneNumber: string;
             profilePicture?: ProfilePicture;
             location: Location;
@@ -269,6 +273,7 @@ export interface backendInterface {
             isEngaged: boolean;
         };
     }): Promise<void>;
+    seedProviders(providers: Array<[Principal, ProviderProfileView]>): Promise<void>;
     setEngaged(hours: bigint): Promise<{
         engagementEndTime?: bigint;
     }>;

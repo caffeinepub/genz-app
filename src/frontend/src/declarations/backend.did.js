@@ -94,6 +94,7 @@ export const ProviderProfileView = IDL.Record({
   'ratings' : IDL.Vec(IDL.Nat),
   'description' : IDL.Text,
   'academicDocuments' : IDL.Vec(Document),
+  'category' : IDL.Opt(BusinessType),
   'phoneNumber' : IDL.Text,
   'profilePicture' : IDL.Opt(ProfilePicture),
   'location' : Location,
@@ -150,6 +151,7 @@ export const ProviderProfileUpdate = IDL.Record({
   'rate' : IDL.Nat,
   'businessType' : BusinessType,
   'description' : IDL.Text,
+  'category' : BusinessType,
   'profilePicture' : IDL.Opt(ProfilePicture),
   'location' : Location,
 });
@@ -212,6 +214,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'removeAllProviders' : IDL.Func([], [], []),
   'saveCallerUserProfile' : IDL.Func(
       [
         IDL.Record({
@@ -230,6 +233,7 @@ export const idlService = IDL.Service({
               'ratings' : IDL.Vec(IDL.Nat),
               'description' : IDL.Text,
               'academicDocuments' : IDL.Vec(Document),
+              'category' : BusinessType,
               'phoneNumber' : IDL.Text,
               'profilePicture' : IDL.Opt(ProfilePicture),
               'location' : Location,
@@ -240,6 +244,11 @@ export const idlService = IDL.Service({
           ),
         }),
       ],
+      [],
+      [],
+    ),
+  'seedProviders' : IDL.Func(
+      [IDL.Vec(IDL.Tuple(IDL.Principal, ProviderProfileView))],
       [],
       [],
     ),
@@ -349,6 +358,7 @@ export const idlFactory = ({ IDL }) => {
     'ratings' : IDL.Vec(IDL.Nat),
     'description' : IDL.Text,
     'academicDocuments' : IDL.Vec(Document),
+    'category' : IDL.Opt(BusinessType),
     'phoneNumber' : IDL.Text,
     'profilePicture' : IDL.Opt(ProfilePicture),
     'location' : Location,
@@ -402,6 +412,7 @@ export const idlFactory = ({ IDL }) => {
     'rate' : IDL.Nat,
     'businessType' : BusinessType,
     'description' : IDL.Text,
+    'category' : BusinessType,
     'profilePicture' : IDL.Opt(ProfilePicture),
     'location' : Location,
   });
@@ -472,6 +483,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'removeAllProviders' : IDL.Func([], [], []),
     'saveCallerUserProfile' : IDL.Func(
         [
           IDL.Record({
@@ -490,6 +502,7 @@ export const idlFactory = ({ IDL }) => {
                 'ratings' : IDL.Vec(IDL.Nat),
                 'description' : IDL.Text,
                 'academicDocuments' : IDL.Vec(Document),
+                'category' : BusinessType,
                 'phoneNumber' : IDL.Text,
                 'profilePicture' : IDL.Opt(ProfilePicture),
                 'location' : Location,
@@ -500,6 +513,11 @@ export const idlFactory = ({ IDL }) => {
             ),
           }),
         ],
+        [],
+        [],
+      ),
+    'seedProviders' : IDL.Func(
+        [IDL.Vec(IDL.Tuple(IDL.Principal, ProviderProfileView))],
         [],
         [],
       ),

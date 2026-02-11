@@ -1,60 +1,32 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Client Provider Results: load real provider list and show Engaged/Not Engaged status",
+  "title": "Back-office controls to reset and seed category-specific service providers",
   "requirements": [
     {
-      "id": "REQ-96",
-      "summary": "Use real provider results data (all providers or filtered by selected category) instead of the mock empty list on the client Provider Results page.",
+      "id": "REQ-110",
+      "summary": "Add an admin-only back-office UI to run provider reset and provider seeding with confirmation, feedback, and cache invalidation.",
       "acceptanceCriteria": [
-        "When a logged-in client navigates to the provider results screen, the page loads a non-empty list if provider profiles exist in the backend (it must not always be an empty array).",
-        "If a category/businessType filter is selected, only providers matching that businessType are shown; if no filter is selected, providers across all business types are shown.",
-        "The provider count shown on the page reflects the number of providers returned from the backend query (not a constant 0).",
-        "If there are genuinely zero providers for the filter, the UI shows an empty-state that indicates there are no providers for that category (not a placeholder message implying search is not implemented)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/client/ProviderResultsPage.tsx",
-          "operation": "modify",
-          "description": "Replace the mock `providers: ProviderProfileView[] = []` with data returned from a React Query hook that calls the backend capability for provider browsing results (supporting `businessType` filter and the \"All Providers\" case when null). Ensure the header count uses the fetched list length and replace the current placeholder empty message with a truthful empty-state for zero results. Use existing shadcn-ui-based UI primitives already in the page (e.g., Button) and keep all user-facing text in English. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-98",
-      "summary": "Show a clear Engaged / Not Engaged status indicator on every provider card in the results grid using the backend-provided `isEngaged` value.",
-      "acceptanceCriteria": [
-        "Each provider card in the results grid displays a visible status indicator with English text that distinguishes Engaged vs Not Engaged (or Available).",
-        "The status indicator uses the provider’s `isEngaged` value coming from the backend list query (not only from the preview modal polling).",
-        "The UI remains readable on mobile and desktop and does not break the existing card layout."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/providers/ProviderCard.tsx",
-          "operation": "modify",
-          "description": "Add an engagement status badge/label to the provider card layout that reads \"Engaged\" when `provider.isEngaged` is true and \"Not Engaged\" (or \"Available\") when false. Compose existing shadcn-ui-based components already used here (e.g., Badge) without modifying anything under `frontend/src/components/ui`. Keep text in English and ensure the indicator fits within the existing responsive card layout. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-99",
-      "summary": "Add React Query hook wiring for provider results and integrate it into ProviderResultsPage with loading/error states and retry, while keeping the existing provider preview dialog polling behavior intact.",
-      "acceptanceCriteria": [
-        "`ProviderResultsPage` uses a React Query hook (in `frontend/src/hooks/useQueries.ts`) to fetch providers instead of `const providers: ProviderProfileView[] = [];`.",
-        "While loading, the page shows a clear loading UI (e.g., skeletons or \"Loading providers…\").",
-        "If the backend call fails, the page shows a clear English error message and a retry action.",
-        "Selecting a provider still opens the existing preview dialog and continues to poll the selected provider every ~3 seconds while the dialog is open."
+        "The back-office screen shows two clearly labeled actions (e.g., “Delete All Providers” and “Seed Category Providers”).",
+        "A confirmation step is required before deleting providers.",
+        "On success, the UI shows an English success message and React Query caches related to provider lists/results are invalidated so client pages reflect the new dataset.",
+        "If the user is not authorized, the UI shows an English error message explaining they do not have permission to perform the action."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add a new React Query hook (e.g., `useGetProviderResults`) that calls the backend actor method for provider browsing results with an optional `BusinessType | null` filter. Gate the query with actor availability (and keep consistent with the app’s authorization/authentication flow) and expose a queryKey that includes the filter so switching categories refetches correctly. This uses React Query infrastructure from core-infrastructure and authentication expectations from authorization. Verify the component's usage instructions before implementing."
+          "description": "Add React Query hooks for the back-office operations: (1) a query hook to check admin authorization (using the backend capability that indicates whether the caller is an admin) and (2) mutation hooks to run provider reset and provider seeding. Ensure mutations invalidate provider-related caches (e.g., provider results, provider detail, platform stats, and all-providers queries where applicable). Use the authorization component system for role-aware behavior where needed; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/client/ProviderResultsPage.tsx",
+          "path": "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
           "operation": "modify",
-          "description": "Integrate the new provider results hook: render an English loading state (e.g., \"Loading providers…\") while fetching, render an English error state with a retry action (using the query `refetch`), and render the fetched grid or a truthful empty-state. Preserve existing selection behavior so clicking a provider still opens `ProviderPreviewDialog`, and keep the existing `useGetProvider` polling (every ~3 seconds) when the dialog is open. Compose existing shadcn-ui-based components (e.g., Button) and do not modify `frontend/src/components/ui/*`. Verify the component's usage instructions before implementing."
+          "description": "Extend the existing back-office screen to include a new “Technical Team Tools” section containing two clearly labeled controls: “Delete All Providers” and “Seed Category Providers”. Gate the controls behind an admin check (show an English permission error if not authorized). Require an explicit English confirmation prompt before deletion. Show clear English success/error feedback after each action, and trigger React Query invalidation (via the mutations’ onSuccess) so client browsing reflects the updated dataset. Use shadcn-ui primitives already present in the project (e.g., Card, Button) to keep UI consistent; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx",
+          "operation": "create",
+          "description": "Create a focused back-office panel component that renders the two actions, handles confirmation UX for deletion, and displays success/error states in English. This panel should call the new mutation hooks (reset + seed) and remain reusable/testable. Use shadcn-ui components (e.g., Card/Button/alerts if available) for layout and feedback; verify the component's usage instructions before implementing. Ensure this component is imported and rendered by the existing VerificationReviewPage so it is not orphaned."
         }
       ]
     }

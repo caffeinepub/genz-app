@@ -1,55 +1,42 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T14:29:45.995Z",
+  "generatedAt": "2026-02-11T16:22:52.566Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 3,
+    "total": 3,
+    "implemented": 1,
     "items": [
       {
-        "id": "REQ-96",
-        "summary": "Replace the empty/mock provider list on the Client \"Provider Results\" page with real backend data so a logged-in client can see every service provider for the selected category (and also support viewing \"All Providers\" when no category filter is provided).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/client/ProviderResultsPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/client/ProviderResultsPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-97",
-        "summary": "Add/extend a backend query API that returns a list of provider profiles suitable for client browsing (including each provider’s current engagement state), and ensure it is callable by authenticated clients.",
+        "id": "REQ-108",
+        "summary": "Add an admin-only backend operation that deletes/removes all existing Service Provider accounts/data from the canister state (at minimum: providerProfiles entries and their provider role assignment), so that client browsing returns zero providers immediately after the reset.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-98",
-        "summary": "Update the client provider listing UI so each provider card clearly shows engagement status (Engaged / Not Engaged) in English, for every provider in the results grid.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/providers/ProviderCard.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/providers/ProviderCard.tsx"
-        ]
+        "id": "REQ-109",
+        "summary": "Add an admin-only backend operation to seed a new set of service provider entries that are tied to specific service categories so they only appear when clients browse those categories (and do not appear in unrelated categories).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
-        "id": "REQ-99",
-        "summary": "Add React Query wiring for the new/updated provider list query and integrate it into `frontend/src/pages/client/ProviderResultsPage.tsx`, including loading and error states with English user-facing text.",
+        "id": "REQ-110",
+        "summary": "Add a simple Technical Team (Back-office) UI control that allows an authenticated back-office/admin user to run (1) the provider reset and (2) the provider seeding actions, with clear English confirmation prompts and success/error feedback.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/client/ProviderResultsPage.tsx"
+          "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
+          "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx"
         ],
         "matchedFiles": [
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/client/ProviderResultsPage.tsx"
+          "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
+          "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx"
         ]
       }
     ]
@@ -62,11 +49,11 @@
     "frontend-implementation-plan.json",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
-    "frontend/src/components/providers/ProviderCard.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/client/ProviderResultsPage.tsx",
+    "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx",
+    "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

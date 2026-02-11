@@ -1,40 +1,54 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T14:29:45.989Z",
-  "summary": "Frontend was updated to fetch real provider results via a new React Query hook and to display engagement status on each provider card. However, the diff summary does not provide evidence that the backend exposes the required new/extended provider-browsing query API with correct engagement-time logic and authorization, and the provider-results empty-state behavior is not fully evidenced due to truncation.",
+  "generatedAt": "2026-02-11T16:22:52.561Z",
+  "summary": "Frontend adds a Back-office “Technical Team Tools” panel with admin gating, delete/seed actions, confirmation dialog, and English feedback messaging. However, the diff summary does not provide evidence that the required new admin-only backend operations (reset providers and seed category-specific providers) were added/implemented in backend/main.mo, so REQ-108 and REQ-109 cannot be verified as implemented from the provided diff summary. Several additional unrelated frontend changes appear to have been made beyond the BuildRequest.",
   "missing_requirements": [
     {
-      "id": "REQ-97",
-      "requirement": "Add/extend a backend query API that returns a list of provider profiles suitable for client browsing (including each provider’s current engagement state), and ensure it is callable by authenticated clients.",
-      "reason": "The backend diff snippet only shows type definitions and imports; it does not show any new/updated public query method that returns an array of ProviderProfileView for browsing/filtering, nor logic to force isEngaged=false when engagementEndTime is in the past, nor authorization checks.",
+      "id": "REQ-108",
+      "requirement": "Add an admin-only backend operation that deletes/removes all existing Service Provider accounts/data from canister state (at minimum: providerProfiles entries and provider role assignment), so browsing returns zero providers immediately after reset, and non-admins get an English authorization error.",
+      "reason": "backend/main.mo is shown only as type definitions in the truncated diff; there is no visible evidence of a new admin-only reset/delete-all-providers method, nor evidence it updates provider role assignments, nor evidence of the specified authorization error behavior.",
       "evidence": [
-        "backend/main.mo (truncated; no provider-results query method shown)"
+        "backend/main.mo"
       ]
     },
     {
-      "id": "REQ-96",
-      "requirement": "If there are genuinely zero providers for the filter, the UI shows an empty-state that indicates there are no providers for that category (not a placeholder message implying search is not implemented).",
-      "reason": "ProviderResultsPage shows loading skeletons and a providers count, but the diff is truncated before any explicit zero-results empty-state UI/message can be verified.",
+      "id": "REQ-109",
+      "requirement": "Add an admin-only backend operation to seed multiple category-specific service providers with realistic fields, stored non-null category, correct category filtering in getProviderResults, inclusion in All Providers (null category), and non-admin English authorization error.",
+      "reason": "The diff summary does not show any backend method that performs seeding, assigns categories, or enforces admin-only access with English authorization errors. The backend file excerpt is truncated before any such functions would be visible.",
       "evidence": [
-        "frontend/src/pages/client/ProviderResultsPage.tsx (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-99",
-      "requirement": "If the backend call fails, the page shows a clear English error message and a retry action.",
-      "reason": "ProviderResultsPage imports AlertCircle and destructures isError/error/refetch, and the file summary claims error handling with retry, but the truncated diff does not show the rendered error state UI and retry control.",
-      "evidence": [
-        "frontend/src/pages/client/ProviderResultsPage.tsx (truncated)"
+        "backend/main.mo"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added verification status badges (Verified/Pending/Rejected/Unverified) and rating display elements on provider cards beyond the requested engagement status indicator.",
-      "reason": "REQ-98 only asks to show engagement status (Engaged / Not Engaged/Available) on provider cards; the diff adds/contains additional visible badge logic and a star rating display that are not part of the stated requirements for this change.",
+      "description": "Broader client-side category filtering/routing changes (tracking selectedCategoryId, ProviderResultsPage updates, CategoriesPage changes, and conversion of categoryId to BusinessType in queries).",
+      "reason": "The BuildRequest only asks for back-office controls to reset/seed provider datasets; it does not request changes to client browsing/filtering pages or routing behavior.",
       "evidence": [
-        "frontend/src/components/providers/ProviderCard.tsx"
+        "frontend-file-summaries.txt",
+        "frontend/src/hooks/useQueries.ts"
+      ]
+    },
+    {
+      "description": "UI/theme and marketing content updates (new landing page sections, global styles/palette updates, Tailwind config changes, header/footer content changes).",
+      "reason": "Not requested by REQ-108/109/110; these are outside the scope of adding provider reset/seed tooling.",
+      "evidence": [
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "description": "Provider detail engagement polling and additional provider card badges/UX updates.",
+      "reason": "Not requested; REQ-110 only concerns back-office dataset management controls.",
+      "evidence": [
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "description": "Role onboarding change requiring providers to select exactly one category during onboarding.",
+      "reason": "Not requested and potentially changes existing onboarding behavior beyond the dataset tooling requirements.",
+      "evidence": [
+        "frontend-file-summaries.txt"
       ]
     }
   ],
@@ -42,9 +56,9 @@
   "changed_files": [
     "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/providers/ProviderCard.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/client/ProviderResultsPage.tsx",
+    "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx",
+    "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
     "project_state.json"
   ]
 }

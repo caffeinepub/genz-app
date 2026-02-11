@@ -1,7 +1,7 @@
 import { CATEGORIES } from '../../lib/categories';
 import { Card, CardHeader, CardTitle } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, Grid } from 'lucide-react';
 import { useState, useMemo } from 'react';
 
 interface CategoriesPageProps {
@@ -41,12 +41,26 @@ export function CategoriesPage({ onNavigate }: CategoriesPageProps) {
           />
         </div>
 
+        {/* All Providers option */}
+        <Card
+          className="mb-6 cursor-pointer border-2 border-primary/20 bg-primary/5 transition-all hover:border-primary/40 hover:shadow-soft"
+          onClick={() => onNavigate('results', { categoryId: null })}
+        >
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-lg bg-primary/10">
+              <Grid className="h-10 w-10 text-primary" />
+            </div>
+            <CardTitle className="text-lg">All Providers</CardTitle>
+            <p className="text-sm text-muted-foreground">Browse all available service providers</p>
+          </CardHeader>
+        </Card>
+
         <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {filteredCategories.map((category) => (
             <Card
               key={category.id}
               className="cursor-pointer transition-all hover:shadow-soft"
-              onClick={() => onNavigate('results', { category: category.id })}
+              onClick={() => onNavigate('results', { categoryId: category.id })}
             >
               <CardHeader className="text-center">
                 <img

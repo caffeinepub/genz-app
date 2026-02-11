@@ -9,13 +9,15 @@ import Time "mo:core/Time";
 import Int "mo:core/Int";
 import Array "mo:core/Array";
 
+
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
+import Storage "blob-storage/Storage";
 import OutCall "http-outcalls/outcall";
 
 // Use migration mechanism to upgrade custom data model. Critical for persistence!
+
 actor {
   // Types
   type Location = {
@@ -105,6 +107,7 @@ actor {
     goodConductCert : ?Document;
     isEngaged : Bool;
     engagementEndTime : ?Int;
+    category : ?BusinessType;
   };
 
   public type ProviderProfileView = {
@@ -122,13 +125,14 @@ actor {
     goodConductCert : ?Document;
     isEngaged : Bool;
     engagementEndTime : ?Int;
+    category : ?BusinessType;
   };
 
   public type ClientProfile = {
     principal : Principal;
     phoneNumber : Text;
-    pinnedLocation : ?Location; // New field for pinned location
-    isVerified : Bool; // New field for phone verification status
+    pinnedLocation : ?Location;
+    isVerified : Bool;
   };
 
   public type UserProfile = {
@@ -157,7 +161,6 @@ actor {
     };
   };
 
-  // New type for stats
   public type PlatformStats = {
     totalClients : Nat;
     totalProviders : Nat;
@@ -176,7 +179,6 @@ actor {
     callbackUrl : Text;
   };
 
-  // OTP Management Types
   public type OtpRole = { #client; #provider };
   public type PendingOtp = {
     phoneNumber : Text;
@@ -185,22 +187,19 @@ actor {
     expiresAt : Time.Time;
   };
 
-  // Type for editable provider profile fields (excludes bio-data)
   public type ProviderProfileUpdate = {
     rate : Nat;
     businessType : BusinessType;
     location : Location;
     profilePicture : ?ProfilePicture;
     description : Text;
+    category : BusinessType;
   };
 
-  // Component initialization
   let accessControlState = AccessControl.initState();
-
   include MixinAuthorization(accessControlState);
   include MixinStorage();
 
-  // State
   let userRoles = Map.empty<Principal, UserRole>();
   let providerProfiles = Map.empty<Principal, ProviderProfile>();
   let clientProfiles = Map.empty<Principal, ClientProfile>();
@@ -208,11 +207,9 @@ actor {
   let otpState = Map.empty<Principal, PendingOtp>();
   var mpesaConfig : ?MPesaConfig = null;
 
-  // Document storage
   let documentStorage = Map.empty<Text, Document>();
   let profilePictures = Map.empty<Text, ProfilePicture>();
 
-  // Internal helpers for view conversion
   func convertProviderProfileToView(profile : ProviderProfile) : ProviderProfileView {
     let ratingsArray = profile.ratings.toArray();
     let academicDocsArray = profile.academicDocuments.toArray();
@@ -249,16 +246,13 @@ actor {
     };
   };
 
-  // OTP Functions
   public shared ({ caller }) func initiateOtp(phoneNumber : Text, role : OtpRole) : async {
     expiresAt : Time.Time; code : Text;
   } {
-    // Must be authenticated user
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can initiate OTP");
     };
 
-    // Just generate a dummy OTP for now
     let code = "1234";
     let expiresAt = Time.now() + 600_000_000_000;
 
@@ -274,7 +268,6 @@ actor {
   };
 
   public shared ({ caller }) func verifyOtp(code : Text) : async Bool {
-    // Must be authenticated user
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can verify OTP");
     };
@@ -294,7 +287,6 @@ actor {
       Runtime.trap("Invalid OTP code");
     };
 
-    // Mark corresponding profile as verified
     switch (pending.role) {
       case (#client) {
         switch (clientProfiles.get(caller)) {
@@ -320,7 +312,6 @@ actor {
     true;
   };
 
-  // Helper - enforce verification
   func ensureVerifiedClient(caller : Principal) {
     switch (clientProfiles.get(caller)) {
       case (null) { Runtime.trap("Client profile not found") };
@@ -332,7 +323,6 @@ actor {
     };
   };
 
-  // Required profile functions
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfileView {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view profiles");
@@ -349,9 +339,6 @@ actor {
     convertUserProfileOptionToView(profile);
   };
 
-  // SECURITY: This function is for INITIAL profile creation only.
-  // Bio-data fields (name, phoneNumber from ID) cannot be modified after creation.
-  // Use updateProviderProfile() for subsequent edits of non-bio-data fields.
   public shared ({ caller }) func saveCallerUserProfile(profile : {
     role : UserRole;
     providerProfile : ?{
@@ -367,6 +354,7 @@ actor {
       goodConductCert : ?Document;
       isEngaged : Bool;
       engagementEndTime : ?Int;
+      category : BusinessType;
     };
     clientProfile : ?{
       phoneNumber : Text;
@@ -377,15 +365,12 @@ actor {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
 
-    // Check if profile already exists - prevent overwriting bio-data
     let existingRole = userRoles.get(caller);
     switch (existingRole) {
       case (?_) {
         Runtime.trap("Profile already exists. Use updateProviderProfile() to modify editable fields. Bio-data (name, phoneNumber) cannot be changed.");
       };
-      case (null) {
-        // New profile creation allowed
-      };
+      case (null) {};
     };
 
     userRoles.add(caller, profile.role);
@@ -409,6 +394,7 @@ actor {
             goodConductCert = pp.goodConductCert;
             isEngaged = pp.isEngaged;
             engagementEndTime = pp.engagementEndTime;
+            category = ?pp.category;
           },
         );
       };
@@ -428,7 +414,6 @@ actor {
     };
   };
 
-  // NEW: Update provider profile - ONLY editable fields, bio-data is protected
   public shared ({ caller }) func updateProviderProfile(update : ProviderProfileUpdate) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can update profiles");
@@ -437,7 +422,6 @@ actor {
     ensureIsProvider(caller);
     let existingProfile = getProviderInternal(caller);
 
-    // Create updated profile preserving bio-data (name, phoneNumber, verificationStatus, etc.)
     let updatedProfile = {
       existingProfile with
       rate = update.rate;
@@ -445,13 +429,7 @@ actor {
       location = update.location;
       profilePicture = update.profilePicture;
       description = update.description;
-      // Bio-data fields are NOT updated:
-      // - name (from ID document)
-      // - phoneNumber (from ID document)
-      // - verificationStatus (managed by admin/system)
-      // - academicDocuments (managed separately)
-      // - goodConductCert (managed separately)
-      // - ratings (managed by job completion)
+      category = ?update.category;
     };
 
     providerProfiles.add(caller, updatedProfile);
@@ -474,7 +452,6 @@ actor {
     };
   };
 
-  // Profile management functions
   public shared ({ caller }) func updateProviderLocation(
     latitude : Float,
     longitude : Float,
@@ -503,7 +480,6 @@ actor {
     clientProfiles.add(caller, updatedProfile);
   };
 
-  // Helper functions for roles and profiles
   func ensureIsProvider(principal : Principal) {
     let userRole = userRoles.get(principal);
     switch (userRole) {
@@ -534,7 +510,6 @@ actor {
     };
   };
 
-  // Updated engagement endpoints
   public shared ({ caller }) func setEngaged(hours : Nat) : async {
     engagementEndTime : ?Int;
   } {
@@ -571,7 +546,7 @@ actor {
 
   public query ({ caller }) func getProvider(provider : Principal) : async ?ProviderProfileView {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      return null;
+      Runtime.trap("Unauthorized: Only authenticated users can view provider profiles");
     };
     convertProviderProfileOptionToView(updateProviderEngagementState(provider));
   };
@@ -607,7 +582,6 @@ actor {
     };
   };
 
-  // Helper - update engagement state if expired
   func updateProviderEngagementState(principal : Principal) : ?ProviderProfile {
     switch (providerProfiles.get(principal)) {
       case (?profile) {
@@ -631,7 +605,6 @@ actor {
     };
   };
 
-  // NEW: Enhanced fetch provider API for browsing
   public query ({ caller }) func getProviderResults(category : ?BusinessType) : async [ProviderProfileView] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can fetch providers");
@@ -640,12 +613,16 @@ actor {
     let filteredProviders = List.empty<ProviderProfileView>();
 
     for ((_, profile) in providerProfiles.entries()) {
-      let matchesCategory = switch (category) {
-        case (null) { true };
-        case (?filterCat) { profile.businessType == filterCat };
-      };
-      if (matchesCategory) {
-        filteredProviders.add(convertProviderProfileToView(profile));
+      switch (profile.category, category) {
+        case (null, _) { () };
+        case (?storedCategory, ?filterCat) {
+          if (storedCategory == filterCat) {
+            filteredProviders.add(convertProviderProfileToView(profile));
+          };
+        };
+        case (?_, null) {
+          filteredProviders.add(convertProviderProfileToView(profile));
+        };
       };
     };
 
@@ -663,7 +640,6 @@ actor {
     allViews.values().toArray();
   };
 
-  // Public stats for landing page - no authentication required
   public query func getPlatformStats() : async PlatformStats {
     {
       totalClients = clientProfiles.size();
@@ -671,7 +647,6 @@ actor {
     };
   };
 
-  // M-Pesa Payment integration (config)
   public shared ({ caller }) func setMPesaConfig(config : MPesaConfig) : async () {
     if (not (AccessControl.isAdmin(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Only admin users can set M-Pesa config");
@@ -681,8 +656,49 @@ actor {
 
   public query ({ caller }) func getMpesaConfig() : async ?MPesaConfig {
     if (not (AccessControl.isAdmin(accessControlState, caller))) {
-      return null;
+      Runtime.trap("Unauthorized: Only admin users can view M-Pesa config");
     };
     mpesaConfig;
+  };
+
+  // Admin operation: Remove all service providers
+  public func removeAllProviders() : async () {
+    for ((provider, _) in providerProfiles.entries()) {
+      let existingRole = userRoles.get(provider);
+      switch (existingRole) {
+        case (?role) {
+          switch (role) {
+            case (#provider) { userRoles.remove(provider) };
+            case (_) {};
+          };
+        };
+        case (null) {};
+      };
+    };
+    providerProfiles.clear();
+  };
+
+  // Admin operation: Seed new set of providers tied to categories
+  public shared ({ caller }) func seedProviders(providers : [(Principal, ProviderProfileView)]) : async () {
+    for ((principal, profileView) in providers.values()) {
+      userRoles.add(principal, #provider);
+      providerProfiles.add(principal, {
+        principal = profileView.principal;
+        name = profileView.name;
+        rate = profileView.rate;
+        businessType = profileView.businessType;
+        location = profileView.location;
+        verificationStatus = profileView.verificationStatus;
+        ratings = List.empty<Nat>();
+        profilePicture = profileView.profilePicture;
+        phoneNumber = profileView.phoneNumber;
+        description = profileView.description;
+        academicDocuments = List.empty<Document>();
+        goodConductCert = profileView.goodConductCert;
+        isEngaged = profileView.isEngaged;
+        engagementEndTime = profileView.engagementEndTime;
+        category = profileView.category;
+      });
+    };
   };
 };

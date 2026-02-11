@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useGetProvider, useGetProviderResults } from '../../hooks/useQueries';
-import { BusinessType, ProviderProfileView } from '../../backend';
+import { useQueryClient } from '@tanstack/react-query';
+import { ProviderProfileView } from '../../backend';
 import { ProviderCard } from '../../components/providers/ProviderCard';
 import { ProviderPreviewDialog } from '../../components/providers/ProviderPreviewDialog';
 import { EngagementStatusNotice } from '../../components/notifications/EngagementStatusNotice';
@@ -8,27 +9,28 @@ import { Button } from '../../components/ui/button';
 import { Skeleton } from '../../components/ui/skeleton';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { Principal } from '@icp-sdk/core/principal';
-import { getBusinessTypeLabel } from '../../lib/categories';
 
 interface ProviderResultsPageProps {
-  businessType: BusinessType | null;
+  categoryId: string | null;
+  categoryLabel: string | null;
   onNavigate: (page: string, params?: any) => void;
 }
 
-export function ProviderResultsPage({ businessType, onNavigate }: ProviderResultsPageProps) {
+export function ProviderResultsPage({ categoryId, categoryLabel, onNavigate }: ProviderResultsPageProps) {
+  const queryClient = useQueryClient();
   const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [showEngagementNotice, setShowEngagementNotice] = useState(false);
   const previousEngagementRef = useRef<boolean | null>(null);
 
-  // Fetch provider results from backend
+  // Fetch provider results from backend using categoryId
   const { 
     data: providers, 
     isLoading, 
     isError, 
     error,
     refetch 
-  } = useGetProviderResults(businessType);
+  } = useGetProviderResults(categoryId);
 
   // Fetch selected provider when preview is open with polling
   const { data: selectedProvider } = useGetProvider(
@@ -38,6 +40,11 @@ export function ProviderResultsPage({ businessType, onNavigate }: ProviderResult
       refetchInterval: previewOpen ? 3000 : false, // Poll every 3 seconds when dialog is open
     }
   );
+
+  // Invalidate and refetch provider results on mount/navigation
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ['providerResults', categoryId] });
+  }, [categoryId, queryClient]);
 
   // Detect engagement status changes
   useEffect(() => {
@@ -90,7 +97,7 @@ export function ProviderResultsPage({ businessType, onNavigate }: ProviderResult
           Back to Categories
         </Button>
         <h1 className="text-3xl font-bold tracking-tight">
-          {businessType ? getBusinessTypeLabel(businessType) : 'All Providers'}
+          {categoryLabel || 'All Providers'}
         </h1>
         <p className="mt-2 text-muted-foreground">
           {isLoading ? 'Loading...' : `${providers?.length || 0} provider${providers?.length !== 1 ? 's' : ''} available`}
@@ -138,8 +145,8 @@ export function ProviderResultsPage({ businessType, onNavigate }: ProviderResult
           <div className="text-center">
             <h2 className="text-2xl font-bold">No Providers Found</h2>
             <p className="mt-2 text-muted-foreground">
-              {businessType 
-                ? `There are currently no providers in the ${getBusinessTypeLabel(businessType)} category.`
+              {categoryLabel 
+                ? `There are currently no providers in the ${categoryLabel} category.`
                 : 'There are currently no providers available.'}
             </p>
             <Button onClick={() => onNavigate('categories')} className="mt-4">

@@ -92,6 +92,7 @@ export interface ProviderProfileUpdate {
   'rate' : bigint,
   'businessType' : BusinessType,
   'description' : string,
+  'category' : BusinessType,
   'profilePicture' : [] | [ProfilePicture],
   'location' : Location,
 }
@@ -104,6 +105,7 @@ export interface ProviderProfileView {
   'ratings' : Array<bigint>,
   'description' : string,
   'academicDocuments' : Array<Document>,
+  'category' : [] | [BusinessType],
   'phoneNumber' : string,
   'profilePicture' : [] | [ProfilePicture],
   'location' : Location,
@@ -175,6 +177,7 @@ export interface _SERVICE {
     { 'expiresAt' : Time, 'code' : string }
   >,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'removeAllProviders' : ActorMethod<[], undefined>,
   'saveCallerUserProfile' : ActorMethod<
     [
       {
@@ -190,6 +193,7 @@ export interface _SERVICE {
             'ratings' : Array<bigint>,
             'description' : string,
             'academicDocuments' : Array<Document>,
+            'category' : BusinessType,
             'phoneNumber' : string,
             'profilePicture' : [] | [ProfilePicture],
             'location' : Location,
@@ -200,6 +204,10 @@ export interface _SERVICE {
         ],
       },
     ],
+    undefined
+  >,
+  'seedProviders' : ActorMethod<
+    [Array<[Principal, ProviderProfileView]>],
     undefined
   >,
   'setEngaged' : ActorMethod<[bigint], { 'engagementEndTime' : [] | [bigint] }>,

@@ -1,96 +1,89 @@
 {
   "kind": "build_request",
-  "title": "Fix client provider results so all providers show and display Engaged/Not Engaged status",
-  "priority": "high",
+  "title": "Reset existing providers and seed new category-specific service providers",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-96",
-      "text": "Replace the empty/mock provider list on the Client \"Provider Results\" page with real backend data so a logged-in client can see every service provider for the selected category (and also support viewing \"All Providers\" when no category filter is provided).",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "recent-messages"
-        ],
-        "quotes": [
-          "ENSURE THAT AS A CLIENT I CAN SEE EVERY SERVICE PROVIDER WHO IS ENGAGED OR NOT. RIGHT NOW I CANT SEE ANYTHING"
-        ]
-      },
-      "acceptanceCriteria": [
-        "When a logged-in client navigates to the provider results screen, the page loads a non-empty list if provider profiles exist in the backend (it must not always be an empty array).",
-        "If a category/businessType filter is selected, only providers matching that businessType are shown; if no filter is selected, providers across all business types are shown.",
-        "The provider count shown on the page reflects the number of providers returned from the backend query (not a constant 0).",
-        "If there are genuinely zero providers for the filter, the UI shows an empty-state that indicates there are no providers for that category (not a placeholder message implying search is not implemented)."
-      ]
-    },
-    {
-      "id": "REQ-97",
-      "text": "Add/extend a backend query API that returns a list of provider profiles suitable for client browsing (including each provider’s current engagement state), and ensure it is callable by authenticated clients.",
+      "id": "REQ-108",
+      "text": "Add an admin-only backend operation that deletes/removes all existing Service Provider accounts/data from the canister state (at minimum: providerProfiles entries and their provider role assignment), so that client browsing returns zero providers immediately after the reset.",
       "target": "backend",
       "source": {
         "messageIds": [
           "recent-messages"
         ],
         "quotes": [
-          "ENSURE THAT AS A CLIENT I CAN SEE EVERY SERVICE PROVIDER WHO IS ENGAGED OR NOT. RIGHT NOW I CANT SEE ANYTHING"
+          "remove all the service providers"
         ]
       },
       "acceptanceCriteria": [
-        "Backend exposes a query method that returns an array of ProviderProfileView for browsing/search results, optionally filtered by BusinessType.",
-        "Returned ProviderProfileView entries include correct `isEngaged` and `engagementEndTime` values.",
-        "If a provider’s `engagementEndTime` is in the past, the provider is returned as Not Engaged (`isEngaged` is false) to clients.",
-        "The method is authorized such that authenticated users can call it (consistent with existing getProvider behavior that requires #user permission)."
+        "When called by an admin, all existing ProviderProfile records are removed from backend storage.",
+        "After reset, getPlatformStats().totalProviders returns 0.",
+        "After reset, getProviderResults(category) returns an empty array for any category.",
+        "Non-admin callers receive an authorization error (English error message)."
       ]
     },
     {
-      "id": "REQ-98",
-      "text": "Update the client provider listing UI so each provider card clearly shows engagement status (Engaged / Not Engaged) in English, for every provider in the results grid.",
+      "id": "REQ-109",
+      "text": "Add an admin-only backend operation to seed a new set of service provider entries that are tied to specific service categories so they only appear when clients browse those categories (and do not appear in unrelated categories).",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "create a new that will be appearing on specific category of services"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Seeding creates multiple new provider entries with realistic profile fields (name, rate, location, description, verificationStatus, isEngaged/engagementEndTime) and a non-null stored category value.",
+        "For each seeded provider, getProviderResults(filterCategory) includes the provider only when filterCategory matches the provider’s stored category.",
+        "Seeded providers do not appear in getProviderResults() for non-matching categories.",
+        "Seeded providers appear in the “All Providers” mode (category = null) returned by getProviderResults(null) and/or getAllProviders() (whichever is used by the client UI).",
+        "Non-admin callers receive an authorization error (English error message)."
+      ]
+    },
+    {
+      "id": "REQ-110",
+      "text": "Add a simple Technical Team (Back-office) UI control that allows an authenticated back-office/admin user to run (1) the provider reset and (2) the provider seeding actions, with clear English confirmation prompts and success/error feedback.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "recent-messages"
         ],
         "quotes": [
-          "ENSURE THAT AS A CLIENT I CAN SEE EVERY SERVICE PROVIDER WHO IS ENGAGED OR NOT. RIGHT NOW I CANT SEE ANYTHING"
+          "remove all the service providers and create a new that will be appearing on specific category of services"
         ]
       },
       "acceptanceCriteria": [
-        "Each provider card in the results grid displays a visible status indicator with English text that distinguishes Engaged vs Not Engaged (or Available).",
-        "The status indicator uses the provider’s `isEngaged` value coming from the backend list query (not only from the preview modal polling).",
-        "The UI remains readable on mobile and desktop and does not break the existing card layout."
-      ]
-    },
-    {
-      "id": "REQ-99",
-      "text": "Add React Query wiring for the new/updated provider list query and integrate it into `frontend/src/pages/client/ProviderResultsPage.tsx`, including loading and error states with English user-facing text.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "recent-messages"
-        ],
-        "quotes": [
-          "ENSURE THAT AS A CLIENT I CAN SEE EVERY SERVICE PROVIDER WHO IS ENGAGED OR NOT. RIGHT NOW I CANT SEE ANYTHING"
-        ]
-      },
-      "acceptanceCriteria": [
-        "`ProviderResultsPage` uses a React Query hook (in `frontend/src/hooks/useQueries.ts`) to fetch providers instead of `const providers: ProviderProfileView[] = [];`.",
-        "While loading, the page shows a clear loading UI (e.g., skeletons or \"Loading providers…\").",
-        "If the backend call fails, the page shows a clear English error message and a retry action.",
-        "Selecting a provider still opens the existing preview dialog and continues to poll the selected provider every ~3 seconds while the dialog is open."
+        "The back-office screen shows two clearly labeled actions (e.g., “Delete All Providers” and “Seed Category Providers”).",
+        "A confirmation step is required before deleting providers.",
+        "On success, the UI shows an English success message and React Query caches related to provider lists/results are invalidated so client pages reflect the new dataset.",
+        "If the user is not authorized, the UI shows an English error message explaining they do not have permission to perform the action."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under `frontend/src/components/ui` (compose existing UI components instead).",
-    "Backend must remain a single Motoko actor in `backend/main.mo`; only create `backend/migration.mo` if a state schema upgrade is required.",
-    "All user-facing text must be in English."
+    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
+    "Do not edit frontend files under frontend/immutablePaths; compose existing UI components instead.",
+    "Use English for all user-facing text."
   ],
   "nonGoals": [
-    "Implement advanced geospatial proximity search or sorting logic.",
-    "Implement real-time subscriptions/WebSockets for engagement updates (polling is acceptable and already used).",
-    "Change payment/unlock behavior or contact gating as part of this fix."
+    "Implementing real provider account creation flows for the seeded providers (e.g., enabling those seeded principals to log in and manage their profiles).",
+    "Changing the existing category model or adding new category types beyond using the existing predefined category/businessType mapping.",
+    "Adding external databases or third-party admin tooling."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }
