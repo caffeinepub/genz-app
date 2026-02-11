@@ -1,7 +1,7 @@
 {
-  "frontend/src/App.tsx": "Main app component with role-based routing, authentication flow, and page navigation for clients, providers, and back-office users with fixed type-safe navigation.",
+  "frontend/src/App.tsx": "Main app component with role-based routing, authentication flow, service worker registration on mount, and InstallPromptBanner rendered for both authenticated and unauthenticated users.",
   "frontend/src/components/AppLayout.tsx": "Layout wrapper component that renders header, main content area, footer, and support drawer with navigation props.",
-  "frontend/src/components/Header.tsx": "Responsive header with Genz App logo (12-14px responsive sizing), role-based navigation menu, login button, and mobile menu support with clean rendering optimized for the new simplified logo design.",
+  "frontend/src/components/Header.tsx": "Responsive header with Genz App branding, role-based navigation, login button, mobile menu, and optional \"Install\" button in desktop/mobile nav when PWA installation is available.",
   "frontend/src/components/Footer.tsx": "Footer component with Genz App branding, support link, and caffeine.ai attribution with UTM tracking.",
   "frontend/src/pages/LandingPage.tsx": "Landing page with hero section, platform stats, featured providers, testimonials section, features, and about sections; Learn More button scrolls to testimonials section.",
   "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including provider profile, document uploads, profile picture uploads, and state management with proper invalidation.",
@@ -26,7 +26,7 @@
   "frontend/src/components/landing/useLandingScrollFocus.ts": "Custom hook providing smooth scroll and temporary highlight effect for the demo section when Learn More is clicked.",
   "frontend/src/components/landing/DemoVideoSection.tsx": "Interactive demo video component with play overlay when paused and clickable chapter buttons that seek to timestamps and auto-play.",
   "frontend/src/hooks/useCountUpOnVisible.ts": "Intersection Observer-based hook that animates numbers from start to end value once when element enters viewport with smooth easing.",
-  "frontend/src/components/landing/PlatformStatsSection.tsx": "Platform statistics section displaying animated client and provider counts with minimum thresholds (205k clients, 150k providers) while using backend counts when higher.",
+  "frontend/src/components/landing/PlatformStatsSection.tsx": "Platform statistics section displaying animated client and provider counts with minimum thresholds (200k clients, 250k providers) while using backend counts when higher.",
   "frontend/src/components/providers/FeaturedProviderAvatar.tsx": "Avatar component for featured providers that loads static images with graceful fallback to initials on error.",
   "frontend/src/utils/fees.ts": "Helper functions for calculating 10% connection fee from provider rate and formatting KES amounts for display.",
   "frontend/src/components/providers/ProviderPreviewDialog.tsx": "Dialog component showing provider preview with profile picture, engagement status, location, and actions to view full details or navigate to map view.",
@@ -35,5 +35,11 @@
   "frontend/src/components/messaging/ConversationPanel.tsx": "In-app messaging panel for client-provider communication with message history, manual refresh, and send functionality (simulated client-side for now).",
   "frontend/src/components/landing/TestimonialsSection.tsx": "Testimonials section displaying client reviews with star ratings, reviewer names, and associated provider information using dummy data tied to featured provider identities.",
   "frontend/src/components/providers/ProviderAvatar.tsx": "Reusable avatar component that displays provider profile pictures with fallback to initials when no picture is available.",
-  "frontend/public/assets/generated/genz-app-logo.dim_512x512.png": "512×512 PNG of the full Genz Kenya logo with detailed branding, figure, tools, Kenya flag elements, and \"Empowering Careers\" tagline on transparent background."
+  "frontend/public/assets/generated/genz-app-logo.dim_512x512.png": "512×512 PNG of the full Genz Kenya logo with detailed branding, figure, tools, Kenya flag elements, and \"Empowering Careers\" tagline on transparent background.",
+  "frontend/public/manifest.webmanifest": "PWA manifest file defining app name \"Genz App\", standalone display mode, theme colors, and icon references for 192x192, 512x512, and maskable variants.",
+  "frontend/public/sw.js": "Service worker implementing conservative caching strategy that precaches app shell, serves offline fallback for navigation, and caches static assets while avoiding authenticated backend requests.",
+  "frontend/public/offline.html": "Standalone offline fallback page with branded styling and retry button shown when navigation occurs offline.",
+  "frontend/src/hooks/usePWAInstallPrompt.ts": "React hook managing PWA install prompt state, detecting beforeinstallprompt event, iOS Safari detection, installed state, and providing promptInstall function.",
+  "frontend/src/components/pwa/InstallPromptBanner.tsx": "Fixed-position install prompt banner component showing \"Install Genz App\" CTA for Chrome/Edge and iOS Safari instructions dialog with step-by-step guidance.",
+  "frontend/index.html": "Root HTML with updated title \"Genz App\", PWA manifest link, theme-color meta, iOS-specific meta tags, and apple-touch-icon references."
 }

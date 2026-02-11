@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from './components/AppLayout';
 import { LandingPage } from './pages/LandingPage';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
@@ -13,6 +13,7 @@ import { MyJobsPage } from './pages/client/MyJobsPage';
 import { ProviderProfilePage } from './pages/provider/ProviderProfilePage';
 import { VerificationUploadPage } from './pages/provider/VerificationUploadPage';
 import { VerificationReviewPage } from './pages/backoffice/VerificationReviewPage';
+import { InstallPromptBanner } from './components/pwa/InstallPromptBanner';
 import { UserRole } from './backend';
 
 const queryClient = new QueryClient({
@@ -45,6 +46,20 @@ function AppContent() {
   const isAuthenticated = !!identity;
   const showOnboarding = isAuthenticated && !profileLoading && isFetched && userProfile === null;
 
+  // Register service worker
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered:', registration);
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
+    }
+  }, []);
+
   if (isInitializing || (isAuthenticated && profileLoading)) {
     return (
       <AppLayout>
@@ -70,6 +85,7 @@ function AppContent() {
     return (
       <AppLayout>
         <LandingPage />
+        <InstallPromptBanner />
       </AppLayout>
     );
   }
@@ -156,6 +172,7 @@ function AppContent() {
   return (
     <AppLayout currentPage={currentPage} onNavigate={navigate} userRole={userRole}>
       {renderPage()}
+      <InstallPromptBanner />
     </AppLayout>
   );
 }

@@ -1,10 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Replace the existing Genz App logo with a newly proposed, original logo design inspired by the user’s logo, and ensure it renders cleanly in the header across screen sizes.
+**Goal:** Enable PWA installability for Genz App, including “Install to Home Screen,” minimal offline app-shell support, and an in-app install prompt with iOS instructions.
 
 **Planned changes:**
-- Regenerate and replace the static logo asset at `/assets/generated/genz-app-logo.dim_512x512.png` with the new proposed logo (512×512 PNG), optimized for high contrast, clean edges, and small-size clarity.
-- Verify and, if needed, adjust header logo rendering to keep the brand area aligned, crisp, and aspect-ratio-correct across mobile and desktop without changing the logo asset path.
+- Add a `manifest.webmanifest` served from the frontend public/static path with name “Genz App”, required install fields (short_name, start_url, display, theme/background colors), and icon entries (192x192, 512x512).
+- Update `frontend/index.html` to link the manifest, set appropriate PWA meta tags (including theme-color and iOS-related tags), and set the document title to “Genz App”.
+- Add a service worker under the frontend public/static path plus runtime registration code (without editing `frontend/src/main.tsx`) to precache the static app shell and provide a basic offline shell/page, while avoiding caching authenticated API requests.
+- Implement an in-app install prompt UI that appears only when install is available, triggers the native prompt on supported browsers, hides when already installed, and shows English manual “Add to Home Screen” instructions on iOS Safari.
 
-**User-visible outcome:** The app header shows the updated Genz App logo consistently (no broken image, no distortion), remaining visually clear and well-aligned on both mobile and desktop.
+**User-visible outcome:** Users on supported mobile browsers can install “Genz App” to their home screen, see an in-app install call-to-action when available (or iOS instructions on Safari), and reopen the installed app to a basic offline shell after an initial successful load.

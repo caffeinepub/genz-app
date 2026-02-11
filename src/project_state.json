@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 29,
+  "projectStateVersion": 41,
   "summary": "Pivot to building \"Genz App\": an Uber/Bolt-style marketplace that connects clients with nearby service professionals in Kenya (especially Gen Z), with role-based logins, industry-based search, map-based location visibility, pricing/rates display, provider verification, ratings, and customer care access.",
   "architectural_notes": [
     "Role-based access control for three user types: provider, client, technical/back-office.",
@@ -19,10 +19,11 @@
     "Uploaded logo appears unclear/blurry in the app UI; needs a clearer 512x512 render for the 40x40 rounded header icon.",
     "Support/contact list UI (Help/Support contacts) was not created/visible as expected.",
     "Landing page CTAs/draft section (e.g., “Get Started”) currently appear unresponsive because they are not wired to any action/navigation.",
-    "App still not displaying for the user; likely related to missing/broken logo asset at `/assets/generated/genz-app-logo.dim_512x512.png` causing header image load failure."
+    "App still not displaying for the user; likely related to missing/broken logo asset at `/assets/generated/genz-app-logo.dim_512x512.png` causing header image load failure.",
+    "User wants the broken/unloaded header logo image removed while keeping the “Genz App” text; current logo asset/load path is still causing a broken image in the header."
   ],
   "isFixRequest": false,
-  "imageRequirements": "## Edit Images\n- Create a new proposed logo inspired by the user’s original logo (genz-app-logo.dim_512x512.png > genz-app-logo.dim_512x512.png)",
+  "imageRequirements": "## Required Images\n- App icon (pwa-icon.dim_192x192.png)\n- App icon (pwa-icon.dim_512x512.png)\n- Maskable app icon (pwa-icon-maskable.dim_512x512.png)",
   "existing_features": [
     {
       "id": "feature-create-a-minimal-working-app-shell-that-loads-successfully-and-displays-a-landing-page-confirming-the-app-is-set-up",
@@ -335,6 +336,94 @@
         "REQ-41"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-header-brand-area-to-keep-the-visible-text-genz-app-but-remove-the-broken-unloaded-logo-image-from-rendering-when-the-logo-asset-fails-to-load-so-users-do-not-see-a-broken-image-icon-keep-the-existing-logo-asset-path-assets-generated-genz-app-logo-dim-512x512-png-so-a-logo-can-be-manually-replaced-later-by-uploading-a-valid-file-to-that-path-without-requiring-further-code-changes",
+      "title": "Update the header brand area to keep the visible text “Genz App”, but remove the broken/unloaded logo image from rendering when the logo asset fails to load (so users do not see a broken image icon). Keep the existing logo asset path (`/assets/generated/genz-app-logo.dim_512x512.png`) so a logo can be manually replaced later by uploading a valid file to that path without requiring further code changes.",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-secondary-brand-image-element-in-the-header-brand-area-so-the-uploaded-mark-can-appear-immediately-to-the-right-of-the-visible-genz-app-text-i-e-order-becomes-main-app-logo-icon-if-loaded-genz-app-text-secondary-mark-image",
+      "title": "Add a secondary brand image element in the header brand area so the uploaded mark can appear immediately to the right of the visible “Genz App” text (i.e., order becomes: main app logo icon (if loaded) → “Genz App” text → secondary mark image).",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-the-user-uploaded-image-asset-gemini-generated-image-g3cec6g3cec6g3ce-1-removebg-preview-2-png-to-the-app-as-a-static-frontend-asset-under-frontend-public-assets-generated-optionally-also-create-a-compact-header-friendly-variant-and-reference-it-from-the-header-component-for-the-new-right-of-name-brand-mark",
+      "title": "Add the user-uploaded image asset `Gemini_Generated_Image_g3cec6g3cec6g3ce__1_-removebg-preview-2.png` to the app as a static frontend asset under `frontend/public/assets/generated/` (optionally also create a compact, header-friendly variant) and reference it from the Header component for the new right-of-name brand mark.",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-header-secondary-brand-image-the-logo-shown-to-the-right-of-the-genz-app-text-so-it-renders-the-provided-logo-image-exactly-as-is-with-no-resizing-do-not-apply-tailwind-sizing-classes-e-g-h-w-do-not-set-width-height-attributes-and-do-not-apply-css-that-forces-scaling-including-object-fit-sizing-that-implies-down-up-scaling-use-the-provided-uploaded-logo-asset-path-assets-generated-gemini-generated-image-g3cec6g3cec6g3ce-1-removebg-preview-2-png-for-this-right-of-name-logo-image",
+      "title": "Update the Header secondary brand image (the logo shown to the right of the “Genz App” text) so it renders the provided logo image exactly as-is with no resizing: do not apply Tailwind sizing classes (e.g., h-*, w-*), do not set width/height attributes, and do not apply CSS that forces scaling (including object-fit sizing that implies down/up-scaling). Use the provided uploaded logo asset path `/assets/generated/Gemini_Generated_Image_g3cec6g3cec6g3ce__1_-removebg-preview-2.png` for this right-of-name logo image.",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-adjust-the-header-layout-so-the-right-of-name-logo-image-rendered-at-its-intrinsic-size-is-not-clipped-or-overlapped-by-the-header-container-e-g-remove-or-relax-fixed-header-height-constraints-that-would-crop-the-image-while-keeping-the-header-usable-and-the-navigation-login-controls-accessible",
+      "title": "Adjust the header layout so the right-of-name logo image (rendered at its intrinsic size) is not clipped or overlapped by the header container (e.g., remove or relax fixed header height constraints that would crop the image), while keeping the header usable and the navigation/login controls accessible.",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-the-newly-uploaded-logo-image-file-gemini-generated-image-g3cec6g3cec6g3ce-1-removebg-preview-3-png-to-frontend-public-assets-generated-and-update-the-header-secondary-brand-image-to-the-right-of-the-visible-genz-app-text-to-use-assets-generated-gemini-generated-image-g3cec6g3cec6g3ce-1-removebg-preview-3-png-as-its-src-rendering-the-image-at-its-intrinsic-size-with-no-resizing-no-tailwind-h-w-classes-no-width-height-attributes-and-no-css-such-as-object-fit-that-forces-scaling",
+      "title": "Add the newly uploaded logo image file `Gemini_Generated_Image_g3cec6g3cec6g3ce__1_-removebg-preview-3.png` to `frontend/public/assets/generated/` and update the Header secondary brand image (to the right of the visible “Genz App” text) to use `/assets/generated/Gemini_Generated_Image_g3cec6g3cec6g3ce__1_-removebg-preview-3.png` as its `src`, rendering the image at its intrinsic size with no resizing (no Tailwind h-*/w-* classes, no width/height attributes, and no CSS such as object-fit that forces scaling).",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-landing-page-join-our-growing-community-animated-stats-so-the-minimum-displayed-figures-are-200-000-for-clients-onboard-and-250-000-for-service-providers-onboard-while-still-displaying-backend-provided-totals-whenever-they-exceed-those-minimum-thresholds",
+      "title": "Update the Landing page \"Join Our Growing Community\" animated stats so the minimum displayed figures are 200,000 for \"Clients Onboard\" and 250,000 for \"Service Providers Onboard\", while still displaying backend-provided totals whenever they exceed those minimum thresholds.",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-pwa-installability-metadata-by-creating-a-web-app-manifest-and-linking-it-from-the-app-html-so-mobile-browsers-can-offer-install-to-home-screen-for-genz-app",
+      "title": "Add PWA installability metadata by creating a web app manifest and linking it from the app HTML so mobile browsers can offer “Install to Home Screen” for Genz App.",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-service-worker-that-enables-basic-pwa-behavior-for-installability-and-provides-safe-minimal-offline-support-for-the-static-app-shell-without-interfering-with-authenticated-api-calls",
+      "title": "Add a service worker that enables basic PWA behavior for installability and provides safe, minimal offline support for the static app shell without interfering with authenticated API calls.",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-an-in-app-install-prompt-ui-that-appears-only-when-installation-is-available-and-provide-clear-manual-add-to-home-screen-instructions-for-ios-safari-where-the-standard-install-prompt-is-not-available",
+      "title": "Implement an in-app install prompt UI that appears only when installation is available, and provide clear manual “Add to Home Screen” instructions for iOS Safari where the standard install prompt is not available.",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-index-html-with-appropriate-pwa-related-meta-tags-for-better-mobile-install-experience",
+      "title": "Update `frontend/index.html` with appropriate PWA-related meta tags for better mobile install experience.",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -529,6 +618,36 @@
       "summary": "Remove the current uploaded/logo asset and create a new proposed Genz App logo inspired by (borrowing ideas from) the user’s original logo; update the app to use the new logo asset.",
       "reqIds": [],
       "status": "pending"
+    },
+    {
+      "id": "AR-39",
+      "summary": "Allow removing the broken/unloaded header logo image while keeping the “Genz App” text in the header (graceful fallback when logo asset is missing), and support manual replacement later by uploading a final logo and wiring it to `/assets/generated/`.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-40",
+      "summary": "Place the provided logo image in the header to the right of the “Genz App” text (brand area layout update).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-41",
+      "summary": "Place the provided logo image to the right of the “Genz App” text exactly as-is (no resizing/cropping), using the original uploaded asset.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-42",
+      "summary": "Update the Landing page animated adoption stats to display 200k Clients Onboard and 250k Service Providers (as the shown figures).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-43",
+      "summary": "Set up PWA “Install to Home Screen” flow so Genz App can be installed on a phone like a native app icon (web app installability).",
+      "reqIds": [],
+      "status": "in_progress"
     }
   ],
   "projectName": "Genz App",

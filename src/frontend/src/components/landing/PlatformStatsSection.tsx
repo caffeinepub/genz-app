@@ -2,8 +2,8 @@ import { Users, Briefcase } from 'lucide-react';
 import { useGetPlatformStats } from '../../hooks/useQueries';
 import { useCountUpOnVisible } from '../../hooks/useCountUpOnVisible';
 
-const MIN_CLIENTS = 205000;
-const MIN_PROVIDERS = 150000;
+const MIN_CLIENTS = 200000;
+const MIN_PROVIDERS = 250000;
 
 export function PlatformStatsSection() {
   const { data: stats, isLoading } = useGetPlatformStats();

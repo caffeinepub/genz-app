@@ -2,9 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-replace-the-current-genz-app-logo-by-regenerating-the-existing-static-logo-asset-at-assets-generated-genz-app-logo-dim-512x512-png-with-a-new-proposed-logo-design-that-borrows-key-visual-ideas-from-the-user-s-original-logo-overall-concept-recognizable-motifs-and-brand-feel-while-still-being-an-original-clean-modern-mark-appropriate-for-a-kenyan-services-marketplace",
-      "featureTitle": "Replace the current Genz App logo by regenerating the existing static logo asset at `/assets/generated/genz-app-logo.dim_512x512.png` with a new proposed logo design that borrows key visual ideas from the user’s original logo (overall concept, recognizable motifs, and brand feel) while still being an original, clean, modern mark appropriate for a Kenyan services marketplace.",
-      "files": [],
+      "featureId": "feature-add-pwa-installability-metadata-by-creating-a-web-app-manifest-and-linking-it-from-the-app-html-so-mobile-browsers-can-offer-install-to-home-screen-for-genz-app",
+      "featureTitle": "Add PWA installability metadata by creating a web app manifest and linking it from the app HTML so mobile browsers can offer “Install to Home Screen” for Genz App.",
+      "files": [
+        "frontend/index.html",
+        "frontend/public/manifest.webmanifest"
+      ],
       "components": [
         "core-infrastructure@1.0.2",
         "shadcn-ui@1.0.0",
@@ -16,15 +19,17 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-40"
+        "REQ-49"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-verify-and-adjust-if-needed-the-header-logo-rendering-so-the-new-logo-remains-visually-clear-and-well-aligned-across-breakpoints-without-changing-the-logo-asset-path-and-without-breaking-the-header-layout-on-mobile-and-desktop",
-      "featureTitle": "Verify and adjust (if needed) the header logo rendering so the new logo remains visually clear and well-aligned across breakpoints without changing the logo asset path and without breaking the header layout on mobile and desktop.",
+      "featureId": "feature-add-a-service-worker-that-enables-basic-pwa-behavior-for-installability-and-provides-safe-minimal-offline-support-for-the-static-app-shell-without-interfering-with-authenticated-api-calls",
+      "featureTitle": "Add a service worker that enables basic PWA behavior for installability and provides safe, minimal offline support for the static app shell without interfering with authenticated API calls.",
       "files": [
-        "frontend/src/components/Header.tsx"
+        "frontend/public/offline.html",
+        "frontend/public/sw.js",
+        "frontend/src/App.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -37,7 +42,51 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-41"
+        "REQ-50"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-an-in-app-install-prompt-ui-that-appears-only-when-installation-is-available-and-provide-clear-manual-add-to-home-screen-instructions-for-ios-safari-where-the-standard-install-prompt-is-not-available",
+      "featureTitle": "Implement an in-app install prompt UI that appears only when installation is available, and provide clear manual “Add to Home Screen” instructions for iOS Safari where the standard install prompt is not available.",
+      "files": [
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/pwa/InstallPromptBanner.tsx",
+        "frontend/src/hooks/usePWAInstallPrompt.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-51"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-frontend-index-html-with-appropriate-pwa-related-meta-tags-for-better-mobile-install-experience",
+      "featureTitle": "Update `frontend/index.html` with appropriate PWA-related meta tags for better mobile install experience.",
+      "files": [
+        "frontend/index.html"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-52"
       ],
       "confidence": "high"
     }

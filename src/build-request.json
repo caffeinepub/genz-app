@@ -1,70 +1,99 @@
 {
   "kind": "build_request",
-  "title": "Replace current Genz App logo with a newly proposed logo inspired by the user’s logo",
+  "title": "Enable PWA “Install to Home Screen” for Genz App",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-40",
-      "text": "Replace the current Genz App logo by regenerating the existing static logo asset at `/assets/generated/genz-app-logo.dim_512x512.png` with a new proposed logo design that borrows key visual ideas from the user’s original logo (overall concept, recognizable motifs, and brand feel) while still being an original, clean, modern mark appropriate for a Kenyan services marketplace.",
+      "id": "REQ-49",
+      "text": "Add PWA installability metadata by creating a web app manifest and linking it from the app HTML so mobile browsers can offer “Install to Home Screen” for Genz App.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-user-install"
         ],
         "quotes": [
-          "remove the logo and propose yours, but borrowing the ideas from my logo"
+          "install to home screen"
         ]
       },
       "acceptanceCriteria": [
-        "`frontend/public/assets/generated/genz-app-logo.dim_512x512.png` is updated to the newly proposed logo design (512×512 PNG).",
-        "The logo has good contrast on light backgrounds, clean edges, and looks sharp when rendered small (approximately 40×40 to 80×80 CSS pixels) with rounded corners.",
-        "The app header continues to load the logo from `/assets/generated/genz-app-logo.dim_512x512.png` without any broken-image icon, layout shifts, or console errors."
+        "A `manifest.webmanifest` file exists under the frontend public/static serving path and contains: app name “Genz App”, a short_name, start_url, display mode suitable for standalone install, theme_color/background_color values, and icon entries for at least 192x192 and 512x512 images.",
+        "`frontend/index.html` includes a `<link rel=\"manifest\" ...>` referencing the manifest.",
+        "User-facing name shown by the install prompt is “Genz App”."
       ]
     },
     {
-      "id": "REQ-41",
-      "text": "Verify and adjust (if needed) the header logo rendering so the new logo remains visually clear and well-aligned across breakpoints without changing the logo asset path and without breaking the header layout on mobile and desktop.",
+      "id": "REQ-50",
+      "text": "Add a service worker that enables basic PWA behavior for installability and provides safe, minimal offline support for the static app shell without interfering with authenticated API calls.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-user-install"
         ],
         "quotes": [
-          "remove the logo and propose yours, but borrowing the ideas from my logo"
+          "install to home screen"
         ]
       },
       "acceptanceCriteria": [
-        "On mobile and desktop, the header brand area (logo + “Genz App” text) remains vertically centered and does not overflow or overlap navigation controls.",
-        "The logo remains crisp (no unintended blur) and preserves its aspect ratio (no stretching/squashing).",
-        "No changes are made to authentication/navigation behavior while adjusting logo rendering."
+        "A service worker file exists under the frontend public/static serving path and is registered by code that runs at runtime (without editing immutable `frontend/src/main.tsx`).",
+        "The service worker precaches core static assets needed to load the UI shell (e.g., index.html and built JS/CSS assets) and uses a conservative strategy that does not cache authenticated backend requests.",
+        "With the device in airplane mode after a successful first load, reopening the installed app shows at least a basic offline page/shell (not a browser network error)."
+      ]
+    },
+    {
+      "id": "REQ-51",
+      "text": "Implement an in-app install prompt UI that appears only when installation is available, and provide clear manual “Add to Home Screen” instructions for iOS Safari where the standard install prompt is not available.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-install"
+        ],
+        "quotes": [
+          "install to home screen"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On supported browsers (e.g., Chrome/Edge Android), when the `beforeinstallprompt` event is available, the app displays an “Install Genz App” call-to-action (e.g., in the header or landing page) that triggers the native install prompt when clicked.",
+        "On iOS Safari, the app displays a user-facing help/instructions UI (English) explaining how to add to home screen (e.g., “Tap Share, then ‘Add to Home Screen’.”).",
+        "The install UI does not show once the app is already installed (detect installed display-mode) and does not show if the browser does not support installation.",
+        "All new user-facing text is in English."
+      ]
+    },
+    {
+      "id": "REQ-52",
+      "text": "Update `frontend/index.html` with appropriate PWA-related meta tags for better mobile install experience.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-install"
+        ],
+        "quotes": [
+          "install to home screen"
+        ]
+      },
+      "acceptanceCriteria": [
+        "`frontend/index.html` includes `theme-color` meta consistent with the manifest.",
+        "`frontend/index.html` includes iOS-related meta/link tags as appropriate (e.g., `apple-touch-icon` and/or `apple-mobile-web-app-capable`) pointing to existing public icon assets.",
+        "The document title is updated to a user-appropriate title (e.g., “Genz App”) rather than scaffold text."
       ]
     }
   ],
   "constraints": [
-    "Keep using the existing logo asset path `/assets/generated/genz-app-logo.dim_512x512.png` (do not introduce a new path).",
-    "Store/serve the logo as a static asset under `frontend/public/assets/generated` (no backend image serving).",
-    "Do not edit any files under `frontend/src/components/ui` or other immutable paths listed in SYSTEM_CONTEXT.",
-    "Use English for any user-facing text."
+    "Do not edit files under `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, or anything under `frontend/src/components/ui` (compose these components instead).",
+    "Do not introduce additional backend canisters/services; keep backend unchanged unless strictly required for installability (it should not be).",
+    "All user-facing text added or modified must be in English."
   ],
   "nonGoals": [
-    "Do not rename the product (must remain “Genz App”).",
-    "Do not redesign unrelated UI sections (landing page content, categories, provider cards, payments, support) beyond what is necessary to ensure the new logo renders correctly.",
-    "Do not add new authentication methods or third-party integrations."
+    "Generating an Android APK file.",
+    "Implementing push notifications.",
+    "Implementing background sync or complex offline-first data caching for dynamic provider/job data.",
+    "Adding third-party authentication beyond Internet Identity."
   ],
   "imageRequirements": {
-    "required": [],
-    "edits": [
-      "Create a new proposed logo inspired by the user’s original logo (genz-app-logo.dim_512x512.png > genz-app-logo.dim_512x512.png)"
-    ]
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
+    "required": [
+      "App icon (pwa-icon.dim_192x192.png)",
+      "App icon (pwa-icon.dim_512x512.png)",
+      "Maskable app icon (pwa-icon-maskable.dim_512x512.png)"
+    ],
+    "edits": []
   }
 }

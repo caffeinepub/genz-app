@@ -1,39 +1,29 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T23:18:28.169Z",
-  "summary": "The diff updates the header to render the logo from the existing `/assets/generated/genz-app-logo.dim_512x512.png` path with responsive sizing and `object-contain`, but it does not show the static logo PNG asset itself being regenerated/updated under `frontend/public/assets/generated`. Two non-requested metadata/state files were also modified.",
+  "generatedAt": "2026-02-10T23:59:09.833Z",
+  "summary": "Diff implements core PWA installability: adds a manifest and links it in index.html, adds a service worker with an offline fallback page and registers it at runtime (via App.tsx), and adds in-app install UI including iOS manual instructions. One notable gap is that the required icon image files themselves are not shown as added/updated in the diff summary (manifest references paths, but the actual PNGs are not evidenced).",
   "missing_requirements": [
     {
-      "id": "REQ-40",
-      "requirement": "Replace the current Genz App logo by regenerating the existing static logo asset at `/assets/generated/genz-app-logo.dim_512x512.png` (i.e., update `frontend/public/assets/generated/genz-app-logo.dim_512x512.png` to a newly proposed 512×512 PNG logo design).",
-      "reason": "The diff summary shows changes to `Header.tsx` but does not show any modification to the actual PNG file under `frontend/public/assets/generated`, so there is no evidence the logo asset was regenerated/replaced.",
+      "requirement": "Provide the required PWA icon image assets: pwa-icon.dim_192x192.png, pwa-icon.dim_512x512.png, and pwa-icon-maskable.dim_512x512.png under the frontend public/static serving path.",
+      "reason": "The manifest references these icon paths, but the diff summary does not show the image files being added or modified, so their presence cannot be confirmed from the provided evidence.",
       "evidence": [
-        "frontend/src/components/Header.tsx (modified, uses the path)",
-        "(No diff entry showing update to) frontend/public/assets/generated/genz-app-logo.dim_512x512.png"
+        "frontend/public/manifest.webmanifest"
       ]
     }
   ],
-  "hallucinated_features": [
-    {
-      "description": "Modified project metadata/state tracking (e.g., `project_state.json` version/summary) unrelated to replacing the logo asset or adjusting header rendering.",
-      "reason": "BuildRequest focuses on regenerating the existing logo asset and (if needed) adjusting header logo rendering; it does not request updates to project tracking/state files.",
-      "evidence": [
-        "project_state.json"
-      ]
-    },
-    {
-      "description": "Updated `frontend-file-summaries.txt` descriptions (documentation/summary content) not requested as part of the logo replacement task.",
-      "reason": "The BuildRequest does not ask for updating repository summary files; only the logo asset and header rendering are in scope.",
-      "evidence": [
-        "frontend-file-summaries.txt"
-      ]
-    }
-  ],
+  "hallucinated_features": [],
   "confidence": 0.74,
   "changed_files": [
     "frontend-file-summaries.txt",
+    "frontend/index.html",
+    "frontend/public/manifest.webmanifest",
+    "frontend/public/offline.html",
+    "frontend/public/sw.js",
+    "frontend/src/App.tsx",
     "frontend/src/components/Header.tsx",
+    "frontend/src/components/pwa/InstallPromptBanner.tsx",
+    "frontend/src/hooks/usePWAInstallPrompt.ts",
     "project_state.json"
   ]
 }
