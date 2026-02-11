@@ -1,267 +1,153 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
+import { useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { useGetCallerUserProfile } from '../../hooks/useQueries';
+import { useGetMpesaConfig, useUnlockProvider } from '../../hooks/useQueries';
 import { Alert, AlertDescription } from '../ui/alert';
-import { Loader2, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { formatKES } from '../../utils/fees';
-import { useGetCallerUserProfile, useCreateOrUpdateClientProfile } from '../../hooks/useQueries';
+import { CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 
 interface MpesaUnlockDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  connectionFee: bigint;
-  providerName: string;
-  onPaymentSuccess: () => void;
-  mpesaConfigAvailable: boolean;
+  providerId: string;
+  amount: number;
 }
-
-type PaymentState = 'input' | 'initiating' | 'waiting' | 'success' | 'error';
 
 export function MpesaUnlockDialog({
   open,
   onOpenChange,
-  connectionFee,
-  providerName,
-  onPaymentSuccess,
-  mpesaConfigAvailable,
+  providerId,
+  amount,
 }: MpesaUnlockDialogProps) {
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [paymentState, setPaymentState] = useState<PaymentState>('input');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [pollCount, setPollCount] = useState(0);
-
   const { data: userProfile } = useGetCallerUserProfile();
-  const updateClientProfile = useCreateOrUpdateClientProfile();
+  const { data: mpesaConfig } = useGetMpesaConfig();
+  const unlockProvider = useUnlockProvider();
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [step, setStep] = useState<'input' | 'processing' | 'success'>('input');
 
-  // Pre-fill phone number from profile
-  useEffect(() => {
-    if (userProfile?.clientProfile?.phoneNumber) {
-      setPhoneNumber(userProfile.clientProfile.phoneNumber);
-    }
-  }, [userProfile]);
-
-  // Reset state when dialog opens
-  useEffect(() => {
-    if (open) {
-      setPaymentState('input');
-      setErrorMessage('');
-      setPollCount(0);
-    }
-  }, [open]);
-
-  const validatePhoneNumber = (phone: string): boolean => {
-    // Kenyan phone number validation (254XXXXXXXXX or 07XXXXXXXX or 01XXXXXXXX)
-    const cleaned = phone.replace(/\s+/g, '');
-    return /^(254\d{9}|0[17]\d{8})$/.test(cleaned);
-  };
-
-  const formatPhoneForMpesa = (phone: string): string => {
-    const cleaned = phone.replace(/\s+/g, '');
-    if (cleaned.startsWith('0')) {
-      return '254' + cleaned.substring(1);
-    }
-    return cleaned;
-  };
-
-  const handleInitiatePayment = async () => {
-    if (!validatePhoneNumber(phoneNumber)) {
-      setErrorMessage('Please enter a valid Kenyan phone number (e.g., 0712345678 or 254712345678)');
+  const handleUnlock = async () => {
+    if (!phoneNumber) {
+      alert('Please enter your phone number');
       return;
     }
 
-    if (!mpesaConfigAvailable) {
-      setErrorMessage('M-Pesa payments are temporarily unavailable. Please try again later.');
-      return;
-    }
-
-    setPaymentState('initiating');
-    setErrorMessage('');
-
+    setStep('processing');
+    
     try {
-      // Save phone number to profile if not already saved
-      if (!userProfile?.clientProfile?.phoneNumber || userProfile.clientProfile.phoneNumber !== phoneNumber) {
-        await updateClientProfile.mutateAsync(phoneNumber);
-      }
-
-      // Simulate STK push initiation
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Move to waiting state and start polling
-      setPaymentState('waiting');
-      setPollCount(0);
+      // Simulate payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      await unlockProvider.mutateAsync(providerId);
+      setStep('success');
+      
+      setTimeout(() => {
+        onOpenChange(false);
+        setStep('input');
+        setPhoneNumber('');
+      }, 2000);
     } catch (error) {
-      console.error('Payment initiation error:', error);
-      setErrorMessage('Failed to initiate payment. Please try again.');
-      setPaymentState('error');
+      console.error('Unlock failed:', error);
+      alert('Payment failed. Please try again.');
+      setStep('input');
     }
   };
 
-  // Simulate polling for payment verification
-  useEffect(() => {
-    if (paymentState !== 'waiting') return;
-
-    const pollInterval = setInterval(() => {
-      setPollCount(prev => {
-        const next = prev + 1;
-        
-        // Simulate successful payment after 3-5 polls (6-10 seconds)
-        if (next >= 3 && Math.random() > 0.3) {
-          setPaymentState('success');
-          clearInterval(pollInterval);
-          setTimeout(() => {
-            onPaymentSuccess();
-            onOpenChange(false);
-          }, 2000);
-        }
-        
-        // Timeout after 15 polls (30 seconds)
-        if (next >= 15) {
-          setPaymentState('error');
-          setErrorMessage('Payment not confirmed yet. Please try again or check your M-Pesa messages.');
-          clearInterval(pollInterval);
-        }
-        
-        return next;
-      });
-    }, 2000);
-
-    return () => clearInterval(pollInterval);
-  }, [paymentState, onPaymentSuccess, onOpenChange]);
-
-  const handleClose = () => {
-    if (paymentState === 'waiting') {
-      const confirm = window.confirm('Payment verification in progress. Are you sure you want to close?');
-      if (!confirm) return;
-    }
-    onOpenChange(false);
-  };
+  if (!mpesaConfig) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>M-Pesa Payment</DialogTitle>
+            <DialogDescription>
+              Unlock provider contact details
+            </DialogDescription>
+          </DialogHeader>
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              M-Pesa payment is not configured. Contact details will be unlocked for demonstration purposes.
+            </AlertDescription>
+          </Alert>
+          <DialogFooter>
+            <Button onClick={() => handleUnlock()}>
+              Unlock (Demo Mode)
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>M-Pesa Payment</DialogTitle>
           <DialogDescription>
-            Pay connection fee to unlock {providerName}'s contact details
+            Pay KES {amount.toLocaleString()} to unlock provider contact details
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Amount Display */}
-          <div className="rounded-lg border bg-muted/50 p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Amount to Pay</span>
-              <span className="text-2xl font-bold text-primary">{formatKES(connectionFee)}</span>
+        {step === 'input' && (
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="phone">M-Pesa Phone Number</Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="+254 712 345 678"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+              />
             </div>
+            <Alert>
+              <AlertDescription>
+                You will receive an STK push prompt on your phone to complete the payment.
+              </AlertDescription>
+            </Alert>
           </div>
+        )}
 
-          {/* Payment States */}
-          {paymentState === 'input' && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="phone">M-Pesa Phone Number</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="0712345678 or 254712345678"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  disabled={!mpesaConfigAvailable}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Enter the phone number registered with M-Pesa
-                </p>
-              </div>
+        {step === 'processing' && (
+          <div className="flex flex-col items-center justify-center py-8">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <p className="mt-4 text-sm text-muted-foreground">
+              Processing payment...
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Please check your phone for the M-Pesa prompt
+            </p>
+          </div>
+        )}
 
-              {!mpesaConfigAvailable && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    M-Pesa payments are temporarily unavailable. Please try again later.
-                  </AlertDescription>
-                </Alert>
-              )}
+        {step === 'success' && (
+          <div className="flex flex-col items-center justify-center py-8">
+            <CheckCircle className="h-12 w-12 text-green-500" />
+            <p className="mt-4 font-medium">Payment Successful!</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Contact details unlocked
+            </p>
+          </div>
+        )}
 
-              {errorMessage && (
-                <Alert variant="destructive">
-                  <XCircle className="h-4 w-4" />
-                  <AlertDescription>{errorMessage}</AlertDescription>
-                </Alert>
-              )}
-
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={handleClose} className="flex-1">
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleInitiatePayment}
-                  disabled={!phoneNumber || !mpesaConfigAvailable}
-                  className="flex-1"
-                >
-                  Pay Now
-                </Button>
-              </div>
-            </>
-          )}
-
-          {paymentState === 'initiating' && (
-            <div className="flex flex-col items-center justify-center py-8">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p className="mt-4 text-sm font-medium">Initiating M-Pesa payment...</p>
-              <p className="mt-1 text-xs text-muted-foreground">Please wait</p>
-            </div>
-          )}
-
-          {paymentState === 'waiting' && (
-            <div className="flex flex-col items-center justify-center py-8">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p className="mt-4 text-sm font-medium">Waiting for M-Pesa confirmation...</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Check your phone for the M-Pesa prompt and enter your PIN
-              </p>
-              <div className="mt-4 text-xs text-muted-foreground">
-                Checking payment status... ({pollCount * 2}s)
-              </div>
-            </div>
-          )}
-
-          {paymentState === 'success' && (
-            <div className="flex flex-col items-center justify-center py-8">
-              <div className="rounded-full bg-green-100 p-3">
-                <CheckCircle className="h-12 w-12 text-green-600" />
-              </div>
-              <p className="mt-4 text-sm font-medium">Payment confirmed!</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Details unlocked. Redirecting...
-              </p>
-            </div>
-          )}
-
-          {paymentState === 'error' && (
-            <>
-              <Alert variant="destructive">
-                <XCircle className="h-4 w-4" />
-                <AlertDescription>{errorMessage}</AlertDescription>
-              </Alert>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={handleClose} className="flex-1">
-                  Close
-                </Button>
-                <Button
-                  onClick={() => {
-                    setPaymentState('input');
-                    setErrorMessage('');
-                  }}
-                  className="flex-1"
-                >
-                  Try Again
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
+        {step === 'input' && (
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUnlock} disabled={!phoneNumber}>
+              Pay KES {amount.toLocaleString()}
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );

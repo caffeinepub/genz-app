@@ -1,53 +1,69 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T12:25:14.114Z",
-  "summary": "Frontend adds polling-based engagement refresh and a new in-app notice component, plus a reusable star-rating UI used on provider cards and (apparently) preview/detail surfaces. Backend diff shows `isEngaged` added/exposed in types and a migration hook, but the actual engagement update API logic/authorization/persistence and query return paths are not evidenced in the provided backend diff snippet.",
+  "generatedAt": "2026-02-11T13:34:56.895Z",
+  "summary": "Diff adds engagement end-time support in backend types (with migration), frontend utilities to compute/format remaining time, UI to set engagement hours on provider profile, and client-facing displays with polling and engagement-change notices. However, backend engagement update APIs and auto-expiry behavior are not verifiable from the provided truncated backend diff. Several unrelated UI/theme/category/support features were also modified/added beyond the request.",
   "missing_requirements": [
     {
-      "id": "REQ-70",
-      "requirement": "Ensure the backend engagement status update API is complete and reliably persists provider engagement status changes so clients can observe the updated value through existing read/query APIs (including authorization preventing updates to other providers).",
-      "reason": "The diff summary shows type changes adding/exposing `isEngaged`, but does not show any concrete backend method implementation for updating engagement status, persisting it, or enforcing that only the signed-in provider can update their own status. The backend file is truncated before relevant functions, so this cannot be verified from the provided evidence.",
+      "id": "REQ-83",
+      "requirement": "Implement backend APIs for providers to set and clear engagement status with a duration (hours), including provider-only authorization and input validation with clear traps.",
+      "reason": "The diff shows frontend mutations/hooks calling new engagement APIs (e.g., useSetEngaged/useDisengage), but the backend/main.mo excerpt is truncated before any new engagement methods are shown. No backend function names/definitions for setting/clearing engagement with duration are visible in the provided diff summary.",
       "evidence": [
-        "backend/main.mo (truncated)"
+        "backend/main.mo (truncated)",
+        "frontend/src/hooks/useQueries.ts (truncated)",
+        "frontend/src/pages/provider/ProviderProfilePage.tsx"
+      ]
+    },
+    {
+      "id": "REQ-84",
+      "requirement": "Ensure provider-read endpoints automatically reflect Not Engaged after engagement end time passes, treating expired end times as cleared on reads.",
+      "reason": "While backend types now include engagementEndTime and frontend computes remaining time, the backend read-path logic to auto-expire engagement based on current time is not shown in the truncated backend/main.mo diff. No evidence of time comparison/clearing during getProvider/getProvider views is included in the visible excerpt.",
+      "evidence": [
+        "backend/main.mo (truncated)",
+        "frontend/src/utils/engagementTime.ts",
+        "frontend/src/pages/client/ProviderDetailPage.tsx"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added migration scaffolding/hook unrelated to engagement polling or ratings display.",
-      "reason": "BuildRequest does not ask for a migration module or adding a migration clause; only requires staying in a single Motoko actor file and implementing engagement/rating behavior.",
+      "description": "Large expansion of service categories/business-type labeling beyond engagement scheduling work.",
+      "reason": "The request is limited to provider engagement scheduling + live remaining time; category expansion is unrelated.",
       "evidence": [
-        "backend/migration.mo",
-        "backend/main.mo (with migration = Migration.run)"
+        "frontend-file-summaries.txt (frontend/src/lib/categories.ts)",
+        "frontend-file-summaries.txt (frontend/src/pages/client/CategoriesPage.tsx)"
       ]
     },
     {
-      "description": "Expanded/modified categories to 29 technical/vocational trades and updated labeling logic.",
-      "reason": "Not requested by REQ-69/70/71; this is additional product scope.",
+      "description": "Visual theme and global styling changes (e.g., new warm OKLCH palette, landing hero background).",
+      "reason": "Non-goal states not to redesign overall visual theme beyond what’s necessary for engagement controls/status; these changes appear broader.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/lib/categories.ts, frontend/src/pages/client/CategoriesPage.tsx)"
+        "frontend-file-summaries.txt (frontend/src/index.css)",
+        "frontend-file-summaries.txt (frontend/src/pages/LandingPage.tsx)"
       ]
     },
     {
-      "description": "Support drawer contact info changes (phone/email) and other landing/app-shell UI/theme changes (background, Tailwind config, footer attribution).",
-      "reason": "Not requested; outside engagement notifications and ratings consistency.",
+      "description": "Added/changed support drawer contact information (phone/email) and footer attribution/UTM tracking.",
+      "reason": "Not requested by the engagement schedule requirements.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/components/support/SupportDrawer.tsx, frontend/src/index.css, frontend/tailwind.config.js, frontend/src/components/Footer.tsx, frontend/src/pages/LandingPage.tsx)"
+        "frontend-file-summaries.txt (frontend/src/components/support/SupportDrawer.tsx)",
+        "frontend-file-summaries.txt (frontend/src/components/Footer.tsx)"
       ]
     },
     {
-      "description": "Map view navigation enhancement to support a focusProvider parameter.",
-      "reason": "Not requested by engagement notification or rating display requirements.",
+      "description": "Additional routing/navigation changes including new pages (e.g., client profile, access pages) and header navigation updates.",
+      "reason": "Not requested as part of engagement scheduling and live status display.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/pages/client/MapViewPage.tsx)"
+        "frontend-file-summaries.txt (frontend/src/App.tsx)",
+        "frontend-file-summaries.txt (frontend/src/components/Header.tsx)"
       ]
     },
     {
-      "description": "New backend PlatformStats type.",
-      "reason": "Not requested by REQ-69/70/71.",
+      "description": "Map view page simplified to show unavailable message and other client pages changes unrelated to engagement scheduling.",
+      "reason": "Out of scope for engagement scheduling feature set.",
       "evidence": [
-        "backend/main.mo (shows public type PlatformStats)"
+        "frontend-file-summaries.txt (frontend/src/pages/client/MapViewPage.tsx)",
+        "frontend-file-summaries.txt (frontend/src/pages/client/MyJobsPage.tsx)"
       ]
     }
   ],
@@ -56,13 +72,13 @@
     "backend/main.mo",
     "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/notifications/EngagementStatusNotice.tsx",
-    "frontend/src/components/providers/ProviderCard.tsx",
+    "frontend/src/components/auth/RoleOnboarding.tsx",
     "frontend/src/components/providers/ProviderPreviewDialog.tsx",
-    "frontend/src/components/ratings/StarRatingDisplay.tsx",
     "frontend/src/hooks/useQueries.ts",
     "frontend/src/pages/client/ProviderDetailPage.tsx",
     "frontend/src/pages/client/ProviderResultsPage.tsx",
+    "frontend/src/pages/provider/ProviderProfilePage.tsx",
+    "frontend/src/utils/engagementTime.ts",
     "project_state.json"
   ]
 }

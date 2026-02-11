@@ -11,7 +11,7 @@ interface AppLayoutProps {
   userRole?: UserRole;
 }
 
-export function AppLayout({ children, currentPage, onNavigate, userRole }: AppLayoutProps) {
+export function AppLayout({ children, currentPage = 'landing', onNavigate, userRole }: AppLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <Header currentPage={currentPage} onNavigate={onNavigate} userRole={userRole} />

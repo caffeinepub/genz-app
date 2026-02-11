@@ -1,74 +1,82 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Near-real-time engagement notifications and consistent provider star ratings",
+  "title": "Provider engagement duration controls and live remaining-time display",
   "requirements": [
     {
-      "id": "REQ-69",
-      "summary": "Add best-effort near-real-time engagement status refresh and in-app status-change notifications while viewing a provider (preview and detail).",
+      "id": "REQ-85",
+      "summary": "Make provider engagement status interactive with an hours duration and immediate persistence.",
       "acceptanceCriteria": [
-        "When a client is on the Provider Preview dialog or Provider Detail page for a specific provider, the UI automatically refreshes that provider’s engagement status without the user manually refreshing the page.",
-        "If the provider’s engagement status changes while the client is on the preview/detail UI, the client sees an in-app notification that clearly states the new status in English (e.g., “Provider is now Engaged” / “Provider is now Not Engaged”).",
-        "The refreshed engagement status is reflected in the visible status badge/text within 3 seconds of the provider saving a new engagement status (best-effort via polling).",
-        "The implementation does not use WebSockets or real-time chat transport; it uses safe periodic refresh (polling) of existing backend query data (e.g., provider preview / provider profile queries)."
+        "ProviderProfilePage shows controls to set status to “Engaged” or “Not Engaged” with clear English labels and helper text.",
+        "When setting to “Engaged”, the UI collects an 'Hours engaged' value and calls the new backend API to set the engagement end time.",
+        "When setting to “Not Engaged”, the UI calls the backend API to clear engagement immediately.",
+        "On success, the page refreshes the current user profile query so the displayed status matches backend data.",
+        "On failure (authorization/validation), the UI shows a user-friendly English error message."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Extend provider read hooks to support polling while viewing a provider: allow passing React Query options (e.g., enabled/refetchInterval) to useGetProviderPreview() and useGetProvider(), and ensure polling can be set to ~3000ms without impacting other app-wide query defaults."
+          "description": "Add React Query mutations for provider engagement updates using existing backend capabilities: a mutation that calls setEngaged(hours) and a mutation that calls disengage(); translate authorization/validation errors into user-friendly English messages; invalidate/refetch ['currentUserProfile'] (and provider queries where relevant) after successful updates."
         },
         {
-          "path": "frontend/src/components/notifications/EngagementStatusNotice.tsx",
+          "path": "frontend/src/pages/provider/ProviderProfilePage.tsx",
+          "operation": "modify",
+          "description": "Replace the current placeholder engagement section with interactive controls: an Engaged/Not Engaged toggle and an 'Hours engaged' numeric input required when engaging; wire the controls to the new mutations for immediate persistence; on success, show an English success toast and ensure the profile query refreshes; on failure, show an English error toast. Use existing shadcn-ui primitives already present in this file (Card, Input, Switch, Button, etc.) and verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/utils/engagementTime.ts",
           "operation": "create",
-          "description": "Create a small reusable in-app notice/banner component that renders an English message for engagement status changes (e.g., “Provider is now Engaged” / “Provider is now Not Engaged”) and supports dismiss/auto-hide behavior."
-        },
-        {
-          "path": "frontend/src/pages/client/ProviderResultsPage.tsx",
-          "operation": "modify",
-          "description": "When the Provider Preview dialog is open for a selected provider, enable polling (<= 3s interval) of useGetProviderPreview for that provider; detect transitions in preview.isEngaged and display EngagementStatusNotice within the preview experience while also updating the visible engagement badge/text based on refreshed data."
-        },
-        {
-          "path": "frontend/src/pages/client/ProviderDetailPage.tsx",
-          "operation": "modify",
-          "description": "Enable polling (<= 3s interval) of provider details while the Provider Detail page is shown; detect transitions in provider.isEngaged and display EngagementStatusNotice on the page; ensure the existing engagement badge/text area reflects updates from polling without manual refresh."
-        },
-        {
-          "path": "frontend/src/components/providers/ProviderPreviewDialog.tsx",
-          "operation": "modify",
-          "description": "Add a place in the dialog layout to render an optional engagement status-change notice (e.g., accept a prop or render slot) so the preview dialog can show a clear in-app notification when isEngaged changes while open."
+          "description": "Create shared utilities to compute and format remaining engagement time from an optional engagement end time (bigint) for display (e.g., “Available in 2h 15m”), including safe handling when no end time is present or when time has expired."
         }
       ]
     },
     {
-      "id": "REQ-71",
-      "summary": "Show a consistent 1–5 star rating display (with English empty state) across provider card, preview, and detail surfaces.",
+      "id": "REQ-86",
+      "summary": "Show Engaged/Available plus remaining engaged time on client provider preview and detail surfaces.",
       "acceptanceCriteria": [
-        "Provider cards, provider preview, and provider detail views show a star-based rating display (not only a text/emoji-only rating) when ratings exist.",
-        "If a provider has no ratings yet, the UI shows an English empty state such as “No ratings yet” (or equivalent) instead of hiding the rating row entirely.",
-        "Any existing job-completion rating flow remains functional and continues to contribute to the provider’s average rating display.",
-        "All user-facing rating text is in English."
+        "ProviderPreviewDialog displays a clear status badge (“Engaged” / “Available”) and, when Engaged with an end time, also shows remaining time (e.g., “Available in 2h 15m”).",
+        "ProviderDetailPage displays the same engagement status and remaining-time information in English.",
+        "If no end time is available, the UI still shows Engaged/Available but does not show a misleading countdown.",
+        "All user-facing labels are in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ratings/StarRatingDisplay.tsx",
-          "operation": "create",
-          "description": "Create a shared read-only star rating display component that renders 1–5 stars consistently for an average rating plus an English label; include an explicit empty state (e.g., “No ratings yet”) when ratings count is 0."
-        },
-        {
-          "path": "frontend/src/components/providers/ProviderCard.tsx",
-          "operation": "modify",
-          "description": "Replace the current conditional rating row with StarRatingDisplay so provider cards always show a rating section: star visuals when ratings exist and an English empty state when none exist."
-        },
-        {
           "path": "frontend/src/components/providers/ProviderPreviewDialog.tsx",
           "operation": "modify",
-          "description": "Replace the current emoji/text-only rating display with StarRatingDisplay and ensure the rating row is always present with an English empty state when there are no ratings."
+          "description": "Enhance the availability section to show remaining engaged time when provider.isEngaged is true and provider.engagementEndTime exists (using the shared engagementTime utility); keep labels in English; avoid showing a countdown when no end time is present. Use existing shadcn-ui Badge/Card styling already used here and verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/pages/client/ProviderDetailPage.tsx",
           "operation": "modify",
-          "description": "Replace the current single-star icon + text block with StarRatingDisplay and ensure the rating section always shows (including an English empty state when no ratings)."
+          "description": "Add remaining-time text near the existing Engaged/Available badge when an engagement end time is present, using the shared engagementTime utility; ensure English labels and avoid displaying a countdown when no end time exists."
+        }
+      ]
+    },
+    {
+      "id": "REQ-87",
+      "summary": "Make engagement status feel live via React Query polling and show a notice when it changes.",
+      "acceptanceCriteria": [
+        "While ProviderPreviewDialog is open, the provider query refetches on an interval (keep the existing 3-second behavior pattern used elsewhere in the app).",
+        "While ProviderDetailPage is visible, the provider query refetches on an interval so engagement changes are reflected without a manual refresh.",
+        "When the engagement state changes between Engaged and Not Engaged, the client sees a clear in-app notice using the existing EngagementStatusNotice component (English text).",
+        "React Query cache invalidation/refetch is performed after provider updates engagement so client views converge quickly to backend values."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/client/ProviderResultsPage.tsx",
+          "operation": "modify",
+          "description": "When the ProviderPreviewDialog is open, enable 3-second polling on the selected provider query (React Query refetchInterval) and pass an EngagementStatusNotice into the dialog's existing engagementNotice slot; detect Engaged/Not Engaged transitions across refetches to show the notice with English text."
+        },
+        {
+          "path": "frontend/src/pages/client/ProviderDetailPage.tsx",
+          "operation": "modify",
+          "description": "Enable 3-second polling for the provider query while the page is visible (React Query refetchInterval); detect Engaged/Not Engaged transitions across refetches and render EngagementStatusNotice to notify the client in English."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Ensure engagement mutations invalidate/refetch provider-related queries so client views converge quickly after provider updates; keep polling-friendly query keys consistent with existing useGetProvider queryKey usage."
         }
       ]
     }

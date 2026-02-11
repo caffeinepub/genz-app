@@ -1,39 +1,40 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
-import { Button } from '../ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Badge } from '../ui/badge';
-import { MapPin, ExternalLink, Map as MapIcon, CheckCircle, Clock, XCircle } from 'lucide-react';
-import { ProviderPreview } from '../../backend';
-import { getBusinessTypeLabel } from '../../lib/categories';
+import { Button } from '../ui/button';
 import { ProviderAvatar } from './ProviderAvatar';
 import { StarRatingDisplay } from '../ratings/StarRatingDisplay';
+import { MapPin, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { ProviderProfileView } from '../../backend';
+import { getBusinessTypeLabel } from '../../lib/categories';
 import { ReactNode } from 'react';
+import { formatRemainingTime } from '../../utils/engagementTime';
 
 interface ProviderPreviewDialogProps {
-  preview: ProviderPreview | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  provider: ProviderProfileView | null;
   onViewDetails: () => void;
-  onViewOnMap?: () => void;
+  onViewOnMap: () => void;
   engagementNotice?: ReactNode;
 }
 
 export function ProviderPreviewDialog({
-  preview,
   open,
   onOpenChange,
+  provider,
   onViewDetails,
   onViewOnMap,
   engagementNotice,
 }: ProviderPreviewDialogProps) {
-  if (!preview) return null;
+  if (!provider) return null;
 
-  const { provider, isEngaged } = preview;
   const ratings = provider.ratings.map((r) => Number(r));
   const avgRating = ratings.length > 0
     ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
     : 0;
 
   const profilePictureUrl = provider.profilePicture?.blob.getDirectURL();
+  const remainingTimeText = formatRemainingTime(provider.engagementEndTime);
 
   const getVerificationBadge = () => {
     if ('verified' in provider.verificationStatus) {
@@ -67,129 +68,99 @@ export function ProviderPreviewDialog({
     );
   };
 
-  const googleMapsUrl = `https://www.google.com/maps?q=${provider.location.latitude},${provider.location.longitude}`;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-md">
         <DialogHeader>
-          <div className="mb-4 flex justify-center">
+          <DialogTitle>Quick Preview</DialogTitle>
+        </DialogHeader>
+
+        {engagementNotice && (
+          <div className="mb-4">
+            {engagementNotice}
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <div className="flex items-start gap-4">
             <ProviderAvatar
               name={provider.name}
               profilePictureUrl={profilePictureUrl}
               size="lg"
             />
-          </div>
-          <DialogTitle className="text-2xl">{provider.name}</DialogTitle>
-          <DialogDescription>
-            Quick preview of this service provider
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          {/* Engagement Status Notice */}
-          {engagementNotice && (
-            <div>{engagementNotice}</div>
-          )}
-
-          {/* Engagement Status */}
-          <div className="rounded-lg border bg-muted/50 p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Availability Status</span>
-              <Badge variant={isEngaged ? 'secondary' : 'default'} className="gap-1">
-                {isEngaged ? (
-                  <>
-                    <Clock className="h-3 w-3" />
-                    Engaged
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="h-3 w-3" />
-                    Not Engaged
-                  </>
-                )}
-              </Badge>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-lg truncate">{provider.name}</h3>
+              <div className="flex items-center gap-2 mt-1">
+                {getVerificationBadge()}
+              </div>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {isEngaged
-                ? 'This provider is currently working on active jobs'
-                : 'This provider is available for new jobs'}
-            </p>
           </div>
 
-          {/* Basic Info */}
-          <div className="grid gap-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Category</span>
-              <Badge variant="outline">{getBusinessTypeLabel(provider.businessType)}</Badge>
+          <div className="space-y-3">
+            <div className="rounded-lg border bg-muted/50 p-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-sm font-medium">Availability Status</span>
+                <Badge variant={provider.isEngaged ? 'secondary' : 'default'} className="gap-1">
+                  {provider.isEngaged ? (
+                    <>
+                      <Clock className="h-3 w-3" />
+                      Engaged
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-3 w-3" />
+                      Available
+                    </>
+                  )}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {provider.isEngaged && remainingTimeText
+                  ? remainingTimeText
+                  : provider.isEngaged
+                  ? 'Currently working on active jobs'
+                  : 'Available for new jobs'}
+              </p>
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Rate</span>
-              <span className="text-lg font-semibold text-primary">
-                KES {Number(provider.rate).toLocaleString()}
-              </span>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-xs text-muted-foreground">Category</p>
+                <Badge variant="outline" className="mt-1">
+                  {getBusinessTypeLabel(provider.businessType)}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Rate</p>
+                <p className="mt-1 text-lg font-semibold text-primary">
+                  KES {Number(provider.rate).toLocaleString()}
+                </p>
+              </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Verification</span>
-              {getVerificationBadge()}
-            </div>
-
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Rating</span>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Rating</p>
               <StarRatingDisplay
                 averageRating={avgRating}
                 totalRatings={ratings.length}
                 size="sm"
               />
             </div>
+
+            <div className="flex items-start gap-2">
+              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-muted-foreground">
+                {provider.location.address || 'Location not specified'}
+              </p>
+            </div>
           </div>
 
-          {/* Location */}
-          <div className="rounded-lg border p-4">
-            <div className="mb-2 flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Location</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {provider.location.address || 'Address available after unlock'}
-            </p>
-            <div className="mt-2 text-xs text-muted-foreground">
-              Coordinates: {provider.location.latitude.toFixed(4)}, {provider.location.longitude.toFixed(4)}
-            </div>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-3 w-full gap-2"
-              asChild
-            >
-              <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-3 w-3" />
-                Open in Google Maps
-              </a>
-            </Button>
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-2">
-            {onViewOnMap && (
-              <Button
-                variant="outline"
-                onClick={onViewOnMap}
-                className="flex-1 gap-2"
-              >
-                <MapIcon className="h-4 w-4" />
-                View on Map
-              </Button>
-            )}
-            <Button
-              onClick={onViewDetails}
-              className="flex-1 gap-2"
-            >
+          <div className="flex gap-2 pt-2">
+            <Button onClick={onViewDetails} className="flex-1">
               View Full Details
-              <ExternalLink className="h-4 w-4" />
+            </Button>
+            <Button onClick={onViewOnMap} variant="outline" className="flex-1">
+              View on Map
             </Button>
           </div>
         </div>

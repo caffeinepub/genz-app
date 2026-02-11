@@ -16,6 +16,7 @@ export class ExternalBlob {
 }
 export interface ProviderProfileView {
     principal: Principal;
+    engagementEndTime?: bigint;
     name: string;
     rate: bigint;
     businessType: BusinessType;
@@ -34,10 +35,7 @@ export interface Location {
     longitude: number;
     address: string;
 }
-export interface ProviderPreview {
-    provider: ProviderProfileView;
-    isEngaged: boolean;
-}
+export type Time = bigint;
 export type BusinessType = {
     __kind__: "it";
     it: null;
@@ -192,6 +190,8 @@ export interface UserProfileView {
 }
 export interface ClientProfile {
     principal: Principal;
+    pinnedLocation?: Location;
+    isVerified: boolean;
     phoneNumber: string;
 }
 export interface PlatformStats {
@@ -209,6 +209,10 @@ export enum DocumentType {
     goodConductCertificate = "goodConductCertificate",
     academicQualification = "academicQualification"
 }
+export enum OtpRole {
+    client = "client",
+    provider = "provider"
+}
 export enum UserRole {
     client = "client",
     provider = "provider",
@@ -220,12 +224,8 @@ export enum UserRole__1 {
     guest = "guest"
 }
 export interface backendInterface {
-    addDocumentToProvider(docId: string): Promise<void>;
-    addProfilePictureToProvider(pictureId: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole__1): Promise<void>;
-    cancelJob(jobId: string, reason: string): Promise<void>;
-    createOrUpdateClientProfile(phoneNumber: string): Promise<void>;
-    createOrUpdateProviderProfile(name: string, rate: bigint, businessType: BusinessType, location: Location, phoneNumber: string, description: string, isEngaged: boolean): Promise<void>;
+    disengage(): Promise<void>;
     getCallerUserProfile(): Promise<UserProfileView | null>;
     getCallerUserRole(): Promise<UserRole__1>;
     getClient(client: Principal): Promise<ClientProfile | null>;
@@ -233,23 +233,21 @@ export interface backendInterface {
     getMpesaConfig(): Promise<MPesaConfig | null>;
     getPlatformStats(): Promise<PlatformStats>;
     getProvider(provider: Principal): Promise<ProviderProfileView | null>;
-    getProviderPreview(provider: Principal): Promise<ProviderPreview | null>;
     getUserProfile(user: Principal): Promise<UserProfileView | null>;
+    initiateOtp(phoneNumber: string, role: OtpRole): Promise<{
+        expiresAt: Time;
+        code: string;
+    }>;
     isCallerAdmin(): Promise<boolean>;
-    markJobCompleted(jobId: string, rating: bigint): Promise<void>;
-    markJobInProgress(jobId: string): Promise<void>;
-    providerHasEngagedJob(provider: Principal): Promise<boolean>;
-    requestLink(provider: Principal, payment: bigint, jobDescription: string): Promise<string>;
     saveCallerUserProfile(profile: {
         role: UserRole;
         clientProfile?: {
-            principal: Principal;
+            pinnedLocation?: Location;
             phoneNumber: string;
         };
         providerProfile?: {
-            principal: Principal;
+            engagementEndTime?: bigint;
             name: string;
-            rate: bigint;
             businessType: BusinessType;
             ratings: Array<bigint>;
             description: string;
@@ -262,11 +260,11 @@ export interface backendInterface {
             isEngaged: boolean;
         };
     }): Promise<void>;
-    searchProviders(filterBusinessType: BusinessType | null, _userLocation: Location, _maxDistance: bigint | null): Promise<Array<ProviderProfileView>>;
+    setEngaged(hours: bigint): Promise<{
+        engagementEndTime?: bigint;
+    }>;
     setMPesaConfig(config: MPesaConfig): Promise<void>;
-    setUserRole(role: UserRole): Promise<void>;
-    updateEngagementStatus(isEngaged: boolean): Promise<void>;
-    updateVerificationStatus(provider: Principal, status: VerificationStatus): Promise<void>;
-    uploadDocument(docType: DocumentType, filename: string, blob: ExternalBlob): Promise<string>;
-    uploadProfilePicture(id: string, blob: ExternalBlob): Promise<string>;
+    updateClientPinnedLocation(latitude: number, longitude: number, address: string): Promise<void>;
+    updateProviderLocation(latitude: number, longitude: number, address: string): Promise<void>;
+    verifyOtp(code: string): Promise<boolean>;
 }

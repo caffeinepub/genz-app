@@ -1,71 +1,56 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
-import { useSearchProviders, useGetProviderPreview } from '../../hooks/useQueries';
+import { useState, useEffect, useRef } from 'react';
+import { useGetProvider } from '../../hooks/useQueries';
+import { BusinessType, ProviderProfileView } from '../../backend';
 import { ProviderCard } from '../../components/providers/ProviderCard';
 import { ProviderPreviewDialog } from '../../components/providers/ProviderPreviewDialog';
 import { EngagementStatusNotice } from '../../components/notifications/EngagementStatusNotice';
 import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { ArrowLeft, Map, Search } from 'lucide-react';
-import { getCategoryById } from '../../lib/categories';
+import { ArrowLeft } from 'lucide-react';
 import { Principal } from '@icp-sdk/core/principal';
+import { getBusinessTypeLabel } from '../../lib/categories';
 
 interface ProviderResultsPageProps {
-  selectedCategory: string | null;
+  businessType: BusinessType | null;
   onNavigate: (page: string, params?: any) => void;
 }
 
-export function ProviderResultsPage({ selectedCategory, onNavigate }: ProviderResultsPageProps) {
-  const [searchQuery, setSearchQuery] = useState('');
+export function ProviderResultsPage({ businessType, onNavigate }: ProviderResultsPageProps) {
   const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [showEngagementNotice, setShowEngagementNotice] = useState(false);
-  const previousEngagementStatus = useRef<boolean | null>(null);
-  
-  const category = selectedCategory ? getCategoryById(selectedCategory) : null;
-  
-  const { data: providers, isLoading } = useSearchProviders(
-    category?.businessType || null
-  );
+  const previousEngagementRef = useRef<boolean | null>(null);
 
-  // Enable polling when preview dialog is open (3 second interval)
-  const { data: preview } = useGetProviderPreview(
+  // Fetch selected provider when preview is open with polling
+  const { data: selectedProvider } = useGetProvider(
     selectedProviderId ? Principal.fromText(selectedProviderId) : Principal.anonymous(),
     {
       enabled: previewOpen && !!selectedProviderId,
-      refetchInterval: previewOpen && selectedProviderId ? 3000 : false,
+      refetchInterval: previewOpen ? 3000 : false, // Poll every 3 seconds when dialog is open
     }
   );
 
   // Detect engagement status changes
   useEffect(() => {
-    if (preview && previewOpen) {
-      const currentStatus = preview.isEngaged;
-      
-      // Only show notice if status actually changed (not on initial load)
-      if (previousEngagementStatus.current !== null && previousEngagementStatus.current !== currentStatus) {
+    if (selectedProvider && previousEngagementRef.current !== null) {
+      if (previousEngagementRef.current !== selectedProvider.isEngaged) {
         setShowEngagementNotice(true);
       }
-      
-      previousEngagementStatus.current = currentStatus;
     }
-  }, [preview, previewOpen]);
+    if (selectedProvider) {
+      previousEngagementRef.current = selectedProvider.isEngaged;
+    }
+  }, [selectedProvider]);
 
   // Reset engagement tracking when dialog closes
   useEffect(() => {
     if (!previewOpen) {
-      previousEngagementStatus.current = null;
+      previousEngagementRef.current = null;
       setShowEngagementNotice(false);
     }
   }, [previewOpen]);
 
-  const filteredProviders = useMemo(() => {
-    const normalizedQuery = searchQuery.toLowerCase().trim();
-    if (!normalizedQuery || !providers) return providers || [];
-    
-    return providers.filter((provider) =>
-      provider.name.toLowerCase().includes(normalizedQuery)
-    );
-  }, [providers, searchQuery]);
+  // Mock providers list - in real app this would come from backend search
+  const providers: ProviderProfileView[] = [];
 
   const handleProviderClick = (providerId: string) => {
     setSelectedProviderId(providerId);
@@ -80,104 +65,70 @@ export function ProviderResultsPage({ selectedCategory, onNavigate }: ProviderRe
   };
 
   const handleViewOnMap = () => {
-    setPreviewOpen(false);
-    onNavigate('map-view', { 
-      category: selectedCategory,
-      focusProvider: selectedProviderId 
-    });
+    if (selectedProviderId) {
+      setPreviewOpen(false);
+      onNavigate('map-view', { focusProvider: selectedProviderId });
+    }
   };
 
   return (
     <div className="container py-12">
-      <div className="mx-auto max-w-6xl">
-        <div className="mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => onNavigate('categories')}
-            className="mb-4 gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Categories
-          </Button>
+      <div className="mb-8">
+        <Button
+          variant="ghost"
+          onClick={() => onNavigate('categories')}
+          className="mb-4 gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Categories
+        </Button>
+        <h1 className="text-3xl font-bold tracking-tight">
+          {businessType ? getBusinessTypeLabel(businessType) : 'All Providers'}
+        </h1>
+        <p className="mt-2 text-muted-foreground">
+          {providers?.length || 0} provider{providers?.length !== 1 ? 's' : ''} available
+        </p>
+      </div>
 
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                {category ? category.label : 'All Providers'}
-              </h1>
-              <p className="mt-2 text-muted-foreground">
-                {filteredProviders.length} provider{filteredProviders.length !== 1 ? 's' : ''} available
-              </p>
-            </div>
-
-            <Button
-              variant="outline"
-              onClick={() => onNavigate('map-view', { category: selectedCategory })}
-              className="gap-2"
-            >
-              <Map className="h-4 w-4" />
-              View on Map
+      {providers && providers.length > 0 ? (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {providers.map((provider) => (
+            <ProviderCard
+              key={provider.principal.toString()}
+              provider={provider}
+              onClick={() => handleProviderClick(provider.principal.toString())}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="flex min-h-[40vh] items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold">No Providers Found</h2>
+            <p className="mt-2 text-muted-foreground">
+              Provider search functionality will be available soon
+            </p>
+            <Button onClick={() => onNavigate('categories')} className="mt-4">
+              Browse Categories
             </Button>
           </div>
         </div>
+      )}
 
-        <div className="relative mb-8">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search by provider name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-
-        {isLoading ? (
-          <div className="flex min-h-[40vh] items-center justify-center">
-            <div className="text-center">
-              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-              <p className="mt-4 text-sm text-muted-foreground">Loading providers...</p>
-            </div>
-          </div>
-        ) : filteredProviders.length === 0 ? (
-          <div className="flex min-h-[40vh] items-center justify-center">
-            <div className="text-center">
-              <p className="text-lg font-medium">No providers found</p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {searchQuery 
-                  ? `No providers match "${searchQuery}"`
-                  : 'Try selecting a different category or check back later'}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredProviders.map((provider) => (
-              <ProviderCard
-                key={provider.principal.toString()}
-                provider={provider}
-                onClick={() => handleProviderClick(provider.principal.toString())}
-              />
-            ))}
-          </div>
-        )}
-
-        <ProviderPreviewDialog
-          open={previewOpen}
-          onOpenChange={setPreviewOpen}
-          preview={preview || null}
-          onViewDetails={handleViewDetails}
-          onViewOnMap={handleViewOnMap}
-          engagementNotice={
-            showEngagementNotice && preview ? (
-              <EngagementStatusNotice
-                isEngaged={preview.isEngaged}
-                onDismiss={() => setShowEngagementNotice(false)}
-              />
-            ) : undefined
-          }
-        />
-      </div>
+      <ProviderPreviewDialog
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        provider={selectedProvider || null}
+        onViewDetails={handleViewDetails}
+        onViewOnMap={handleViewOnMap}
+        engagementNotice={
+          showEngagementNotice && selectedProvider ? (
+            <EngagementStatusNotice
+              isEngaged={selectedProvider.isEngaged}
+              onDismiss={() => setShowEngagementNotice(false)}
+            />
+          ) : undefined
+        }
+      />
     </div>
   );
 }

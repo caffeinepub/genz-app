@@ -1,14 +1,21 @@
 import { useState, useEffect } from 'react';
 import { UserRole } from '../../backend';
-import { useSetUserRole } from '../../hooks/useQueries';
+import { useGetCallerUserProfile } from '../../hooks/useQueries';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Users, Briefcase, Shield } from 'lucide-react';
 import { getPendingRole, clearPendingRole } from '../../utils/pendingRoleSelection';
+import { useActor } from '../../hooks/useActor';
+import { useQueryClient } from '@tanstack/react-query';
+import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 
 export function RoleOnboarding() {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-  const setUserRole = useSetUserRole();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+  const { data: userProfile } = useGetCallerUserProfile();
 
   // Check for pending role selection on mount
   useEffect(() => {
@@ -19,14 +26,54 @@ export function RoleOnboarding() {
   }, []);
 
   const handleSubmit = async () => {
-    if (!selectedRole) return;
+    if (!selectedRole || !actor || !identity) return;
+    
+    setIsSubmitting(true);
     try {
-      await setUserRole.mutateAsync(selectedRole);
-      // Clear pending role after successful submission
+      // Create a minimal profile based on role
+      if (selectedRole === UserRole.client) {
+        await actor.saveCallerUserProfile({
+          role: selectedRole,
+          clientProfile: {
+            phoneNumber: '',
+            pinnedLocation: undefined,
+          },
+          providerProfile: undefined,
+        });
+      } else if (selectedRole === UserRole.provider) {
+        await actor.saveCallerUserProfile({
+          role: selectedRole,
+          providerProfile: {
+            name: '',
+            businessType: { __kind__: 'other', other: 'General' },
+            location: { latitude: 0, longitude: 0, address: '' },
+            ratings: [],
+            description: '',
+            academicDocuments: [],
+            phoneNumber: '',
+            profilePicture: undefined,
+            goodConductCert: undefined,
+            verificationStatus: { __kind__: 'unverified', unverified: null },
+            isEngaged: false,
+            engagementEndTime: undefined,
+          },
+          clientProfile: undefined,
+        });
+      } else if (selectedRole === UserRole.backOffice) {
+        await actor.saveCallerUserProfile({
+          role: selectedRole,
+          clientProfile: undefined,
+          providerProfile: undefined,
+        });
+      }
+      
       clearPendingRole();
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
     } catch (error) {
       console.error('Error setting user role:', error);
-      // Keep pending role in case of error for retry
+      alert('Failed to set role. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -88,11 +135,11 @@ export function RoleOnboarding() {
         <div className="mt-8 text-center">
           <Button
             onClick={handleSubmit}
-            disabled={!selectedRole || setUserRole.isPending}
+            disabled={!selectedRole || isSubmitting}
             size="lg"
             className="min-w-[200px]"
           >
-            {setUserRole.isPending ? (
+            {isSubmitting ? (
               <>
                 <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 Setting up...

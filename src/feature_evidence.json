@@ -2,11 +2,54 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-implement-a-near-real-time-instant-engagement-status-notification-experience-between-client-and-provider-by-refreshing-provider-engagement-state-automatically-while-the-client-is-viewing-that-provider-and-showing-a-clear-in-app-notification-when-the-status-changes-between-engaged-and-not-engaged",
-      "featureTitle": "Implement a near-real-time (“instant”) engagement-status notification experience between client and provider by refreshing provider engagement state automatically while the client is viewing that provider, and showing a clear in-app notification when the status changes between “Engaged” and “Not Engaged”.",
+      "featureId": "feature-update-the-service-provider-profile-ui-to-make-engagement-status-interactive-allow-toggling-engaged-not-engaged-and-when-engaged-is-selected-require-the-provider-to-set-the-number-of-hours-they-will-remain-engaged-persist-changes-immediately-via-the-backend-no-future-update-placeholder-text",
+      "featureTitle": "Update the Service Provider profile UI to make engagement status interactive: allow toggling Engaged/Not Engaged and, when Engaged is selected, require the provider to set the number of hours they will remain engaged; persist changes immediately via the backend (no 'future update' placeholder text).",
       "files": [
-        "frontend/src/components/notifications/EngagementStatusNotice.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/provider/ProviderProfilePage.tsx",
+        "frontend/src/utils/engagementTime.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-85"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-client-facing-provider-surfaces-to-visibly-show-engagement-openness-display-engaged-not-engaged-plus-the-remaining-engaged-time-when-engaged-end-time-exists-in-the-provider-preview-dialog-and-provider-detail-page",
+      "featureTitle": "Update client-facing provider surfaces to visibly show engagement openness: display Engaged/Not Engaged plus the remaining engaged time (when engaged end time exists) in the Provider Preview dialog and Provider Detail page.",
+      "files": [
         "frontend/src/components/providers/ProviderPreviewDialog.tsx",
+        "frontend/src/pages/client/ProviderDetailPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-86"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-make-the-engagement-status-feel-live-to-clients-by-polling-provider-data-while-the-provider-preview-dialog-is-open-and-while-the-provider-detail-page-is-visible-and-update-the-ui-immediately-when-the-engagement-status-or-remaining-time-changes",
+      "featureTitle": "Make the engagement status feel 'live' to clients by polling provider data while the Provider Preview dialog is open and while the Provider Detail page is visible, and update the UI immediately when the engagement status or remaining time changes.",
+      "files": [
         "frontend/src/hooks/useQueries.ts",
         "frontend/src/pages/client/ProviderDetailPage.tsx",
         "frontend/src/pages/client/ProviderResultsPage.tsx"
@@ -22,31 +65,7 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-69"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-create-and-display-a-clear-1-5-star-rating-ui-for-service-providers-across-client-facing-provider-surfaces-using-english-labels-and-consistent-visuals-stars-including-an-explicit-empty-state-when-a-provider-has-no-ratings-yet",
-      "featureTitle": "Create and display a clear 1–5 star rating UI for service providers across client-facing provider surfaces, using English labels and consistent visuals (stars), including an explicit empty-state when a provider has no ratings yet.",
-      "files": [
-        "frontend/src/components/providers/ProviderCard.tsx",
-        "frontend/src/components/providers/ProviderPreviewDialog.tsx",
-        "frontend/src/components/ratings/StarRatingDisplay.tsx",
-        "frontend/src/pages/client/ProviderDetailPage.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-71"
+        "REQ-87"
       ],
       "confidence": "high"
     }

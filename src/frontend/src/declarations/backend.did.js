@@ -24,6 +24,22 @@ export const UserRole__1 = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const UserRole = IDL.Variant({
+  'client' : IDL.Null,
+  'provider' : IDL.Null,
+  'backOffice' : IDL.Null,
+});
+export const Location = IDL.Record({
+  'latitude' : IDL.Float64,
+  'longitude' : IDL.Float64,
+  'address' : IDL.Text,
+});
+export const ClientProfile = IDL.Record({
+  'principal' : IDL.Principal,
+  'pinnedLocation' : IDL.Opt(Location),
+  'isVerified' : IDL.Bool,
+  'phoneNumber' : IDL.Text,
+});
 export const BusinessType = IDL.Variant({
   'it' : IDL.Null,
   'repair' : IDL.Null,
@@ -60,20 +76,6 @@ export const BusinessType = IDL.Variant({
   'hairAndBeauty' : IDL.Null,
   'mediar' : IDL.Null,
 });
-export const Location = IDL.Record({
-  'latitude' : IDL.Float64,
-  'longitude' : IDL.Float64,
-  'address' : IDL.Text,
-});
-export const UserRole = IDL.Variant({
-  'client' : IDL.Null,
-  'provider' : IDL.Null,
-  'backOffice' : IDL.Null,
-});
-export const ClientProfile = IDL.Record({
-  'principal' : IDL.Principal,
-  'phoneNumber' : IDL.Text,
-});
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const DocumentType = IDL.Variant({
   'goodConductCertificate' : IDL.Null,
@@ -96,6 +98,7 @@ export const VerificationStatus = IDL.Variant({
 });
 export const ProviderProfileView = IDL.Record({
   'principal' : IDL.Principal,
+  'engagementEndTime' : IDL.Opt(IDL.Int),
   'name' : IDL.Text,
   'rate' : IDL.Nat,
   'businessType' : BusinessType,
@@ -138,10 +141,11 @@ export const PlatformStats = IDL.Record({
   'totalProviders' : IDL.Nat,
   'totalClients' : IDL.Nat,
 });
-export const ProviderPreview = IDL.Record({
-  'provider' : ProviderProfileView,
-  'isEngaged' : IDL.Bool,
+export const OtpRole = IDL.Variant({
+  'client' : IDL.Null,
+  'provider' : IDL.Null,
 });
+export const Time = IDL.Int;
 
 export const idlService = IDL.Service({
   '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -171,16 +175,8 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
-  'addDocumentToProvider' : IDL.Func([IDL.Text], [], []),
-  'addProfilePictureToProvider' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
-  'cancelJob' : IDL.Func([IDL.Text, IDL.Text], [], []),
-  'createOrUpdateClientProfile' : IDL.Func([IDL.Text], [], []),
-  'createOrUpdateProviderProfile' : IDL.Func(
-      [IDL.Text, IDL.Nat, BusinessType, Location, IDL.Text, IDL.Text, IDL.Bool],
-      [],
-      [],
-    ),
+  'disengage' : IDL.Func([], [], []),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfileView)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
   'getClient' : IDL.Func([IDL.Principal], [IDL.Opt(ClientProfile)], ['query']),
@@ -192,36 +188,31 @@ export const idlService = IDL.Service({
       [IDL.Opt(ProviderProfileView)],
       ['query'],
     ),
-  'getProviderPreview' : IDL.Func(
-      [IDL.Principal],
-      [IDL.Opt(ProviderPreview)],
-      ['query'],
-    ),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfileView)],
       ['query'],
     ),
+  'initiateOtp' : IDL.Func(
+      [IDL.Text, OtpRole],
+      [IDL.Record({ 'expiresAt' : Time, 'code' : IDL.Text })],
+      [],
+    ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-  'markJobCompleted' : IDL.Func([IDL.Text, IDL.Nat], [], []),
-  'markJobInProgress' : IDL.Func([IDL.Text], [], []),
-  'providerHasEngagedJob' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
-  'requestLink' : IDL.Func([IDL.Principal, IDL.Nat, IDL.Text], [IDL.Text], []),
   'saveCallerUserProfile' : IDL.Func(
       [
         IDL.Record({
           'role' : UserRole,
           'clientProfile' : IDL.Opt(
             IDL.Record({
-              'principal' : IDL.Principal,
+              'pinnedLocation' : IDL.Opt(Location),
               'phoneNumber' : IDL.Text,
             })
           ),
           'providerProfile' : IDL.Opt(
             IDL.Record({
-              'principal' : IDL.Principal,
+              'engagementEndTime' : IDL.Opt(IDL.Int),
               'name' : IDL.Text,
-              'rate' : IDL.Nat,
               'businessType' : BusinessType,
               'ratings' : IDL.Vec(IDL.Nat),
               'description' : IDL.Text,
@@ -239,25 +230,23 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
-  'searchProviders' : IDL.Func(
-      [IDL.Opt(BusinessType), Location, IDL.Opt(IDL.Nat)],
-      [IDL.Vec(ProviderProfileView)],
-      ['query'],
+  'setEngaged' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Record({ 'engagementEndTime' : IDL.Opt(IDL.Int) })],
+      [],
     ),
   'setMPesaConfig' : IDL.Func([MPesaConfig], [], []),
-  'setUserRole' : IDL.Func([UserRole], [], []),
-  'updateEngagementStatus' : IDL.Func([IDL.Bool], [], []),
-  'updateVerificationStatus' : IDL.Func(
-      [IDL.Principal, VerificationStatus],
+  'updateClientPinnedLocation' : IDL.Func(
+      [IDL.Float64, IDL.Float64, IDL.Text],
       [],
       [],
     ),
-  'uploadDocument' : IDL.Func(
-      [DocumentType, IDL.Text, ExternalBlob],
-      [IDL.Text],
+  'updateProviderLocation' : IDL.Func(
+      [IDL.Float64, IDL.Float64, IDL.Text],
+      [],
       [],
     ),
-  'uploadProfilePicture' : IDL.Func([IDL.Text, ExternalBlob], [IDL.Text], []),
+  'verifyOtp' : IDL.Func([IDL.Text], [IDL.Bool], []),
 });
 
 export const idlInitArgs = [];
@@ -278,6 +267,22 @@ export const idlFactory = ({ IDL }) => {
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
+  });
+  const UserRole = IDL.Variant({
+    'client' : IDL.Null,
+    'provider' : IDL.Null,
+    'backOffice' : IDL.Null,
+  });
+  const Location = IDL.Record({
+    'latitude' : IDL.Float64,
+    'longitude' : IDL.Float64,
+    'address' : IDL.Text,
+  });
+  const ClientProfile = IDL.Record({
+    'principal' : IDL.Principal,
+    'pinnedLocation' : IDL.Opt(Location),
+    'isVerified' : IDL.Bool,
+    'phoneNumber' : IDL.Text,
   });
   const BusinessType = IDL.Variant({
     'it' : IDL.Null,
@@ -315,20 +320,6 @@ export const idlFactory = ({ IDL }) => {
     'hairAndBeauty' : IDL.Null,
     'mediar' : IDL.Null,
   });
-  const Location = IDL.Record({
-    'latitude' : IDL.Float64,
-    'longitude' : IDL.Float64,
-    'address' : IDL.Text,
-  });
-  const UserRole = IDL.Variant({
-    'client' : IDL.Null,
-    'provider' : IDL.Null,
-    'backOffice' : IDL.Null,
-  });
-  const ClientProfile = IDL.Record({
-    'principal' : IDL.Principal,
-    'phoneNumber' : IDL.Text,
-  });
   const ExternalBlob = IDL.Vec(IDL.Nat8);
   const DocumentType = IDL.Variant({
     'goodConductCertificate' : IDL.Null,
@@ -348,6 +339,7 @@ export const idlFactory = ({ IDL }) => {
   });
   const ProviderProfileView = IDL.Record({
     'principal' : IDL.Principal,
+    'engagementEndTime' : IDL.Opt(IDL.Int),
     'name' : IDL.Text,
     'rate' : IDL.Nat,
     'businessType' : BusinessType,
@@ -390,10 +382,8 @@ export const idlFactory = ({ IDL }) => {
     'totalProviders' : IDL.Nat,
     'totalClients' : IDL.Nat,
   });
-  const ProviderPreview = IDL.Record({
-    'provider' : ProviderProfileView,
-    'isEngaged' : IDL.Bool,
-  });
+  const OtpRole = IDL.Variant({ 'client' : IDL.Null, 'provider' : IDL.Null });
+  const Time = IDL.Int;
   
   return IDL.Service({
     '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -423,24 +413,8 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
-    'addDocumentToProvider' : IDL.Func([IDL.Text], [], []),
-    'addProfilePictureToProvider' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
-    'cancelJob' : IDL.Func([IDL.Text, IDL.Text], [], []),
-    'createOrUpdateClientProfile' : IDL.Func([IDL.Text], [], []),
-    'createOrUpdateProviderProfile' : IDL.Func(
-        [
-          IDL.Text,
-          IDL.Nat,
-          BusinessType,
-          Location,
-          IDL.Text,
-          IDL.Text,
-          IDL.Bool,
-        ],
-        [],
-        [],
-      ),
+    'disengage' : IDL.Func([], [], []),
     'getCallerUserProfile' : IDL.Func(
         [],
         [IDL.Opt(UserProfileView)],
@@ -460,40 +434,31 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(ProviderProfileView)],
         ['query'],
       ),
-    'getProviderPreview' : IDL.Func(
-        [IDL.Principal],
-        [IDL.Opt(ProviderPreview)],
-        ['query'],
-      ),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfileView)],
         ['query'],
       ),
-    'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-    'markJobCompleted' : IDL.Func([IDL.Text, IDL.Nat], [], []),
-    'markJobInProgress' : IDL.Func([IDL.Text], [], []),
-    'providerHasEngagedJob' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
-    'requestLink' : IDL.Func(
-        [IDL.Principal, IDL.Nat, IDL.Text],
-        [IDL.Text],
+    'initiateOtp' : IDL.Func(
+        [IDL.Text, OtpRole],
+        [IDL.Record({ 'expiresAt' : Time, 'code' : IDL.Text })],
         [],
       ),
+    'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'saveCallerUserProfile' : IDL.Func(
         [
           IDL.Record({
             'role' : UserRole,
             'clientProfile' : IDL.Opt(
               IDL.Record({
-                'principal' : IDL.Principal,
+                'pinnedLocation' : IDL.Opt(Location),
                 'phoneNumber' : IDL.Text,
               })
             ),
             'providerProfile' : IDL.Opt(
               IDL.Record({
-                'principal' : IDL.Principal,
+                'engagementEndTime' : IDL.Opt(IDL.Int),
                 'name' : IDL.Text,
-                'rate' : IDL.Nat,
                 'businessType' : BusinessType,
                 'ratings' : IDL.Vec(IDL.Nat),
                 'description' : IDL.Text,
@@ -511,25 +476,23 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
-    'searchProviders' : IDL.Func(
-        [IDL.Opt(BusinessType), Location, IDL.Opt(IDL.Nat)],
-        [IDL.Vec(ProviderProfileView)],
-        ['query'],
+    'setEngaged' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Record({ 'engagementEndTime' : IDL.Opt(IDL.Int) })],
+        [],
       ),
     'setMPesaConfig' : IDL.Func([MPesaConfig], [], []),
-    'setUserRole' : IDL.Func([UserRole], [], []),
-    'updateEngagementStatus' : IDL.Func([IDL.Bool], [], []),
-    'updateVerificationStatus' : IDL.Func(
-        [IDL.Principal, VerificationStatus],
+    'updateClientPinnedLocation' : IDL.Func(
+        [IDL.Float64, IDL.Float64, IDL.Text],
         [],
         [],
       ),
-    'uploadDocument' : IDL.Func(
-        [DocumentType, IDL.Text, ExternalBlob],
-        [IDL.Text],
+    'updateProviderLocation' : IDL.Func(
+        [IDL.Float64, IDL.Float64, IDL.Text],
+        [],
         [],
       ),
-    'uploadProfilePicture' : IDL.Func([IDL.Text, ExternalBlob], [IDL.Text], []),
+    'verifyOtp' : IDL.Func([IDL.Text], [IDL.Bool], []),
   });
 };
 

@@ -46,6 +46,8 @@ export type BusinessType = { 'it' : null } |
   { 'mediar' : null };
 export interface ClientProfile {
   'principal' : Principal,
+  'pinnedLocation' : [] | [Location],
+  'isVerified' : boolean,
   'phoneNumber' : string,
 }
 export interface Document {
@@ -79,17 +81,16 @@ export interface MPesaConfig {
   'consumerKey' : string,
   'callbackUrl' : string,
 }
+export type OtpRole = { 'client' : null } |
+  { 'provider' : null };
 export interface PlatformStats {
   'totalProviders' : bigint,
   'totalClients' : bigint,
 }
 export interface ProfilePicture { 'id' : string, 'blob' : ExternalBlob }
-export interface ProviderPreview {
-  'provider' : ProviderProfileView,
-  'isEngaged' : boolean,
-}
 export interface ProviderProfileView {
   'principal' : Principal,
+  'engagementEndTime' : [] | [bigint],
   'name' : string,
   'rate' : bigint,
   'businessType' : BusinessType,
@@ -103,6 +104,7 @@ export interface ProviderProfileView {
   'verificationStatus' : VerificationStatus,
   'isEngaged' : boolean,
 }
+export type Time = bigint;
 export interface UserProfileView {
   'role' : UserRole,
   'clientProfile' : [] | [ClientProfile],
@@ -146,15 +148,8 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
-  'addDocumentToProvider' : ActorMethod<[string], undefined>,
-  'addProfilePictureToProvider' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole__1], undefined>,
-  'cancelJob' : ActorMethod<[string, string], undefined>,
-  'createOrUpdateClientProfile' : ActorMethod<[string], undefined>,
-  'createOrUpdateProviderProfile' : ActorMethod<
-    [string, bigint, BusinessType, Location, string, string, boolean],
-    undefined
-  >,
+  'disengage' : ActorMethod<[], undefined>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfileView]>,
   'getCallerUserRole' : ActorMethod<[], UserRole__1>,
   'getClient' : ActorMethod<[Principal], [] | [ClientProfile]>,
@@ -162,25 +157,23 @@ export interface _SERVICE {
   'getMpesaConfig' : ActorMethod<[], [] | [MPesaConfig]>,
   'getPlatformStats' : ActorMethod<[], PlatformStats>,
   'getProvider' : ActorMethod<[Principal], [] | [ProviderProfileView]>,
-  'getProviderPreview' : ActorMethod<[Principal], [] | [ProviderPreview]>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfileView]>,
+  'initiateOtp' : ActorMethod<
+    [string, OtpRole],
+    { 'expiresAt' : Time, 'code' : string }
+  >,
   'isCallerAdmin' : ActorMethod<[], boolean>,
-  'markJobCompleted' : ActorMethod<[string, bigint], undefined>,
-  'markJobInProgress' : ActorMethod<[string], undefined>,
-  'providerHasEngagedJob' : ActorMethod<[Principal], boolean>,
-  'requestLink' : ActorMethod<[Principal, bigint, string], string>,
   'saveCallerUserProfile' : ActorMethod<
     [
       {
         'role' : UserRole,
         'clientProfile' : [] | [
-          { 'principal' : Principal, 'phoneNumber' : string }
+          { 'pinnedLocation' : [] | [Location], 'phoneNumber' : string }
         ],
         'providerProfile' : [] | [
           {
-            'principal' : Principal,
+            'engagementEndTime' : [] | [bigint],
             'name' : string,
-            'rate' : bigint,
             'businessType' : BusinessType,
             'ratings' : Array<bigint>,
             'description' : string,
@@ -197,19 +190,14 @@ export interface _SERVICE {
     ],
     undefined
   >,
-  'searchProviders' : ActorMethod<
-    [[] | [BusinessType], Location, [] | [bigint]],
-    Array<ProviderProfileView>
-  >,
+  'setEngaged' : ActorMethod<[bigint], { 'engagementEndTime' : [] | [bigint] }>,
   'setMPesaConfig' : ActorMethod<[MPesaConfig], undefined>,
-  'setUserRole' : ActorMethod<[UserRole], undefined>,
-  'updateEngagementStatus' : ActorMethod<[boolean], undefined>,
-  'updateVerificationStatus' : ActorMethod<
-    [Principal, VerificationStatus],
+  'updateClientPinnedLocation' : ActorMethod<
+    [number, number, string],
     undefined
   >,
-  'uploadDocument' : ActorMethod<[DocumentType, string, ExternalBlob], string>,
-  'uploadProfilePicture' : ActorMethod<[string, ExternalBlob], string>,
+  'updateProviderLocation' : ActorMethod<[number, number, string], undefined>,
+  'verifyOtp' : ActorMethod<[string], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

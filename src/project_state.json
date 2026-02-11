@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 55,
+  "projectStateVersion": 61,
   "summary": "Pivot to building \"Genz App\": an Uber/Bolt-style marketplace that connects clients with nearby service professionals in Kenya (especially Gen Z), with role-based logins, industry-based search, map-based location visibility, pricing/rates display, provider verification, ratings, and customer care access.",
   "architectural_notes": [
     "Role-based access control for three user types: provider, client, technical/back-office.",
@@ -21,7 +21,8 @@
     "Landing page CTAs/draft section (e.g., “Get Started”) currently appear unresponsive because they are not wired to any action/navigation.",
     "App still not displaying for the user; likely related to missing/broken logo asset at `/assets/generated/genz-app-logo.dim_512x512.png` causing header image load failure.",
     "User wants the broken/unloaded header logo image removed while keeping the “Genz App” text; current logo asset/load path is still causing a broken image in the header.",
-    "Production/live app link https://genz-app.icp0.io not working for user; user reports error feedback (previously seen: “Error 400 – Canister ID Not Resolved”), indicating deployment/canister resolution issue."
+    "Production/live app link https://genz-app.icp0.io not working for user; user reports error feedback (previously seen: “Error 400 – Canister ID Not Resolved”), indicating deployment/canister resolution issue.",
+    "Provider self-reported engagement status changes (e.g., set to “Engaged” by provider) are not reflected on the client side (still shows “Not Engaged”); live/near-real-time integration appears not working or not deployed."
   ],
   "isFixRequest": false,
   "existing_features": [
@@ -560,6 +561,78 @@
         "REQ-71"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-ensure-provider-engagement-status-updates-are-persisted-immediately-when-a-service-provider-toggles-engaged-not-engaged-without-requiring-the-provider-to-click-save-profile-by-wiring-the-engagement-radio-group-in-frontend-src-pages-provider-providerprofilepage-tsx-to-the-existing-backend-method-updateengagementstatus-isengaged-via-the-existing-react-query-hook-useupdateengagementstatus",
+      "title": "Ensure provider engagement status updates are persisted immediately when a Service Provider toggles “Engaged / Not Engaged”, without requiring the provider to click “Save Profile”, by wiring the engagement radio-group in `frontend/src/pages/provider/ProviderProfilePage.tsx` to the existing backend method `updateEngagementStatus(isEngaged)` via the existing React Query hook `useUpdateEngagementStatus()`.",
+      "reqIds": [
+        "REQ-72"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-client-side-engagement-status-views-reliably-refresh-from-real-backend-data-by-ensuring-all-relevant-react-query-caches-are-invalidated-refetched-after-a-provider-updates-engagement-status-including-the-specific-provider-preview-query-key-used-by-clients-providerpreview-principal-and-any-provider-detail-queries-currently-showing-engagement-status",
+      "title": "Make client-side engagement status views reliably refresh from real backend data by ensuring all relevant React Query caches are invalidated/refetched after a provider updates engagement status, including the specific provider preview query key used by clients (`['providerPreview', principal]`) and any provider detail queries currently showing engagement status.",
+      "reqIds": [
+        "REQ-73"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-lightweight-last-updated-live-status-ux-cue-on-the-client-provider-preview-dialog-so-users-can-trust-the-status-is-live-english-text-and-ensure-the-preview-continues-polling-while-the-dialog-is-open-keep-the-existing-3-second-interval-behavior",
+      "title": "Add a lightweight “last updated” / “Live status” UX cue on the client provider preview dialog so users can trust the status is live (English text), and ensure the preview continues polling while the dialog is open (keep the existing 3-second interval behavior).",
+      "reqIds": [
+        "REQ-75"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-dedicated-client-and-service-provider-access-screens-in-the-frontend-with-clear-sections-for-log-in-and-create-new-account-and-include-a-required-phone-number-otp-verification-step-for-both-roles",
+      "title": "Create dedicated Client and Service Provider access screens in the frontend with clear sections for “Log in” and “Create new account”, and include a required phone-number OTP verification step for both roles.",
+      "reqIds": [
+        "REQ-79"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-always-available-pinned-location-update-experience-for-both-clients-and-service-providers-in-the-frontend-using-the-existing-locationpicker-component-to-let-users-set-update-their-current-pinned-location-quickly",
+      "title": "Add an always-available pinned location update experience for both Clients and Service Providers in the frontend, using the existing LocationPicker component to let users set/update their current pinned location quickly.",
+      "reqIds": [
+        "REQ-80"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-react-query-hooks-and-type-safe-frontend-bindings-for-the-new-otp-and-pinned-location-backend-methods-and-ensure-role-based-authorization-errors-are-handled-with-user-friendly-english-messages",
+      "title": "Add React Query hooks and type-safe frontend bindings for the new OTP and pinned-location backend methods, and ensure role-based authorization errors are handled with user-friendly English messages.",
+      "reqIds": [
+        "REQ-81"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-service-provider-profile-ui-to-make-engagement-status-interactive-allow-toggling-engaged-not-engaged-and-when-engaged-is-selected-require-the-provider-to-set-the-number-of-hours-they-will-remain-engaged-persist-changes-immediately-via-the-backend-no-future-update-placeholder-text",
+      "title": "Update the Service Provider profile UI to make engagement status interactive: allow toggling Engaged/Not Engaged and, when Engaged is selected, require the provider to set the number of hours they will remain engaged; persist changes immediately via the backend (no 'future update' placeholder text).",
+      "reqIds": [
+        "REQ-85"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-client-facing-provider-surfaces-to-visibly-show-engagement-openness-display-engaged-not-engaged-plus-the-remaining-engaged-time-when-engaged-end-time-exists-in-the-provider-preview-dialog-and-provider-detail-page",
+      "title": "Update client-facing provider surfaces to visibly show engagement openness: display Engaged/Not Engaged plus the remaining engaged time (when engaged end time exists) in the Provider Preview dialog and Provider Detail page.",
+      "reqIds": [
+        "REQ-86"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-the-engagement-status-feel-live-to-clients-by-polling-provider-data-while-the-provider-preview-dialog-is-open-and-while-the-provider-detail-page-is-visible-and-update-the-ui-immediately-when-the-engagement-status-or-remaining-time-changes",
+      "title": "Make the engagement status feel 'live' to clients by polling provider data while the Provider Preview dialog is open and while the Provider Detail page is visible, and update the UI immediately when the engagement status or remaining time changes.",
+      "reqIds": [
+        "REQ-87"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -846,6 +919,80 @@
       "summary": "Ensure the backend engagement status update API is complete and reliably persists provider engagement status changes so clients can observe the updated value through existing read/query APIs.",
       "reqIds": [
         "REQ-70"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-58",
+      "summary": "Verify and fix (if needed) the backend engagement status update implementation so `updateEngagementStatus(isEngaged)` updates the caller’s stored `ProviderProfile.isEngaged` and the new value is returned by `getProviderPreview(provider)` and `providerHasEngagedJob(provider)` for all users (including clients).",
+      "reqIds": [
+        "REQ-74"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-59",
+      "summary": "Add dedicated Client and Service Provider authentication flows with “Log in” and “Create new account”, using mobile-number OTP verification for account verification.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-60",
+      "summary": "Allow both Clients and Service Providers to always update their current pinned location (for efficiency in discovery/servicing).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-61",
+      "summary": "Add backend support for phone-number OTP verification for both Client and Service Provider accounts, including APIs to (1) start an OTP verification for a given phone number and role, and (2) verify an OTP code to mark that phone number as verified for the authenticated caller.",
+      "reqIds": [
+        "REQ-76"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-62",
+      "summary": "Persist phone verification state in backend profile data so the app can enforce that Clients and Service Providers must have a verified phone number before being considered fully onboarded.",
+      "reqIds": [
+        "REQ-77"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-63",
+      "summary": "Add backend support for “pinned location” for Clients and lightweight update APIs so both Clients and Service Providers can update their current pinned location at any time without needing to resubmit the entire profile payload.",
+      "reqIds": [
+        "REQ-78"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-64",
+      "summary": "Add provider-set engagement duration: when a provider marks themselves Engaged (e.g., upon accepting a job), they can specify hours/time-until-available; client views should show Engaged/Not Engaged plus the remaining engaged time and auto-return to Not Engaged when the time elapses (kept in sync live).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-65",
+      "summary": "Extend the backend ProviderProfile data model to support an optional engagement time window so a Service Provider can be marked Engaged until a specific time, in addition to the existing boolean engagement status.",
+      "reqIds": [
+        "REQ-82"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-66",
+      "summary": "Implement backend APIs for providers to set and clear their engagement status with a duration (hours) so the provider can mark themselves Engaged for N hours, and can manually Disengage early.",
+      "reqIds": [
+        "REQ-83"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-67",
+      "summary": "Ensure backend provider-read endpoints return an engagement state that automatically becomes Not Engaged once the engagement end time has passed, so clients always see an accurate Engaged/Not Engaged status without manual provider action.",
+      "reqIds": [
+        "REQ-84"
       ],
       "status": "pending"
     }

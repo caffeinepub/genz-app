@@ -1,175 +1,126 @@
-import { Menu, X, Download, Home } from 'lucide-react';
-import { useState } from 'react';
+import { Button } from './ui/button';
+import { Menu, Home, Briefcase, MapPin, FileText, Upload, Shield, User } from 'lucide-react';
 import { LoginButton } from './auth/LoginButton';
 import { UserRole } from '../backend';
-import { Button } from './ui/button';
-import { usePWAInstallPrompt } from '../hooks/usePWAInstallPrompt';
+import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
+import { useState } from 'react';
 
 interface HeaderProps {
-  currentPage?: string;
+  currentPage: string;
   onNavigate?: (page: string) => void;
   userRole?: UserRole;
 }
 
 export function Header({ currentPage, onNavigate, userRole }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [logoLoaded, setLogoLoaded] = useState(true);
-  const [secondaryMarkLoaded, setSecondaryMarkLoaded] = useState(true);
-  const { isInstallable, isIOS, promptInstall, canShowPrompt } = usePWAInstallPrompt();
 
-  const navItems: Array<{ label: string; page: string }> = [
-    { label: 'Home', page: 'landing' }
-  ];
-
-  if (userRole === UserRole.client) {
-    navItems.push(
-      { label: 'Browse Services', page: 'categories' },
-      { label: 'My Jobs', page: 'my-jobs' }
-    );
-  } else if (userRole === UserRole.provider) {
-    navItems.push(
-      { label: 'My Profile', page: 'provider-profile' },
-      { label: 'Verification', page: 'verification-upload' }
-    );
-  } else if (userRole === UserRole.backOffice) {
-    navItems.push(
-      { label: 'Review Verifications', page: 'verification-review' }
-    );
-  }
-
-  const handleInstallClick = async () => {
-    if (isIOS) {
-      // iOS instructions will be shown by the banner component
-      await promptInstall();
-    } else if (isInstallable) {
-      await promptInstall();
-    }
-  };
-
-  const handleNavClick = (page: string) => {
+  const handleNavigate = (page: string) => {
     if (onNavigate) {
       onNavigate(page);
+      setMobileMenuOpen(false);
     }
   };
 
+  const clientNavItems = [
+    { page: 'categories', label: 'Browse Services', icon: Briefcase },
+    { page: 'map-view', label: 'Map View', icon: MapPin },
+    { page: 'my-jobs', label: 'My Jobs', icon: FileText },
+    { page: 'client-profile', label: 'My Profile', icon: User },
+  ];
+
+  const providerNavItems = [
+    { page: 'provider-profile', label: 'My Profile', icon: User },
+    { page: 'verification-upload', label: 'Upload Documents', icon: Upload },
+  ];
+
+  const backOfficeNavItems = [
+    { page: 'verification-review', label: 'Review Verifications', icon: Shield },
+  ];
+
+  const getNavItems = () => {
+    if (userRole === UserRole.client) return clientNavItems;
+    if (userRole === UserRole.provider) return providerNavItems;
+    if (userRole === UserRole.backOffice) return backOfficeNavItems;
+    return [];
+  };
+
+  const navItems = getNavItems();
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex min-h-20 items-center justify-between gap-4 py-3">
-        <div className="flex items-center gap-3 flex-shrink-0">
-          {logoLoaded && (
-            <img 
-              src="/assets/generated/genz-app-logo.dim_512x512.png" 
-              alt="Genz App"
-              className="h-12 w-12 rounded-lg object-contain sm:h-14 sm:w-14"
-              onError={() => setLogoLoaded(false)}
-            />
-          )}
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between">
+        <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <span className="text-xl font-semibold tracking-tight whitespace-nowrap sm:text-2xl">
-              Genz App
-            </span>
-            {secondaryMarkLoaded && (
-              <img 
-                src="/assets/generated/Gemini_Generated_Image_g3cec6g3cec6g3ce__1_-removebg-preview-3.png" 
-                alt="Genz Kenya badge"
-                className="flex-shrink-0"
-                onError={() => setSecondaryMarkLoaded(false)}
-              />
-            )}
+            <img
+              src="/assets/generated/genz-app-logo.dim_512x512.png"
+              alt="Genz App"
+              className="h-10 w-10"
+            />
+            <span className="text-xl font-bold">Genz App</span>
           </div>
-        </div>
-        
-        <nav className="hidden items-center gap-6 md:flex flex-shrink-0">
-          {navItems.map((item) => (
-            <button
-              key={item.page}
-              onClick={() => handleNavClick(item.page)}
-              className={`text-sm font-medium transition-colors hover:text-foreground whitespace-nowrap ${
-                currentPage === item.page ? 'text-foreground' : 'text-muted-foreground'
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-          <button
-            onClick={() => {
-              const drawer = document.getElementById('support-drawer-trigger');
-              drawer?.click();
-            }}
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap"
-          >
-            Support
-          </button>
-          {canShowPrompt && (
+
+          {/* Desktop Navigation */}
+          <nav className="hidden items-center gap-1 md:flex">
             <Button
-              variant="outline"
-              size="sm"
-              onClick={handleInstallClick}
+              variant={currentPage === 'landing' ? 'default' : 'ghost'}
+              onClick={() => handleNavigate('landing')}
               className="gap-2"
             >
-              <Download className="h-4 w-4" />
-              Install
+              <Home className="h-4 w-4" />
+              Home
             </Button>
-          )}
-          <LoginButton />
-        </nav>
 
-        <div className="flex items-center gap-2 md:hidden flex-shrink-0">
-          <LoginButton />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
-        </div>
-      </div>
-
-      {mobileMenuOpen && (
-        <div className="border-t border-border/40 bg-background md:hidden">
-          <nav className="container flex flex-col gap-4 py-4">
             {navItems.map((item) => (
-              <button
-                key={item.page}
-                onClick={() => {
-                  handleNavClick(item.page);
-                  setMobileMenuOpen(false);
-                }}
-                className={`text-left text-sm font-medium transition-colors hover:text-foreground ${
-                  currentPage === item.page ? 'text-foreground' : 'text-muted-foreground'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-            <button
-              onClick={() => {
-                const drawer = document.getElementById('support-drawer-trigger');
-                drawer?.click();
-                setMobileMenuOpen(false);
-              }}
-              className="text-left text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Support
-            </button>
-            {canShowPrompt && (
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  handleInstallClick();
-                  setMobileMenuOpen(false);
-                }}
-                className="gap-2 justify-start"
+                key={item.page}
+                variant={currentPage === item.page ? 'default' : 'ghost'}
+                onClick={() => handleNavigate(item.page)}
+                className="gap-2"
               >
-                <Download className="h-4 w-4" />
-                Install App
+                <item.icon className="h-4 w-4" />
+                {item.label}
               </Button>
-            )}
+            ))}
           </nav>
         </div>
-      )}
+
+        <div className="flex items-center gap-2">
+          <LoginButton />
+
+          {/* Mobile Menu */}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right">
+              <nav className="flex flex-col gap-2 pt-8">
+                <Button
+                  variant={currentPage === 'landing' ? 'default' : 'ghost'}
+                  onClick={() => handleNavigate('landing')}
+                  className="w-full justify-start gap-2"
+                >
+                  <Home className="h-4 w-4" />
+                  Home
+                </Button>
+
+                {navItems.map((item) => (
+                  <Button
+                    key={item.page}
+                    variant={currentPage === item.page ? 'default' : 'ghost'}
+                    onClick={() => handleNavigate(item.page)}
+                    className="w-full justify-start gap-2"
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </Button>
+                ))}
+              </nav>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </div>
     </header>
   );
 }

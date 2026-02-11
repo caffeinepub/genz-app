@@ -10,11 +10,14 @@ import { ProviderResultsPage } from './pages/client/ProviderResultsPage';
 import { ProviderDetailPage } from './pages/client/ProviderDetailPage';
 import { MapViewPage } from './pages/client/MapViewPage';
 import { MyJobsPage } from './pages/client/MyJobsPage';
+import { ClientProfilePage } from './pages/client/ClientProfilePage';
 import { ProviderProfilePage } from './pages/provider/ProviderProfilePage';
 import { VerificationUploadPage } from './pages/provider/VerificationUploadPage';
 import { VerificationReviewPage } from './pages/backoffice/VerificationReviewPage';
+import { ClientAccessPage } from './pages/auth/ClientAccessPage';
+import { ProviderAccessPage } from './pages/auth/ProviderAccessPage';
 import { InstallPromptBanner } from './components/pwa/InstallPromptBanner';
-import { UserRole } from './backend';
+import { UserRole, BusinessType } from './backend';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,11 +30,14 @@ const queryClient = new QueryClient({
 
 type Page = 
   | 'landing'
+  | 'client-access'
+  | 'provider-access'
   | 'categories'
   | 'results'
   | 'provider-detail'
   | 'map-view'
   | 'my-jobs'
+  | 'client-profile'
   | 'provider-profile'
   | 'verification-upload'
   | 'verification-review';
@@ -40,7 +46,7 @@ function AppContent() {
   const { identity, isInitializing } = useInternetIdentity();
   const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
   const [currentPage, setCurrentPage] = useState<Page>('landing');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedBusinessType, setSelectedBusinessType] = useState<BusinessType | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
 
   const isAuthenticated = !!identity;
@@ -61,9 +67,10 @@ function AppContent() {
   }, []);
 
   // Define navigate handler before conditional returns
-  const navigate = (page: string, params?: { category?: string; provider?: string }) => {
-    if (params?.category) setSelectedCategory(params.category);
+  const navigate = (page: string, params?: { businessType?: BusinessType | null; provider?: string; focusProvider?: string }) => {
+    if (params?.businessType !== undefined) setSelectedBusinessType(params.businessType);
     if (params?.provider) setSelectedProvider(params.provider);
+    if (params?.focusProvider) setSelectedProvider(params.focusProvider);
     setCurrentPage(page as Page);
   };
 
@@ -113,6 +120,18 @@ function AppContent() {
             onNavigate={navigate}
           />
         );
+      case 'client-access':
+        return (
+          <ClientAccessPage
+            onComplete={() => navigate('categories')}
+          />
+        );
+      case 'provider-access':
+        return (
+          <ProviderAccessPage
+            onComplete={() => navigate('provider-profile')}
+          />
+        );
       case 'categories':
         return userRole === UserRole.client ? (
           <CategoriesPage onNavigate={navigate} />
@@ -122,7 +141,7 @@ function AppContent() {
       case 'results':
         return userRole === UserRole.client ? (
           <ProviderResultsPage 
-            selectedCategory={selectedCategory} 
+            businessType={selectedBusinessType} 
             onNavigate={navigate}
           />
         ) : (
@@ -140,8 +159,9 @@ function AppContent() {
       case 'map-view':
         return userRole === UserRole.client ? (
           <MapViewPage 
-            selectedCategory={selectedCategory}
+            selectedCategory={selectedBusinessType}
             onNavigate={navigate}
+            focusProvider={selectedProvider}
           />
         ) : (
           <AccessDenied />
@@ -149,6 +169,12 @@ function AppContent() {
       case 'my-jobs':
         return userRole === UserRole.client ? (
           <MyJobsPage onNavigate={navigate} />
+        ) : (
+          <AccessDenied />
+        );
+      case 'client-profile':
+        return userRole === UserRole.client ? (
+          <ClientProfilePage />
         ) : (
           <AccessDenied />
         );
