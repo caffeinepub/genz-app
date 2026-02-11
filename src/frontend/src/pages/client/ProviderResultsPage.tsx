@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSearchProviders, useGetProviderPreview } from '../../hooks/useQueries';
 import { ProviderCard } from '../../components/providers/ProviderCard';
 import { ProviderPreviewDialog } from '../../components/providers/ProviderPreviewDialog';
+import { EngagementStatusNotice } from '../../components/notifications/EngagementStatusNotice';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { ArrowLeft, Map, Search } from 'lucide-react';
@@ -17,6 +18,8 @@ export function ProviderResultsPage({ selectedCategory, onNavigate }: ProviderRe
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [showEngagementNotice, setShowEngagementNotice] = useState(false);
+  const previousEngagementStatus = useRef<boolean | null>(null);
   
   const category = selectedCategory ? getCategoryById(selectedCategory) : null;
   
@@ -24,13 +27,45 @@ export function ProviderResultsPage({ selectedCategory, onNavigate }: ProviderRe
     category?.businessType || null
   );
 
+  // Enable polling when preview dialog is open (3 second interval)
   const { data: preview } = useGetProviderPreview(
-    selectedProviderId ? Principal.fromText(selectedProviderId) : Principal.anonymous()
+    selectedProviderId ? Principal.fromText(selectedProviderId) : Principal.anonymous(),
+    {
+      enabled: previewOpen && !!selectedProviderId,
+      refetchInterval: previewOpen && selectedProviderId ? 3000 : false,
+    }
   );
 
-  const filteredProviders = providers?.filter((provider) =>
-    provider.name.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  // Detect engagement status changes
+  useEffect(() => {
+    if (preview && previewOpen) {
+      const currentStatus = preview.isEngaged;
+      
+      // Only show notice if status actually changed (not on initial load)
+      if (previousEngagementStatus.current !== null && previousEngagementStatus.current !== currentStatus) {
+        setShowEngagementNotice(true);
+      }
+      
+      previousEngagementStatus.current = currentStatus;
+    }
+  }, [preview, previewOpen]);
+
+  // Reset engagement tracking when dialog closes
+  useEffect(() => {
+    if (!previewOpen) {
+      previousEngagementStatus.current = null;
+      setShowEngagementNotice(false);
+    }
+  }, [previewOpen]);
+
+  const filteredProviders = useMemo(() => {
+    const normalizedQuery = searchQuery.toLowerCase().trim();
+    if (!normalizedQuery || !providers) return providers || [];
+    
+    return providers.filter((provider) =>
+      provider.name.toLowerCase().includes(normalizedQuery)
+    );
+  }, [providers, searchQuery]);
 
   const handleProviderClick = (providerId: string) => {
     setSelectedProviderId(providerId);
@@ -58,27 +93,26 @@ export function ProviderResultsPage({ selectedCategory, onNavigate }: ProviderRe
         <div className="mb-8">
           <Button
             variant="ghost"
-            size="sm"
             onClick={() => onNavigate('categories')}
-            className="mb-4"
+            className="mb-4 gap-2"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="h-4 w-4" />
             Back to Categories
           </Button>
-          
+
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">
-                {category?.label || 'All Services'}
+                {category ? category.label : 'All Providers'}
               </h1>
-              <p className="mt-1 text-muted-foreground">
-                {filteredProviders.length} provider{filteredProviders.length !== 1 ? 's' : ''} found
+              <p className="mt-2 text-muted-foreground">
+                {filteredProviders.length} provider{filteredProviders.length !== 1 ? 's' : ''} available
               </p>
             </div>
-            
+
             <Button
-              onClick={() => onNavigate('map-view', { category: selectedCategory })}
               variant="outline"
+              onClick={() => onNavigate('map-view', { category: selectedCategory })}
               className="gap-2"
             >
               <Map className="h-4 w-4" />
@@ -91,7 +125,7 @@ export function ProviderResultsPage({ selectedCategory, onNavigate }: ProviderRe
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search providers..."
+            placeholder="Search by provider name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -107,8 +141,13 @@ export function ProviderResultsPage({ selectedCategory, onNavigate }: ProviderRe
           </div>
         ) : filteredProviders.length === 0 ? (
           <div className="flex min-h-[40vh] items-center justify-center">
-            <div className="text-center text-muted-foreground">
-              No providers found
+            <div className="text-center">
+              <p className="text-lg font-medium">No providers found</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {searchQuery 
+                  ? `No providers match "${searchQuery}"`
+                  : 'Try selecting a different category or check back later'}
+              </p>
             </div>
           </div>
         ) : (
@@ -122,15 +161,23 @@ export function ProviderResultsPage({ selectedCategory, onNavigate }: ProviderRe
             ))}
           </div>
         )}
-      </div>
 
-      <ProviderPreviewDialog
-        preview={preview || null}
-        open={previewOpen}
-        onOpenChange={setPreviewOpen}
-        onViewDetails={handleViewDetails}
-        onViewOnMap={handleViewOnMap}
-      />
+        <ProviderPreviewDialog
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          preview={preview || null}
+          onViewDetails={handleViewDetails}
+          onViewOnMap={handleViewOnMap}
+          engagementNotice={
+            showEngagementNotice && preview ? (
+              <EngagementStatusNotice
+                isEngaged={preview.isEngaged}
+                onDismiss={() => setShowEngagementNotice(false)}
+              />
+            ) : undefined
+          }
+        />
+      </div>
     </div>
   );
 }

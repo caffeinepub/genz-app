@@ -26,6 +26,7 @@ export const UserRole__1 = IDL.Variant({
 });
 export const BusinessType = IDL.Variant({
   'it' : IDL.Null,
+  'repair' : IDL.Null,
   'retail' : IDL.Null,
   'healthcare' : IDL.Null,
   'transportation' : IDL.Null,
@@ -35,13 +36,29 @@ export const BusinessType = IDL.Variant({
   'cleaning' : IDL.Null,
   'construction' : IDL.Null,
   'other' : IDL.Text,
+  'generalTrade' : IDL.Null,
+  'entertainment' : IDL.Null,
   'marketing' : IDL.Null,
+  'professionalServices' : IDL.Null,
   'education' : IDL.Null,
+  'security' : IDL.Null,
   'consulting' : IDL.Null,
+  'personalServices' : IDL.Null,
+  'skilledTrade' : IDL.Null,
+  'legal' : IDL.Null,
+  'sales' : IDL.Null,
+  'domesticwork' : IDL.Null,
+  'petServices' : IDL.Null,
+  'socialServices' : IDL.Null,
+  'events' : IDL.Null,
   'maintenance' : IDL.Null,
   'wellness' : IDL.Null,
   'catering' : IDL.Null,
   'manufacturing' : IDL.Null,
+  'unskilledLabor' : IDL.Null,
+  'handyman' : IDL.Null,
+  'hairAndBeauty' : IDL.Null,
+  'mediar' : IDL.Null,
 });
 export const Location = IDL.Record({
   'latitude' : IDL.Float64,
@@ -90,6 +107,7 @@ export const ProviderProfileView = IDL.Record({
   'location' : Location,
   'goodConductCert' : IDL.Opt(Document),
   'verificationStatus' : VerificationStatus,
+  'isEngaged' : IDL.Bool,
 });
 export const UserProfileView = IDL.Record({
   'role' : UserRole,
@@ -159,7 +177,7 @@ export const idlService = IDL.Service({
   'cancelJob' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'createOrUpdateClientProfile' : IDL.Func([IDL.Text], [], []),
   'createOrUpdateProviderProfile' : IDL.Func(
-      [IDL.Text, IDL.Nat, BusinessType, Location, IDL.Text, IDL.Text],
+      [IDL.Text, IDL.Nat, BusinessType, Location, IDL.Text, IDL.Text, IDL.Bool],
       [],
       [],
     ),
@@ -213,6 +231,7 @@ export const idlService = IDL.Service({
               'location' : Location,
               'goodConductCert' : IDL.Opt(Document),
               'verificationStatus' : VerificationStatus,
+              'isEngaged' : IDL.Bool,
             })
           ),
         }),
@@ -227,6 +246,7 @@ export const idlService = IDL.Service({
     ),
   'setMPesaConfig' : IDL.Func([MPesaConfig], [], []),
   'setUserRole' : IDL.Func([UserRole], [], []),
+  'updateEngagementStatus' : IDL.Func([IDL.Bool], [], []),
   'updateVerificationStatus' : IDL.Func(
       [IDL.Principal, VerificationStatus],
       [],
@@ -261,6 +281,7 @@ export const idlFactory = ({ IDL }) => {
   });
   const BusinessType = IDL.Variant({
     'it' : IDL.Null,
+    'repair' : IDL.Null,
     'retail' : IDL.Null,
     'healthcare' : IDL.Null,
     'transportation' : IDL.Null,
@@ -270,13 +291,29 @@ export const idlFactory = ({ IDL }) => {
     'cleaning' : IDL.Null,
     'construction' : IDL.Null,
     'other' : IDL.Text,
+    'generalTrade' : IDL.Null,
+    'entertainment' : IDL.Null,
     'marketing' : IDL.Null,
+    'professionalServices' : IDL.Null,
     'education' : IDL.Null,
+    'security' : IDL.Null,
     'consulting' : IDL.Null,
+    'personalServices' : IDL.Null,
+    'skilledTrade' : IDL.Null,
+    'legal' : IDL.Null,
+    'sales' : IDL.Null,
+    'domesticwork' : IDL.Null,
+    'petServices' : IDL.Null,
+    'socialServices' : IDL.Null,
+    'events' : IDL.Null,
     'maintenance' : IDL.Null,
     'wellness' : IDL.Null,
     'catering' : IDL.Null,
     'manufacturing' : IDL.Null,
+    'unskilledLabor' : IDL.Null,
+    'handyman' : IDL.Null,
+    'hairAndBeauty' : IDL.Null,
+    'mediar' : IDL.Null,
   });
   const Location = IDL.Record({
     'latitude' : IDL.Float64,
@@ -322,6 +359,7 @@ export const idlFactory = ({ IDL }) => {
     'location' : Location,
     'goodConductCert' : IDL.Opt(Document),
     'verificationStatus' : VerificationStatus,
+    'isEngaged' : IDL.Bool,
   });
   const UserProfileView = IDL.Record({
     'role' : UserRole,
@@ -391,7 +429,15 @@ export const idlFactory = ({ IDL }) => {
     'cancelJob' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'createOrUpdateClientProfile' : IDL.Func([IDL.Text], [], []),
     'createOrUpdateProviderProfile' : IDL.Func(
-        [IDL.Text, IDL.Nat, BusinessType, Location, IDL.Text, IDL.Text],
+        [
+          IDL.Text,
+          IDL.Nat,
+          BusinessType,
+          Location,
+          IDL.Text,
+          IDL.Text,
+          IDL.Bool,
+        ],
         [],
         [],
       ),
@@ -457,6 +503,7 @@ export const idlFactory = ({ IDL }) => {
                 'location' : Location,
                 'goodConductCert' : IDL.Opt(Document),
                 'verificationStatus' : VerificationStatus,
+                'isEngaged' : IDL.Bool,
               })
             ),
           }),
@@ -471,6 +518,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'setMPesaConfig' : IDL.Func([MPesaConfig], [], []),
     'setUserRole' : IDL.Func([UserRole], [], []),
+    'updateEngagementStatus' : IDL.Func([IDL.Bool], [], []),
     'updateVerificationStatus' : IDL.Func(
         [IDL.Principal, VerificationStatus],
         [],

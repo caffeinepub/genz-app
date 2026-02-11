@@ -1,9 +1,10 @@
 import { ProviderProfileView } from '../../backend';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
-import { MapPin, Star, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { MapPin, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { getBusinessTypeLabel } from '../../lib/categories';
 import { ProviderAvatar } from './ProviderAvatar';
+import { StarRatingDisplay } from '../ratings/StarRatingDisplay';
 
 interface ProviderCardProps {
   provider: ProviderProfileView;
@@ -87,17 +88,14 @@ export function ProviderCard({ provider, onClick }: ProviderCardProps) {
           </Badge>
         </div>
 
-        {ratings.length > 0 && (
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Rating</span>
-            <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-primary text-primary" />
-              <span className="text-sm font-medium">
-                {avgRating.toFixed(1)} ({ratings.length})
-              </span>
-            </div>
-          </div>
-        )}
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">Rating</span>
+          <StarRatingDisplay
+            averageRating={avgRating}
+            totalRatings={ratings.length}
+            size="sm"
+          />
+        </div>
       </CardContent>
     </Card>
   );

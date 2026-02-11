@@ -1,15 +1,17 @@
 import { useGetCallerUserProfile, useCreateOrUpdateProviderProfile, useUploadProfilePicture } from '../../hooks/useQueries';
 import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { useState, useEffect, useRef } from 'react';
+import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { BusinessType, ExternalBlob } from '../../backend';
 import { LocationPicker } from '../../components/location/LocationPicker';
 import { ProviderAvatar } from '../../components/providers/ProviderAvatar';
 import { Upload, Loader2 } from 'lucide-react';
+import { CATEGORIES } from '../../lib/categories';
 
 export function ProviderProfilePage() {
   const { data: userProfile, isLoading } = useGetCallerUserProfile();
@@ -19,12 +21,40 @@ export function ProviderProfilePage() {
 
   const [name, setName] = useState('');
   const [rate, setRate] = useState('');
-  const [businessType, setBusinessType] = useState<string>('cleaning');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('electrician');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState({ latitude: 0, longitude: 0, address: '' });
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | undefined>(undefined);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isEngaged, setIsEngaged] = useState<boolean>(false);
+
+  // Group categories by type for better UX
+  const categorizedOptions = useMemo(() => {
+    const technical = CATEGORIES.filter(c => 
+      ['electrician', 'plumbing', 'carpentry', 'welding', 'masonry', 'tiling', 'painting', 'hvac', 'solar-installation'].includes(c.id)
+    );
+    const itRepair = CATEGORIES.filter(c => 
+      ['phone-repair', 'computer-repair', 'networking', 'appliance-repair'].includes(c.id)
+    );
+    const autoTransport = CATEGORIES.filter(c => 
+      ['auto-mechanic', 'motorbike-repair', 'auto-electrician', 'driver'].includes(c.id)
+    );
+    const construction = CATEGORIES.filter(c => 
+      ['construction', 'roofing'].includes(c.id)
+    );
+    const maintenance = CATEGORIES.filter(c => 
+      ['handyman', 'gardening'].includes(c.id)
+    );
+    const domestic = CATEGORIES.filter(c => 
+      ['cleaning', 'domestic-work', 'chef', 'hair-beauty'].includes(c.id)
+    );
+    const other = CATEGORIES.filter(c => 
+      ['security', 'tutoring', 'pet-services', 'event-services'].includes(c.id)
+    );
+
+    return { technical, itRepair, autoTransport, construction, maintenance, domestic, other };
+  }, []);
 
   useEffect(() => {
     if (userProfile?.providerProfile) {
@@ -34,15 +64,22 @@ export function ProviderProfilePage() {
       setPhoneNumber(profile.phoneNumber);
       setDescription(profile.description);
       setLocation(profile.location);
+      setIsEngaged(profile.isEngaged);
       
       if (profile.profilePicture) {
         setProfilePictureUrl(profile.profilePicture.blob.getDirectURL());
       }
       
-      if ('cleaning' in profile.businessType) setBusinessType('cleaning');
-      else if ('catering' in profile.businessType) setBusinessType('catering');
-      else if ('maintenance' in profile.businessType) setBusinessType('maintenance');
-      else if ('wellness' in profile.businessType) setBusinessType('wellness');
+      // Find matching category by businessType
+      const matchingCategory = CATEGORIES.find(cat => {
+        const profileType = profile.businessType;
+        const catType = cat.businessType;
+        return profileType.__kind__ === catType.__kind__;
+      });
+      
+      if (matchingCategory) {
+        setSelectedCategoryId(matchingCategory.id);
+      }
     }
   }, [userProfile]);
 
@@ -88,20 +125,21 @@ export function ProviderProfilePage() {
       return;
     }
 
-    const businessTypeObj: BusinessType = 
-      businessType === 'cleaning' ? { __kind__: 'cleaning', cleaning: null } :
-      businessType === 'catering' ? { __kind__: 'catering', catering: null } :
-      businessType === 'wellness' ? { __kind__: 'wellness', wellness: null } :
-      { __kind__: 'maintenance', maintenance: null };
+    const selectedCategory = CATEGORIES.find(c => c.id === selectedCategoryId);
+    if (!selectedCategory) {
+      alert('Please select a valid service category');
+      return;
+    }
 
     try {
       await updateProfile.mutateAsync({
         name,
         rate: BigInt(rate),
-        businessType: businessTypeObj,
+        businessType: selectedCategory.businessType,
         location,
         phoneNumber,
         description,
+        isEngaged,
       });
       alert('Profile updated successfully!');
     } catch (error) {
@@ -177,6 +215,34 @@ export function ProviderProfilePage() {
           </CardContent>
         </Card>
 
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Engagement Status</CardTitle>
+            <CardDescription>
+              Let clients know if you're currently available for new work
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <RadioGroup
+              value={isEngaged ? 'engaged' : 'not-engaged'}
+              onValueChange={(value) => setIsEngaged(value === 'engaged')}
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="engaged" id="engaged" />
+                <Label htmlFor="engaged" className="cursor-pointer font-normal">
+                  Engaged
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="not-engaged" id="not-engaged" />
+                <Label htmlFor="not-engaged" className="cursor-pointer font-normal">
+                  Not Engaged
+                </Label>
+              </div>
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Profile Information</CardTitle>
@@ -196,15 +262,59 @@ export function ProviderProfilePage() {
 
               <div>
                 <Label htmlFor="businessType">Service Category *</Label>
-                <Select value={businessType} onValueChange={setBusinessType}>
+                <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cleaning">Cleaning</SelectItem>
-                    <SelectItem value="catering">Catering / Chef</SelectItem>
-                    <SelectItem value="maintenance">Maintenance (Plumbing, Electrical, Gardening)</SelectItem>
-                    <SelectItem value="wellness">Wellness (Dog Grooming, etc.)</SelectItem>
+                  <SelectContent className="max-h-[400px]">
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                      Technical Trades
+                    </div>
+                    {categorizedOptions.technical.map(cat => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
+                    ))}
+                    
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">
+                      IT & Electronics Repair
+                    </div>
+                    {categorizedOptions.itRepair.map(cat => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
+                    ))}
+                    
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">
+                      Auto & Transport
+                    </div>
+                    {categorizedOptions.autoTransport.map(cat => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
+                    ))}
+                    
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">
+                      Construction
+                    </div>
+                    {categorizedOptions.construction.map(cat => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
+                    ))}
+                    
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">
+                      Maintenance & Handyman
+                    </div>
+                    {categorizedOptions.maintenance.map(cat => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
+                    ))}
+                    
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">
+                      Domestic & Personal Services
+                    </div>
+                    {categorizedOptions.domestic.map(cat => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
+                    ))}
+                    
+                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">
+                      Other Services
+                    </div>
+                    {categorizedOptions.other.map(cat => (
+                      <SelectItem key={cat.id} value={cat.id}>{cat.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

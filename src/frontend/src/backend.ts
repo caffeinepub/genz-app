@@ -102,6 +102,7 @@ export interface ProviderProfileView {
     location: Location;
     goodConductCert?: Document;
     verificationStatus: VerificationStatus;
+    isEngaged: boolean;
 }
 export interface Location {
     latitude: number;
@@ -115,6 +116,9 @@ export interface ProviderPreview {
 export type BusinessType = {
     __kind__: "it";
     it: null;
+} | {
+    __kind__: "repair";
+    repair: null;
 } | {
     __kind__: "retail";
     retail: null;
@@ -143,14 +147,50 @@ export type BusinessType = {
     __kind__: "other";
     other: string;
 } | {
+    __kind__: "generalTrade";
+    generalTrade: null;
+} | {
+    __kind__: "entertainment";
+    entertainment: null;
+} | {
     __kind__: "marketing";
     marketing: null;
+} | {
+    __kind__: "professionalServices";
+    professionalServices: null;
 } | {
     __kind__: "education";
     education: null;
 } | {
+    __kind__: "security";
+    security: null;
+} | {
     __kind__: "consulting";
     consulting: null;
+} | {
+    __kind__: "personalServices";
+    personalServices: null;
+} | {
+    __kind__: "skilledTrade";
+    skilledTrade: null;
+} | {
+    __kind__: "legal";
+    legal: null;
+} | {
+    __kind__: "sales";
+    sales: null;
+} | {
+    __kind__: "domesticwork";
+    domesticwork: null;
+} | {
+    __kind__: "petServices";
+    petServices: null;
+} | {
+    __kind__: "socialServices";
+    socialServices: null;
+} | {
+    __kind__: "events";
+    events: null;
 } | {
     __kind__: "maintenance";
     maintenance: null;
@@ -163,6 +203,18 @@ export type BusinessType = {
 } | {
     __kind__: "manufacturing";
     manufacturing: null;
+} | {
+    __kind__: "unskilledLabor";
+    unskilledLabor: null;
+} | {
+    __kind__: "handyman";
+    handyman: null;
+} | {
+    __kind__: "hairAndBeauty";
+    hairAndBeauty: null;
+} | {
+    __kind__: "mediar";
+    mediar: null;
 };
 export interface _CaffeineStorageRefillInformation {
     proposed_top_up_amount?: bigint;
@@ -266,7 +318,7 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole__1): Promise<void>;
     cancelJob(jobId: string, reason: string): Promise<void>;
     createOrUpdateClientProfile(phoneNumber: string): Promise<void>;
-    createOrUpdateProviderProfile(name: string, rate: bigint, businessType: BusinessType, location: Location, phoneNumber: string, description: string): Promise<void>;
+    createOrUpdateProviderProfile(name: string, rate: bigint, businessType: BusinessType, location: Location, phoneNumber: string, description: string, isEngaged: boolean): Promise<void>;
     getCallerUserProfile(): Promise<UserProfileView | null>;
     getCallerUserRole(): Promise<UserRole__1>;
     getClient(client: Principal): Promise<ClientProfile | null>;
@@ -300,11 +352,13 @@ export interface backendInterface {
             location: Location;
             goodConductCert?: Document;
             verificationStatus: VerificationStatus;
+            isEngaged: boolean;
         };
     }): Promise<void>;
     searchProviders(filterBusinessType: BusinessType | null, _userLocation: Location, _maxDistance: bigint | null): Promise<Array<ProviderProfileView>>;
     setMPesaConfig(config: MPesaConfig): Promise<void>;
     setUserRole(role: UserRole): Promise<void>;
+    updateEngagementStatus(isEngaged: boolean): Promise<void>;
     updateVerificationStatus(provider: Principal, status: VerificationStatus): Promise<void>;
     uploadDocument(docType: DocumentType, filename: string, blob: ExternalBlob): Promise<string>;
     uploadProfilePicture(id: string, blob: ExternalBlob): Promise<string>;
@@ -480,17 +534,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async createOrUpdateProviderProfile(arg0: string, arg1: bigint, arg2: BusinessType, arg3: Location, arg4: string, arg5: string): Promise<void> {
+    async createOrUpdateProviderProfile(arg0: string, arg1: bigint, arg2: BusinessType, arg3: Location, arg4: string, arg5: string, arg6: boolean): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.createOrUpdateProviderProfile(arg0, arg1, to_candid_BusinessType_n10(this._uploadFile, this._downloadFile, arg2), arg3, arg4, arg5);
+                const result = await this.actor.createOrUpdateProviderProfile(arg0, arg1, to_candid_BusinessType_n10(this._uploadFile, this._downloadFile, arg2), arg3, arg4, arg5, arg6);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.createOrUpdateProviderProfile(arg0, arg1, to_candid_BusinessType_n10(this._uploadFile, this._downloadFile, arg2), arg3, arg4, arg5);
+            const result = await this.actor.createOrUpdateProviderProfile(arg0, arg1, to_candid_BusinessType_n10(this._uploadFile, this._downloadFile, arg2), arg3, arg4, arg5, arg6);
             return result;
         }
     }
@@ -709,6 +763,7 @@ export class Backend implements backendInterface {
             location: Location;
             goodConductCert?: Document;
             verificationStatus: VerificationStatus;
+            isEngaged: boolean;
         };
     }): Promise<void> {
         if (this.processError) {
@@ -763,6 +818,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.setUserRole(to_candid_UserRole_n46(this._uploadFile, this._downloadFile, arg0));
+            return result;
+        }
+    }
+    async updateEngagementStatus(arg0: boolean): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateEngagementStatus(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateEngagementStatus(arg0);
             return result;
         }
     }
@@ -906,6 +975,7 @@ async function from_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promi
     location: _Location;
     goodConductCert: [] | [_Document];
     verificationStatus: _VerificationStatus;
+    isEngaged: boolean;
 }): Promise<{
     principal: Principal;
     name: string;
@@ -919,6 +989,7 @@ async function from_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promi
     location: Location;
     goodConductCert?: Document;
     verificationStatus: VerificationStatus;
+    isEngaged: boolean;
 }> {
     return {
         principal: value.principal,
@@ -932,7 +1003,8 @@ async function from_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promi
         profilePicture: record_opt_to_undefined(await from_candid_opt_n29(_uploadFile, _downloadFile, value.profilePicture)),
         location: value.location,
         goodConductCert: record_opt_to_undefined(await from_candid_opt_n32(_uploadFile, _downloadFile, value.goodConductCert)),
-        verificationStatus: from_candid_VerificationStatus_n33(_uploadFile, _downloadFile, value.verificationStatus)
+        verificationStatus: from_candid_VerificationStatus_n33(_uploadFile, _downloadFile, value.verificationStatus),
+        isEngaged: value.isEngaged
     };
 }
 async function from_candid_record_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -1046,6 +1118,8 @@ function from_candid_variant_n16(_uploadFile: (file: ExternalBlob) => Promise<Ui
 function from_candid_variant_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     it: null;
 } | {
+    repair: null;
+} | {
     retail: null;
 } | {
     healthcare: null;
@@ -1064,11 +1138,35 @@ function from_candid_variant_n22(_uploadFile: (file: ExternalBlob) => Promise<Ui
 } | {
     other: string;
 } | {
+    generalTrade: null;
+} | {
+    entertainment: null;
+} | {
     marketing: null;
+} | {
+    professionalServices: null;
 } | {
     education: null;
 } | {
+    security: null;
+} | {
     consulting: null;
+} | {
+    personalServices: null;
+} | {
+    skilledTrade: null;
+} | {
+    legal: null;
+} | {
+    sales: null;
+} | {
+    domesticwork: null;
+} | {
+    petServices: null;
+} | {
+    socialServices: null;
+} | {
+    events: null;
 } | {
     maintenance: null;
 } | {
@@ -1077,9 +1175,20 @@ function from_candid_variant_n22(_uploadFile: (file: ExternalBlob) => Promise<Ui
     catering: null;
 } | {
     manufacturing: null;
+} | {
+    unskilledLabor: null;
+} | {
+    handyman: null;
+} | {
+    hairAndBeauty: null;
+} | {
+    mediar: null;
 }): {
     __kind__: "it";
     it: null;
+} | {
+    __kind__: "repair";
+    repair: null;
 } | {
     __kind__: "retail";
     retail: null;
@@ -1108,14 +1217,50 @@ function from_candid_variant_n22(_uploadFile: (file: ExternalBlob) => Promise<Ui
     __kind__: "other";
     other: string;
 } | {
+    __kind__: "generalTrade";
+    generalTrade: null;
+} | {
+    __kind__: "entertainment";
+    entertainment: null;
+} | {
     __kind__: "marketing";
     marketing: null;
+} | {
+    __kind__: "professionalServices";
+    professionalServices: null;
 } | {
     __kind__: "education";
     education: null;
 } | {
+    __kind__: "security";
+    security: null;
+} | {
     __kind__: "consulting";
     consulting: null;
+} | {
+    __kind__: "personalServices";
+    personalServices: null;
+} | {
+    __kind__: "skilledTrade";
+    skilledTrade: null;
+} | {
+    __kind__: "legal";
+    legal: null;
+} | {
+    __kind__: "sales";
+    sales: null;
+} | {
+    __kind__: "domesticwork";
+    domesticwork: null;
+} | {
+    __kind__: "petServices";
+    petServices: null;
+} | {
+    __kind__: "socialServices";
+    socialServices: null;
+} | {
+    __kind__: "events";
+    events: null;
 } | {
     __kind__: "maintenance";
     maintenance: null;
@@ -1128,10 +1273,25 @@ function from_candid_variant_n22(_uploadFile: (file: ExternalBlob) => Promise<Ui
 } | {
     __kind__: "manufacturing";
     manufacturing: null;
+} | {
+    __kind__: "unskilledLabor";
+    unskilledLabor: null;
+} | {
+    __kind__: "handyman";
+    handyman: null;
+} | {
+    __kind__: "hairAndBeauty";
+    hairAndBeauty: null;
+} | {
+    __kind__: "mediar";
+    mediar: null;
 } {
     return "it" in value ? {
         __kind__: "it",
         it: value.it
+    } : "repair" in value ? {
+        __kind__: "repair",
+        repair: value.repair
     } : "retail" in value ? {
         __kind__: "retail",
         retail: value.retail
@@ -1159,15 +1319,51 @@ function from_candid_variant_n22(_uploadFile: (file: ExternalBlob) => Promise<Ui
     } : "other" in value ? {
         __kind__: "other",
         other: value.other
+    } : "generalTrade" in value ? {
+        __kind__: "generalTrade",
+        generalTrade: value.generalTrade
+    } : "entertainment" in value ? {
+        __kind__: "entertainment",
+        entertainment: value.entertainment
     } : "marketing" in value ? {
         __kind__: "marketing",
         marketing: value.marketing
+    } : "professionalServices" in value ? {
+        __kind__: "professionalServices",
+        professionalServices: value.professionalServices
     } : "education" in value ? {
         __kind__: "education",
         education: value.education
+    } : "security" in value ? {
+        __kind__: "security",
+        security: value.security
     } : "consulting" in value ? {
         __kind__: "consulting",
         consulting: value.consulting
+    } : "personalServices" in value ? {
+        __kind__: "personalServices",
+        personalServices: value.personalServices
+    } : "skilledTrade" in value ? {
+        __kind__: "skilledTrade",
+        skilledTrade: value.skilledTrade
+    } : "legal" in value ? {
+        __kind__: "legal",
+        legal: value.legal
+    } : "sales" in value ? {
+        __kind__: "sales",
+        sales: value.sales
+    } : "domesticwork" in value ? {
+        __kind__: "domesticwork",
+        domesticwork: value.domesticwork
+    } : "petServices" in value ? {
+        __kind__: "petServices",
+        petServices: value.petServices
+    } : "socialServices" in value ? {
+        __kind__: "socialServices",
+        socialServices: value.socialServices
+    } : "events" in value ? {
+        __kind__: "events",
+        events: value.events
     } : "maintenance" in value ? {
         __kind__: "maintenance",
         maintenance: value.maintenance
@@ -1180,6 +1376,18 @@ function from_candid_variant_n22(_uploadFile: (file: ExternalBlob) => Promise<Ui
     } : "manufacturing" in value ? {
         __kind__: "manufacturing",
         manufacturing: value.manufacturing
+    } : "unskilledLabor" in value ? {
+        __kind__: "unskilledLabor",
+        unskilledLabor: value.unskilledLabor
+    } : "handyman" in value ? {
+        __kind__: "handyman",
+        handyman: value.handyman
+    } : "hairAndBeauty" in value ? {
+        __kind__: "hairAndBeauty",
+        hairAndBeauty: value.hairAndBeauty
+    } : "mediar" in value ? {
+        __kind__: "mediar",
+        mediar: value.mediar
     } : value;
 }
 function from_candid_variant_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -1342,6 +1550,7 @@ async function to_candid_record_n45(_uploadFile: (file: ExternalBlob) => Promise
         location: Location;
         goodConductCert?: Document;
         verificationStatus: VerificationStatus;
+        isEngaged: boolean;
     };
 }): Promise<{
     role: _UserRole;
@@ -1362,6 +1571,7 @@ async function to_candid_record_n45(_uploadFile: (file: ExternalBlob) => Promise
             location: _Location;
             goodConductCert: [] | [_Document];
             verificationStatus: _VerificationStatus;
+            isEngaged: boolean;
         }];
 }> {
     return {
@@ -1383,6 +1593,7 @@ async function to_candid_record_n48(_uploadFile: (file: ExternalBlob) => Promise
     location: Location;
     goodConductCert?: Document;
     verificationStatus: VerificationStatus;
+    isEngaged: boolean;
 }): Promise<{
     principal: Principal;
     name: string;
@@ -1396,6 +1607,7 @@ async function to_candid_record_n48(_uploadFile: (file: ExternalBlob) => Promise
     location: _Location;
     goodConductCert: [] | [_Document];
     verificationStatus: _VerificationStatus;
+    isEngaged: boolean;
 }> {
     return {
         principal: value.principal,
@@ -1409,7 +1621,8 @@ async function to_candid_record_n48(_uploadFile: (file: ExternalBlob) => Promise
         profilePicture: value.profilePicture ? candid_some(await to_candid_ProfilePicture_n55(_uploadFile, _downloadFile, value.profilePicture)) : candid_none(),
         location: value.location,
         goodConductCert: value.goodConductCert ? candid_some(await to_candid_Document_n50(_uploadFile, _downloadFile, value.goodConductCert)) : candid_none(),
-        verificationStatus: to_candid_VerificationStatus_n57(_uploadFile, _downloadFile, value.verificationStatus)
+        verificationStatus: to_candid_VerificationStatus_n57(_uploadFile, _downloadFile, value.verificationStatus),
+        isEngaged: value.isEngaged
     };
 }
 async function to_candid_record_n51(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -1443,6 +1656,9 @@ function to_candid_variant_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint
     __kind__: "it";
     it: null;
 } | {
+    __kind__: "repair";
+    repair: null;
+} | {
     __kind__: "retail";
     retail: null;
 } | {
@@ -1470,14 +1686,50 @@ function to_candid_variant_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint
     __kind__: "other";
     other: string;
 } | {
+    __kind__: "generalTrade";
+    generalTrade: null;
+} | {
+    __kind__: "entertainment";
+    entertainment: null;
+} | {
     __kind__: "marketing";
     marketing: null;
+} | {
+    __kind__: "professionalServices";
+    professionalServices: null;
 } | {
     __kind__: "education";
     education: null;
 } | {
+    __kind__: "security";
+    security: null;
+} | {
     __kind__: "consulting";
     consulting: null;
+} | {
+    __kind__: "personalServices";
+    personalServices: null;
+} | {
+    __kind__: "skilledTrade";
+    skilledTrade: null;
+} | {
+    __kind__: "legal";
+    legal: null;
+} | {
+    __kind__: "sales";
+    sales: null;
+} | {
+    __kind__: "domesticwork";
+    domesticwork: null;
+} | {
+    __kind__: "petServices";
+    petServices: null;
+} | {
+    __kind__: "socialServices";
+    socialServices: null;
+} | {
+    __kind__: "events";
+    events: null;
 } | {
     __kind__: "maintenance";
     maintenance: null;
@@ -1490,8 +1742,22 @@ function to_candid_variant_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint
 } | {
     __kind__: "manufacturing";
     manufacturing: null;
+} | {
+    __kind__: "unskilledLabor";
+    unskilledLabor: null;
+} | {
+    __kind__: "handyman";
+    handyman: null;
+} | {
+    __kind__: "hairAndBeauty";
+    hairAndBeauty: null;
+} | {
+    __kind__: "mediar";
+    mediar: null;
 }): {
     it: null;
+} | {
+    repair: null;
 } | {
     retail: null;
 } | {
@@ -1511,11 +1777,35 @@ function to_candid_variant_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint
 } | {
     other: string;
 } | {
+    generalTrade: null;
+} | {
+    entertainment: null;
+} | {
     marketing: null;
+} | {
+    professionalServices: null;
 } | {
     education: null;
 } | {
+    security: null;
+} | {
     consulting: null;
+} | {
+    personalServices: null;
+} | {
+    skilledTrade: null;
+} | {
+    legal: null;
+} | {
+    sales: null;
+} | {
+    domesticwork: null;
+} | {
+    petServices: null;
+} | {
+    socialServices: null;
+} | {
+    events: null;
 } | {
     maintenance: null;
 } | {
@@ -1524,9 +1814,19 @@ function to_candid_variant_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint
     catering: null;
 } | {
     manufacturing: null;
+} | {
+    unskilledLabor: null;
+} | {
+    handyman: null;
+} | {
+    hairAndBeauty: null;
+} | {
+    mediar: null;
 } {
     return value.__kind__ === "it" ? {
         it: value.it
+    } : value.__kind__ === "repair" ? {
+        repair: value.repair
     } : value.__kind__ === "retail" ? {
         retail: value.retail
     } : value.__kind__ === "healthcare" ? {
@@ -1545,12 +1845,36 @@ function to_candid_variant_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint
         construction: value.construction
     } : value.__kind__ === "other" ? {
         other: value.other
+    } : value.__kind__ === "generalTrade" ? {
+        generalTrade: value.generalTrade
+    } : value.__kind__ === "entertainment" ? {
+        entertainment: value.entertainment
     } : value.__kind__ === "marketing" ? {
         marketing: value.marketing
+    } : value.__kind__ === "professionalServices" ? {
+        professionalServices: value.professionalServices
     } : value.__kind__ === "education" ? {
         education: value.education
+    } : value.__kind__ === "security" ? {
+        security: value.security
     } : value.__kind__ === "consulting" ? {
         consulting: value.consulting
+    } : value.__kind__ === "personalServices" ? {
+        personalServices: value.personalServices
+    } : value.__kind__ === "skilledTrade" ? {
+        skilledTrade: value.skilledTrade
+    } : value.__kind__ === "legal" ? {
+        legal: value.legal
+    } : value.__kind__ === "sales" ? {
+        sales: value.sales
+    } : value.__kind__ === "domesticwork" ? {
+        domesticwork: value.domesticwork
+    } : value.__kind__ === "petServices" ? {
+        petServices: value.petServices
+    } : value.__kind__ === "socialServices" ? {
+        socialServices: value.socialServices
+    } : value.__kind__ === "events" ? {
+        events: value.events
     } : value.__kind__ === "maintenance" ? {
         maintenance: value.maintenance
     } : value.__kind__ === "wellness" ? {
@@ -1559,6 +1883,14 @@ function to_candid_variant_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint
         catering: value.catering
     } : value.__kind__ === "manufacturing" ? {
         manufacturing: value.manufacturing
+    } : value.__kind__ === "unskilledLabor" ? {
+        unskilledLabor: value.unskilledLabor
+    } : value.__kind__ === "handyman" ? {
+        handyman: value.handyman
+    } : value.__kind__ === "hairAndBeauty" ? {
+        hairAndBeauty: value.hairAndBeauty
+    } : value.__kind__ === "mediar" ? {
+        mediar: value.mediar
     } : value;
 }
 function to_candid_variant_n47(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {

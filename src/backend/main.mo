@@ -1,21 +1,20 @@
 import Map "mo:core/Map";
 import List "mo:core/List";
+import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Text "mo:core/Text";
 import Runtime "mo:core/Runtime";
-import Iter "mo:core/Iter";
 import Nat "mo:core/Nat";
-import Blob "mo:core/Blob";
-
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 import OutCall "http-outcalls/outcall";
+import Migration "migration";
 
-// (with annotation placement)
-
+// New migration clause
+(with migration = Migration.run)
 actor {
   // Types
   type Location = {
@@ -29,17 +28,34 @@ actor {
     #catering;
     #construction;
     #consulting;
+    #domesticwork;
     #education;
+    #entertainment;
+    #events;
     #finance;
+    #generalTrade;
+    #handyman;
+    #hairAndBeauty;
     #healthcare;
     #hospitality;
     #it;
+    #legal;
     #maintenance;
     #manufacturing;
     #marketing;
+    #mediar;
+    #personalServices;
+    #petServices;
+    #professionalServices;
     #realEstate;
+    #repair;
     #retail;
+    #sales;
+    #security;
+    #skilledTrade;
+    #socialServices;
     #transportation;
+    #unskilledLabor;
     #wellness;
     #other : Text;
   };
@@ -86,6 +102,7 @@ actor {
     description : Text;
     academicDocuments : List.List<Document>;
     goodConductCert : ?Document;
+    isEngaged : Bool; // New field for engagement status
   };
 
   public type ProviderProfileView = {
@@ -101,6 +118,7 @@ actor {
     description : Text;
     academicDocuments : [Document];
     goodConductCert : ?Document;
+    isEngaged : Bool;
   };
 
   public type ClientProfile = {
@@ -142,7 +160,7 @@ actor {
 
   public type ProviderPreview = {
     provider : ProviderProfileView;
-    isEngaged : Bool; // True if provider has active job
+    isEngaged : Bool;
   };
 
   public type MPesaConfig = {
@@ -247,6 +265,7 @@ actor {
       description : Text;
       academicDocuments : [Document];
       goodConductCert : ?Document;
+      isEngaged : Bool;
     };
     clientProfile : ?{
       principal : Principal;
@@ -301,6 +320,7 @@ actor {
     location : Location,
     phoneNumber : Text,
     description : Text,
+    isEngaged : Bool, // New parameter for engagement status
   ) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can create profiles");
@@ -344,6 +364,7 @@ actor {
       description;
       academicDocuments = existingAcademicDocs;
       goodConductCert = existingGoodConductCert;
+      isEngaged;
     };
 
     providerProfiles.add(caller, profile);
@@ -455,8 +476,8 @@ actor {
     providerProfiles.add(caller, updatedProfile);
   };
 
-  // Provider search
-  public query ({ caller }) func searchProviders(
+  // Provider search - Public access for marketplace discovery
+  public query func searchProviders(
     filterBusinessType : ?BusinessType,
     _userLocation : Location,
     _maxDistance : ?Nat
@@ -473,26 +494,15 @@ actor {
     filtered.map<ProviderProfile, ProviderProfileView>(convertProviderProfileToView).toArray();
   };
 
-  public query ({ caller }) func getProviderPreview(provider : Principal) : async ?ProviderPreview {
+  // Provider preview - Public access for marketplace discovery
+  public query func getProviderPreview(provider : Principal) : async ?ProviderPreview {
     let profile = providerProfiles.get(provider);
     switch (profile) {
       case (null) { null };
       case (?p) {
-        let activeJobs = jobs.values().filter(func(j) { j.provider == provider });
-        let hasEngagedJob = switch (activeJobs.next()) {
-          case (null) { false };
-          case (?firstJob) {
-            switch (firstJob.status) {
-              case (#requested) { true };
-              case (#inProgress) { true };
-              case (_) { false };
-            };
-          };
-        };
-
         ?{
           provider = convertProviderProfileToView(p);
-          isEngaged = hasEngagedJob;
+          isEngaged = p.isEngaged;
         };
       };
     };
@@ -533,17 +543,11 @@ actor {
     jobId;
   };
 
-  public query ({ caller }) func providerHasEngagedJob(provider : Principal) : async Bool {
-    let activeJobs = jobs.values().filter(func(j) { j.provider == provider });
-    switch (activeJobs.next()) {
+  // Public query for engagement status - needed for UI display
+  public query func providerHasEngagedJob(provider : Principal) : async Bool {
+    switch (providerProfiles.get(provider)) {
+      case (?profile) { profile.isEngaged };
       case (null) { false };
-      case (?firstJob) {
-        switch (firstJob.status) {
-          case (#requested) { true };
-          case (#inProgress) { true };
-          case (_) { false };
-        };
-      };
     };
   };
 
@@ -618,6 +622,28 @@ actor {
     );
   };
 
+  // Engagement status workflow - FIXED: Only allow providers to update their own status
+  public shared ({ caller }) func updateEngagementStatus(isEngaged : Bool) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can update engagement status");
+    };
+
+    // Verify the caller is a provider
+    let userRole = userRoles.get(caller);
+    if (userRole != ?#provider) {
+      Runtime.trap("Unauthorized: Only providers can update engagement status");
+    };
+
+    // Get the caller's own provider profile (this ensures they can only update their own status)
+    let providerProfile = getProviderInternal(caller);
+    
+    // Update only the caller's engagement status
+    providerProfiles.add(
+      caller,
+      { providerProfile with isEngaged },
+    );
+  };
+
   // Internal helpers
   func getProviderInternal(provider : Principal) : ProviderProfile {
     switch (providerProfiles.get(provider)) {
@@ -673,8 +699,8 @@ actor {
     };
   };
 
-  // Public stats for landing page
-  public query ({ caller }) func getPlatformStats() : async PlatformStats {
+  // Public stats for landing page - no authentication required
+  public query func getPlatformStats() : async PlatformStats {
     {
       totalClients = clientProfiles.size();
       totalProviders = providerProfiles.size();

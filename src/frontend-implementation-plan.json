@@ -1,37 +1,74 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Remove Landing troubleshooting section and clean up LandingPage imports",
+  "title": "Near-real-time engagement notifications and consistent provider star ratings",
   "requirements": [
     {
-      "id": "REQ-56",
-      "summary": "Remove the “Troubleshooting Access Issues” section from the unauthenticated Landing page while preserving the remaining section order and layout.",
+      "id": "REQ-69",
+      "summary": "Add best-effort near-real-time engagement status refresh and in-app status-change notifications while viewing a provider (preview and detail).",
       "acceptanceCriteria": [
-        "The Landing page no longer renders a section titled “Troubleshooting Access Issues”.",
-        "No Landing page content mentions “Canister ID Not Resolved” or “Error 400”.",
-        "No Landing page content displays the URL `https://genz-app.icp0.io` as part of troubleshooting guidance.",
-        "The page layout still renders correctly with the remaining sections (Hero, Platform Stats, Featured Providers, Testimonials, Features, About) in the expected order."
+        "When a client is on the Provider Preview dialog or Provider Detail page for a specific provider, the UI automatically refreshes that provider’s engagement status without the user manually refreshing the page.",
+        "If the provider’s engagement status changes while the client is on the preview/detail UI, the client sees an in-app notification that clearly states the new status in English (e.g., “Provider is now Engaged” / “Provider is now Not Engaged”).",
+        "The refreshed engagement status is reflected in the visible status badge/text within 3 seconds of the provider saving a new engagement status (best-effort via polling).",
+        "The implementation does not use WebSockets or real-time chat transport; it uses safe periodic refresh (polling) of existing backend query data (e.g., provider preview / provider profile queries)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/LandingPage.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Delete the entire JSX block for the “Troubleshooting Access Issues” section (heading, explanatory text, displayed URL, and instruction list) so the Landing page renders Hero followed immediately by Platform Stats, then Featured Providers, Testimonials, Features, and About (same order as before)."
+          "description": "Extend provider read hooks to support polling while viewing a provider: allow passing React Query options (e.g., enabled/refetchInterval) to useGetProviderPreview() and useGetProvider(), and ensure polling can be set to ~3000ms without impacting other app-wide query defaults."
+        },
+        {
+          "path": "frontend/src/components/notifications/EngagementStatusNotice.tsx",
+          "operation": "create",
+          "description": "Create a small reusable in-app notice/banner component that renders an English message for engagement status changes (e.g., “Provider is now Engaged” / “Provider is now Not Engaged”) and supports dismiss/auto-hide behavior."
+        },
+        {
+          "path": "frontend/src/pages/client/ProviderResultsPage.tsx",
+          "operation": "modify",
+          "description": "When the Provider Preview dialog is open for a selected provider, enable polling (<= 3s interval) of useGetProviderPreview for that provider; detect transitions in preview.isEngaged and display EngagementStatusNotice within the preview experience while also updating the visible engagement badge/text based on refreshed data."
+        },
+        {
+          "path": "frontend/src/pages/client/ProviderDetailPage.tsx",
+          "operation": "modify",
+          "description": "Enable polling (<= 3s interval) of provider details while the Provider Detail page is shown; detect transitions in provider.isEngaged and display EngagementStatusNotice on the page; ensure the existing engagement badge/text area reflects updates from polling without manual refresh."
+        },
+        {
+          "path": "frontend/src/components/providers/ProviderPreviewDialog.tsx",
+          "operation": "modify",
+          "description": "Add a place in the dialog layout to render an optional engagement status-change notice (e.g., accept a prop or render slot) so the preview dialog can show a clear in-app notification when isEngaged changes while open."
         }
       ]
     },
     {
-      "id": "REQ-57",
-      "summary": "Remove unused imports/code left behind in LandingPage after deleting the troubleshooting section.",
+      "id": "REQ-71",
+      "summary": "Show a consistent 1–5 star rating display (with English empty state) across provider card, preview, and detail surfaces.",
       "acceptanceCriteria": [
-        "`frontend/src/pages/LandingPage.tsx` has no unused imports related to the removed troubleshooting section.",
-        "The frontend builds without lint/type errors caused by the removal."
+        "Provider cards, provider preview, and provider detail views show a star-based rating display (not only a text/emoji-only rating) when ratings exist.",
+        "If a provider has no ratings yet, the UI shows an English empty state such as “No ratings yet” (or equivalent) instead of hiding the rating row entirely.",
+        "Any existing job-completion rating flow remains functional and continues to contribute to the provider’s average rating display.",
+        "All user-facing rating text is in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/LandingPage.tsx",
+          "path": "frontend/src/components/ratings/StarRatingDisplay.tsx",
+          "operation": "create",
+          "description": "Create a shared read-only star rating display component that renders 1–5 stars consistently for an average rating plus an English label; include an explicit empty state (e.g., “No ratings yet”) when ratings count is 0."
+        },
+        {
+          "path": "frontend/src/components/providers/ProviderCard.tsx",
           "operation": "modify",
-          "description": "Remove any now-unused imports and variables introduced solely for the troubleshooting section (e.g., remove the `AlertCircle` icon import from `lucide-react` if it is no longer referenced) and ensure the file has no unused import warnings."
+          "description": "Replace the current conditional rating row with StarRatingDisplay so provider cards always show a rating section: star visuals when ratings exist and an English empty state when none exist."
+        },
+        {
+          "path": "frontend/src/components/providers/ProviderPreviewDialog.tsx",
+          "operation": "modify",
+          "description": "Replace the current emoji/text-only rating display with StarRatingDisplay and ensure the rating row is always present with an English empty state when there are no ratings."
+        },
+        {
+          "path": "frontend/src/pages/client/ProviderDetailPage.tsx",
+          "operation": "modify",
+          "description": "Replace the current single-star icon + text block with StarRatingDisplay and ensure the rating section always shows (including an English empty state when no ratings)."
         }
       ]
     }

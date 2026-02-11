@@ -2,10 +2,14 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-remove-the-entire-troubleshooting-access-issues-section-from-the-unauthenticated-landing-page-including-its-heading-explanatory-text-about-canister-id-not-resolved-error-400-the-displayed-url-https-genz-app-icp0-io-and-the-step-by-step-instructions-list",
-      "featureTitle": "Remove the entire “Troubleshooting Access Issues” section from the unauthenticated Landing page, including its heading, explanatory text about “Canister ID Not Resolved” / “Error 400”, the displayed URL `https://genz-app.icp0.io`, and the step-by-step instructions list.",
+      "featureId": "feature-implement-a-near-real-time-instant-engagement-status-notification-experience-between-client-and-provider-by-refreshing-provider-engagement-state-automatically-while-the-client-is-viewing-that-provider-and-showing-a-clear-in-app-notification-when-the-status-changes-between-engaged-and-not-engaged",
+      "featureTitle": "Implement a near-real-time (“instant”) engagement-status notification experience between client and provider by refreshing provider engagement state automatically while the client is viewing that provider, and showing a clear in-app notification when the status changes between “Engaged” and “Not Engaged”.",
       "files": [
-        "frontend/src/pages/LandingPage.tsx"
+        "frontend/src/components/notifications/EngagementStatusNotice.tsx",
+        "frontend/src/components/providers/ProviderPreviewDialog.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/client/ProviderDetailPage.tsx",
+        "frontend/src/pages/client/ProviderResultsPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -18,15 +22,18 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-56"
+        "REQ-69"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-clean-up-any-unused-imports-or-code-left-behind-by-removing-the-troubleshooting-section-from-frontend-src-pages-landingpage-tsx-for-example-remove-the-alertcircle-icon-import-if-it-is-no-longer-used",
-      "featureTitle": "Clean up any unused imports or code left behind by removing the troubleshooting section from `frontend/src/pages/LandingPage.tsx` (for example, remove the `AlertCircle` icon import if it is no longer used).",
+      "featureId": "feature-create-and-display-a-clear-1-5-star-rating-ui-for-service-providers-across-client-facing-provider-surfaces-using-english-labels-and-consistent-visuals-stars-including-an-explicit-empty-state-when-a-provider-has-no-ratings-yet",
+      "featureTitle": "Create and display a clear 1–5 star rating UI for service providers across client-facing provider surfaces, using English labels and consistent visuals (stars), including an explicit empty-state when a provider has no ratings yet.",
       "files": [
-        "frontend/src/pages/LandingPage.tsx"
+        "frontend/src/components/providers/ProviderCard.tsx",
+        "frontend/src/components/providers/ProviderPreviewDialog.tsx",
+        "frontend/src/components/ratings/StarRatingDisplay.tsx",
+        "frontend/src/pages/client/ProviderDetailPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -39,7 +46,7 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-57"
+        "REQ-71"
       ],
       "confidence": "high"
     }

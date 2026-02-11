@@ -27,6 +27,7 @@ export interface ProviderProfileView {
     location: Location;
     goodConductCert?: Document;
     verificationStatus: VerificationStatus;
+    isEngaged: boolean;
 }
 export interface Location {
     latitude: number;
@@ -40,6 +41,9 @@ export interface ProviderPreview {
 export type BusinessType = {
     __kind__: "it";
     it: null;
+} | {
+    __kind__: "repair";
+    repair: null;
 } | {
     __kind__: "retail";
     retail: null;
@@ -68,14 +72,50 @@ export type BusinessType = {
     __kind__: "other";
     other: string;
 } | {
+    __kind__: "generalTrade";
+    generalTrade: null;
+} | {
+    __kind__: "entertainment";
+    entertainment: null;
+} | {
     __kind__: "marketing";
     marketing: null;
+} | {
+    __kind__: "professionalServices";
+    professionalServices: null;
 } | {
     __kind__: "education";
     education: null;
 } | {
+    __kind__: "security";
+    security: null;
+} | {
     __kind__: "consulting";
     consulting: null;
+} | {
+    __kind__: "personalServices";
+    personalServices: null;
+} | {
+    __kind__: "skilledTrade";
+    skilledTrade: null;
+} | {
+    __kind__: "legal";
+    legal: null;
+} | {
+    __kind__: "sales";
+    sales: null;
+} | {
+    __kind__: "domesticwork";
+    domesticwork: null;
+} | {
+    __kind__: "petServices";
+    petServices: null;
+} | {
+    __kind__: "socialServices";
+    socialServices: null;
+} | {
+    __kind__: "events";
+    events: null;
 } | {
     __kind__: "maintenance";
     maintenance: null;
@@ -88,6 +128,18 @@ export type BusinessType = {
 } | {
     __kind__: "manufacturing";
     manufacturing: null;
+} | {
+    __kind__: "unskilledLabor";
+    unskilledLabor: null;
+} | {
+    __kind__: "handyman";
+    handyman: null;
+} | {
+    __kind__: "hairAndBeauty";
+    hairAndBeauty: null;
+} | {
+    __kind__: "mediar";
+    mediar: null;
 };
 export interface Document {
     blob: ExternalBlob;
@@ -173,7 +225,7 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole__1): Promise<void>;
     cancelJob(jobId: string, reason: string): Promise<void>;
     createOrUpdateClientProfile(phoneNumber: string): Promise<void>;
-    createOrUpdateProviderProfile(name: string, rate: bigint, businessType: BusinessType, location: Location, phoneNumber: string, description: string): Promise<void>;
+    createOrUpdateProviderProfile(name: string, rate: bigint, businessType: BusinessType, location: Location, phoneNumber: string, description: string, isEngaged: boolean): Promise<void>;
     getCallerUserProfile(): Promise<UserProfileView | null>;
     getCallerUserRole(): Promise<UserRole__1>;
     getClient(client: Principal): Promise<ClientProfile | null>;
@@ -207,11 +259,13 @@ export interface backendInterface {
             location: Location;
             goodConductCert?: Document;
             verificationStatus: VerificationStatus;
+            isEngaged: boolean;
         };
     }): Promise<void>;
     searchProviders(filterBusinessType: BusinessType | null, _userLocation: Location, _maxDistance: bigint | null): Promise<Array<ProviderProfileView>>;
     setMPesaConfig(config: MPesaConfig): Promise<void>;
     setUserRole(role: UserRole): Promise<void>;
+    updateEngagementStatus(isEngaged: boolean): Promise<void>;
     updateVerificationStatus(provider: Principal, status: VerificationStatus): Promise<void>;
     uploadDocument(docType: DocumentType, filename: string, blob: ExternalBlob): Promise<string>;
     uploadProfilePicture(id: string, blob: ExternalBlob): Promise<string>;

@@ -1,4 +1,4 @@
-import { Menu, X, Download } from 'lucide-react';
+import { Menu, X, Download, Home } from 'lucide-react';
 import { useState } from 'react';
 import { LoginButton } from './auth/LoginButton';
 import { UserRole } from '../backend';
@@ -17,7 +17,9 @@ export function Header({ currentPage, onNavigate, userRole }: HeaderProps) {
   const [secondaryMarkLoaded, setSecondaryMarkLoaded] = useState(true);
   const { isInstallable, isIOS, promptInstall, canShowPrompt } = usePWAInstallPrompt();
 
-  const navItems: Array<{ label: string; page: string }> = [];
+  const navItems: Array<{ label: string; page: string }> = [
+    { label: 'Home', page: 'landing' }
+  ];
 
   if (userRole === UserRole.client) {
     navItems.push(
@@ -41,6 +43,12 @@ export function Header({ currentPage, onNavigate, userRole }: HeaderProps) {
       await promptInstall();
     } else if (isInstallable) {
       await promptInstall();
+    }
+  };
+
+  const handleNavClick = (page: string) => {
+    if (onNavigate) {
+      onNavigate(page);
     }
   };
 
@@ -75,7 +83,7 @@ export function Header({ currentPage, onNavigate, userRole }: HeaderProps) {
           {navItems.map((item) => (
             <button
               key={item.page}
-              onClick={() => onNavigate?.(item.page)}
+              onClick={() => handleNavClick(item.page)}
               className={`text-sm font-medium transition-colors hover:text-foreground whitespace-nowrap ${
                 currentPage === item.page ? 'text-foreground' : 'text-muted-foreground'
               }`}
@@ -125,7 +133,7 @@ export function Header({ currentPage, onNavigate, userRole }: HeaderProps) {
               <button
                 key={item.page}
                 onClick={() => {
-                  onNavigate?.(item.page);
+                  handleNavClick(item.page);
                   setMobileMenuOpen(false);
                 }}
                 className={`text-left text-sm font-medium transition-colors hover:text-foreground ${

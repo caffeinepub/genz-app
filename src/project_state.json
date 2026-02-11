@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 45,
+  "projectStateVersion": 55,
   "summary": "Pivot to building \"Genz App\": an Uber/Bolt-style marketplace that connects clients with nearby service professionals in Kenya (especially Gen Z), with role-based logins, industry-based search, map-based location visibility, pricing/rates display, provider verification, ratings, and customer care access.",
   "architectural_notes": [
     "Role-based access control for three user types: provider, client, technical/back-office.",
@@ -464,6 +464,102 @@
         "REQ-57"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-a-new-section-on-the-unauthenticated-main-landing-page-that-lets-users-quickly-choose-who-they-are-with-three-prominent-buttons-service-provider-client-and-technical-team-use-english-labels",
+      "title": "Add a new section on the unauthenticated main Landing page that lets users quickly choose who they are with three prominent buttons: “Service Provider”, “Client”, and “Technical Team” (use English labels).",
+      "reqIds": [
+        "REQ-58"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-the-three-landing-page-role-buttons-to-a-fast-navigation-flow-1-if-the-user-is-logged-out-prompt-internet-identity-login-2-after-successful-login-take-the-user-directly-into-role-onboarding-with-the-selected-role-pre-selected-so-the-user-can-immediately-press-continue",
+      "title": "Wire the three Landing page role buttons to a fast navigation flow: (1) if the user is logged out, prompt Internet Identity login; (2) after successful login, take the user directly into role onboarding with the selected role pre-selected so the user can immediately press “Continue”.",
+      "reqIds": [
+        "REQ-59"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-if-the-user-is-already-authenticated-and-already-has-a-role-assigned-the-landing-page-role-buttons-must-route-directly-to-the-correct-role-home-area-for-easy-and-fast-maneuvers-client-browse-services-categories-page-service-provider-my-profile-provider-profile-page-technical-team-review-verifications-verification-review-page",
+      "title": "If the user is already authenticated and already has a role assigned, the Landing page role buttons must route directly to the correct role home area for “easy and fast maneuvers”: Client → Browse Services (Categories page), Service Provider → My Profile (Provider Profile page), Technical Team → Review Verifications (Verification Review page).",
+      "reqIds": [
+        "REQ-60"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-provider-facing-section-on-the-service-provider-profile-page-my-provider-profile-that-lets-a-provider-choose-and-save-their-current-engagement-status-with-two-options-engaged-and-not-engaged-using-clear-english-labels-and-helper-text",
+      "title": "Add a provider-facing section on the Service Provider profile page (My Provider Profile) that lets a provider choose and save their current engagement status with two options: “Engaged” and “Not Engaged”, using clear English labels and helper text.",
+      "reqIds": [
+        "REQ-61"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-backend-bindings-usage-and-react-query-mutation-code-so-provider-profile-saves-include-the-new-engagement-status-value-and-remain-type-safe-with-the-generated-candid-types",
+      "title": "Update the frontend backend-bindings usage and React Query mutation code so provider profile saves include the new engagement status value and remain type-safe with the generated candid types.",
+      "reqIds": [
+        "REQ-63"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-expand-the-browseable-service-categories-list-so-it-covers-a-comprehensive-set-of-common-services-in-kenya-with-a-strong-emphasis-on-technical-vocational-trades-technical-courses-such-as-electrical-work-plumbing-carpentry-welding-metal-work-masonry-tiling-painting-appliance-repair-phone-computer-repair-networking-cctv-solar-installation-and-auto-motorbike-repair-while-keeping-all-user-facing-labels-in-english",
+      "title": "Expand the browseable service categories list so it covers a comprehensive set of common services in Kenya, with a strong emphasis on technical/vocational trades (\"technical courses\") such as electrical work, plumbing, carpentry, welding/metal work, masonry, tiling, painting, appliance repair, phone/computer repair, networking/CCTV, solar installation, and auto/motorbike repair, while keeping all user-facing labels in English.",
+      "reqIds": [
+        "REQ-64"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-service-provider-profile-service-category-selector-to-reflect-the-expanded-kenya-services-list-prioritizing-technical-vocational-trade-options-and-ensure-the-selected-option-is-saved-correctly-to-the-backend-businesstype-value",
+      "title": "Update the Service Provider profile “Service Category” selector to reflect the expanded Kenya services list, prioritizing technical/vocational trade options, and ensure the selected option is saved correctly to the backend `BusinessType` value.",
+      "reqIds": [
+        "REQ-65"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-and-use-static-category-icon-assets-for-any-newly-introduced-service-categories-ensuring-each-category-card-in-browse-services-displays-a-non-broken-icon-image",
+      "title": "Add and use static category icon assets for any newly introduced service categories, ensuring each category card in “Browse Services” displays a non-broken icon image.",
+      "reqIds": [
+        "REQ-66"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-visible-home-button-link-in-the-app-header-heading-section-that-navigates-the-user-back-to-the-home-landing-page",
+      "title": "Add a visible “Home” button/link in the app header (heading section) that navigates the user back to the Home/Landing page.",
+      "reqIds": [
+        "REQ-67"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-header-receives-working-navigation-props-currentpage-and-onnavigate-in-both-authenticated-and-unauthenticated-app-states-so-the-home-button-works-consistently-whenever-a-navigation-handler-exists",
+      "title": "Ensure the Header receives working navigation props (currentPage and onNavigate) in both authenticated and unauthenticated app states so the Home button works consistently whenever a navigation handler exists.",
+      "reqIds": [
+        "REQ-68"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-near-real-time-instant-engagement-status-notification-experience-between-client-and-provider-by-refreshing-provider-engagement-state-automatically-while-the-client-is-viewing-that-provider-and-showing-a-clear-in-app-notification-when-the-status-changes-between-engaged-and-not-engaged",
+      "title": "Implement a near-real-time (“instant”) engagement-status notification experience between client and provider by refreshing provider engagement state automatically while the client is viewing that provider, and showing a clear in-app notification when the status changes between “Engaged” and “Not Engaged”.",
+      "reqIds": [
+        "REQ-69"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-and-display-a-clear-1-5-star-rating-ui-for-service-providers-across-client-facing-provider-surfaces-using-english-labels-and-consistent-visuals-stars-including-an-explicit-empty-state-when-a-provider-has-no-ratings-yet",
+      "title": "Create and display a clear 1–5 star rating UI for service providers across client-facing provider surfaces, using English labels and consistent visuals (stars), including an explicit empty-state when a provider has no ratings yet.",
+      "reqIds": [
+        "REQ-71"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -693,6 +789,64 @@
       "id": "AR-44",
       "summary": "Remove the “Troubleshooting Access Issues” section (Canister ID Not Resolved/Error 400 guidance and correct URL instructions) from the Landing page.",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-45",
+      "summary": "Add a Landing page section with quick role selection buttons (Service Provider, Client, Technical Team) that route users into the correct login/onboarding flow for faster navigation.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-46",
+      "summary": "In the Service Provider area, add a section/control for providers to indicate their current engagement status (Engaged vs Not Engaged).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-48",
+      "summary": "Persist a provider’s self-reported engagement status in the backend provider profile data model, and expose it through existing profile read APIs so the frontend can load and display the saved value.",
+      "reqIds": [
+        "REQ-62"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-49",
+      "summary": "Expand and refine the Kenya services/categories list to be comprehensive, with emphasis on technical courses/trades (e.g., technical skills and vocational services) included in the browseable industries.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-50",
+      "summary": "Add a prominent Home button in the app header/heading area that navigates back to the Home/Landing page for easier navigation.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-51",
+      "summary": "Allow service providers to upload/share photos of completed work (portfolio/gallery) within their profile for clients to view.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-52",
+      "summary": "Add per-job feedback: after each job, clients can rate that specific job and mark outcome as “Satisfied” or “Unsatisfied”; display these job-level ratings/feedback in the provider’s history/profile.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-53",
+      "summary": "Add real-time/instant engagement status updates between service providers and clients (live connection that notifies clients when a provider becomes Engaged/Not Engaged).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-55",
+      "summary": "Ensure the backend engagement status update API is complete and reliably persists provider engagement status changes so clients can observe the updated value through existing read/query APIs.",
+      "reqIds": [
+        "REQ-70"
+      ],
       "status": "pending"
     }
   ],

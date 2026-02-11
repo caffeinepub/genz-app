@@ -60,9 +60,18 @@ function AppContent() {
     }
   }, []);
 
+  // Define navigate handler before conditional returns
+  const navigate = (page: string, params?: { category?: string; provider?: string }) => {
+    if (params?.category) setSelectedCategory(params.category);
+    if (params?.provider) setSelectedProvider(params.provider);
+    setCurrentPage(page as Page);
+  };
+
+  const userRole = userProfile?.role;
+
   if (isInitializing || (isAuthenticated && profileLoading)) {
     return (
-      <AppLayout>
+      <AppLayout currentPage={currentPage} onNavigate={navigate}>
         <div className="flex min-h-[60vh] items-center justify-center">
           <div className="text-center">
             <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
@@ -75,7 +84,7 @@ function AppContent() {
 
   if (showOnboarding) {
     return (
-      <AppLayout>
+      <AppLayout currentPage={currentPage} onNavigate={navigate}>
         <RoleOnboarding />
       </AppLayout>
     );
@@ -83,23 +92,27 @@ function AppContent() {
 
   if (!isAuthenticated) {
     return (
-      <AppLayout>
-        <LandingPage />
+      <AppLayout currentPage={currentPage} onNavigate={navigate}>
+        <LandingPage 
+          isAuthenticated={false}
+          onNavigate={navigate}
+        />
         <InstallPromptBanner />
       </AppLayout>
     );
   }
 
-  const userRole = userProfile?.role;
-
-  const navigate = (page: string, params?: { category?: string; provider?: string }) => {
-    if (params?.category) setSelectedCategory(params.category);
-    if (params?.provider) setSelectedProvider(params.provider);
-    setCurrentPage(page as Page);
-  };
-
   const renderPage = () => {
     switch (currentPage) {
+      case 'landing':
+        return (
+          <LandingPage
+            isAuthenticated={isAuthenticated}
+            userRole={userRole}
+            profileLoading={profileLoading}
+            onNavigate={navigate}
+          />
+        );
       case 'categories':
         return userRole === UserRole.client ? (
           <CategoriesPage onNavigate={navigate} />
@@ -165,7 +178,14 @@ function AppContent() {
         } else if (userRole === UserRole.backOffice) {
           return <VerificationReviewPage />;
         }
-        return <LandingPage />;
+        return (
+          <LandingPage
+            isAuthenticated={isAuthenticated}
+            userRole={userRole}
+            profileLoading={profileLoading}
+            onNavigate={navigate}
+          />
+        );
     }
   };
 

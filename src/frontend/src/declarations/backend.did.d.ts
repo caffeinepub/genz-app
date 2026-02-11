@@ -11,6 +11,7 @@ import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
 export type BusinessType = { 'it' : null } |
+  { 'repair' : null } |
   { 'retail' : null } |
   { 'healthcare' : null } |
   { 'transportation' : null } |
@@ -20,13 +21,29 @@ export type BusinessType = { 'it' : null } |
   { 'cleaning' : null } |
   { 'construction' : null } |
   { 'other' : string } |
+  { 'generalTrade' : null } |
+  { 'entertainment' : null } |
   { 'marketing' : null } |
+  { 'professionalServices' : null } |
   { 'education' : null } |
+  { 'security' : null } |
   { 'consulting' : null } |
+  { 'personalServices' : null } |
+  { 'skilledTrade' : null } |
+  { 'legal' : null } |
+  { 'sales' : null } |
+  { 'domesticwork' : null } |
+  { 'petServices' : null } |
+  { 'socialServices' : null } |
+  { 'events' : null } |
   { 'maintenance' : null } |
   { 'wellness' : null } |
   { 'catering' : null } |
-  { 'manufacturing' : null };
+  { 'manufacturing' : null } |
+  { 'unskilledLabor' : null } |
+  { 'handyman' : null } |
+  { 'hairAndBeauty' : null } |
+  { 'mediar' : null };
 export interface ClientProfile {
   'principal' : Principal,
   'phoneNumber' : string,
@@ -84,6 +101,7 @@ export interface ProviderProfileView {
   'location' : Location,
   'goodConductCert' : [] | [Document],
   'verificationStatus' : VerificationStatus,
+  'isEngaged' : boolean,
 }
 export interface UserProfileView {
   'role' : UserRole,
@@ -134,7 +152,7 @@ export interface _SERVICE {
   'cancelJob' : ActorMethod<[string, string], undefined>,
   'createOrUpdateClientProfile' : ActorMethod<[string], undefined>,
   'createOrUpdateProviderProfile' : ActorMethod<
-    [string, bigint, BusinessType, Location, string, string],
+    [string, bigint, BusinessType, Location, string, string, boolean],
     undefined
   >,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfileView]>,
@@ -172,6 +190,7 @@ export interface _SERVICE {
             'location' : Location,
             'goodConductCert' : [] | [Document],
             'verificationStatus' : VerificationStatus,
+            'isEngaged' : boolean,
           }
         ],
       },
@@ -184,6 +203,7 @@ export interface _SERVICE {
   >,
   'setMPesaConfig' : ActorMethod<[MPesaConfig], undefined>,
   'setUserRole' : ActorMethod<[UserRole], undefined>,
+  'updateEngagementStatus' : ActorMethod<[boolean], undefined>,
   'updateVerificationStatus' : ActorMethod<
     [Principal, VerificationStatus],
     undefined

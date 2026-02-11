@@ -1,66 +1,78 @@
 {
   "kind": "build_request",
-  "title": "Remove Landing Page troubleshooting access issues section",
+  "title": "Near-real-time provider engagement notifications and consistent star rating display",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-56",
-      "text": "Remove the entire “Troubleshooting Access Issues” section from the unauthenticated Landing page, including its heading, explanatory text about “Canister ID Not Resolved” / “Error 400”, the displayed URL `https://genz-app.icp0.io`, and the step-by-step instructions list.",
+      "id": "REQ-69",
+      "text": "Implement a near-real-time (“instant”) engagement-status notification experience between client and provider by refreshing provider engagement state automatically while the client is viewing that provider, and showing a clear in-app notification when the status changes between “Engaged” and “Not Engaged”.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-6"
         ],
         "quotes": [
-          "remove this section"
+          "let it be a live connection between the service provider and the client nofitying them if they are engaged or not engaged. it should be instantenous."
         ]
       },
       "acceptanceCriteria": [
-        "The Landing page no longer renders a section titled “Troubleshooting Access Issues”.",
-        "No Landing page content mentions “Canister ID Not Resolved” or “Error 400”.",
-        "No Landing page content displays the URL `https://genz-app.icp0.io` as part of troubleshooting guidance.",
-        "The page layout still renders correctly with the remaining sections (Hero, Platform Stats, Featured Providers, Testimonials, Features, About) in the expected order."
+        "When a client is on the Provider Preview dialog or Provider Detail page for a specific provider, the UI automatically refreshes that provider’s engagement status without the user manually refreshing the page.",
+        "If the provider’s engagement status changes while the client is on the preview/detail UI, the client sees an in-app notification that clearly states the new status in English (e.g., “Provider is now Engaged” / “Provider is now Not Engaged”).",
+        "The refreshed engagement status is reflected in the visible status badge/text within 3 seconds of the provider saving a new engagement status (best-effort via polling).",
+        "The implementation does not use WebSockets or real-time chat transport; it uses safe periodic refresh (polling) of existing backend query data (e.g., provider preview / provider profile queries)."
       ]
     },
     {
-      "id": "REQ-57",
-      "text": "Clean up any unused imports or code left behind by removing the troubleshooting section from `frontend/src/pages/LandingPage.tsx` (for example, remove the `AlertCircle` icon import if it is no longer used).",
+      "id": "REQ-70",
+      "text": "Ensure the backend engagement status update API is complete and reliably persists provider engagement status changes so clients can observe the updated value through existing read/query APIs.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "let it be a live connection between the service provider and the client nofitying them if they are engaged or not engaged. it should be instantenous."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A signed-in Service Provider can update their engagement status, and the value persists in the provider profile (the existing `isEngaged` field).",
+        "Client-facing queries used by the UI (e.g., provider preview / provider read methods) return the updated `isEngaged` value after the provider updates it.",
+        "Unauthorized callers cannot update another provider’s engagement status."
+      ]
+    },
+    {
+      "id": "REQ-71",
+      "text": "Create and display a clear 1–5 star rating UI for service providers across client-facing provider surfaces, using English labels and consistent visuals (stars), including an explicit empty-state when a provider has no ratings yet.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-6"
         ],
         "quotes": [
-          "remove this section"
+          "also create a star rating for the service provider"
         ]
       },
       "acceptanceCriteria": [
-        "`frontend/src/pages/LandingPage.tsx` has no unused imports related to the removed troubleshooting section.",
-        "The frontend builds without lint/type errors caused by the removal."
+        "Provider cards, provider preview, and provider detail views show a star-based rating display (not only a text/emoji-only rating) when ratings exist.",
+        "If a provider has no ratings yet, the UI shows an English empty state such as “No ratings yet” (or equivalent) instead of hiding the rating row entirely.",
+        "Any existing job-completion rating flow remains functional and continues to contribute to the provider’s average rating display.",
+        "All user-facing rating text is in English."
       ]
     }
   ],
   "constraints": [
-    "Use English for any user-facing text.",
-    "Do not edit files under frontend/src/components/ui (read-only).",
-    "Do not change the service worker, PWA manifest, or `.well-known/ic-domains` behavior as part of this change."
+    "Backend must remain a single Motoko actor in `backend/main.mo` (no additional backend services).",
+    "Do not edit files in `frontend/src/components/ui` or other immutable frontend paths listed in SYSTEM_CONTEXT.",
+    "Do not use WebSockets/Socket.io/push notifications for “instant” updates; implement best-effort near-real-time behavior via polling/refresh of existing query APIs.",
+    "Keep the existing provider engagement field name and meaning (`isEngaged`: Bool) and expose it through existing provider read/preview APIs."
   ],
   "nonGoals": [
-    "Do not add replacement troubleshooting content elsewhere in the app.",
-    "Do not change the existing Landing page CTA behavior (e.g., “Get Started” login flow, “Learn More” scroll target) except as required to remove the troubleshooting section."
+    "Implementing true real-time server push (WebSockets) or background notifications outside the currently open UI.",
+    "Adding third-party rating providers or external databases.",
+    "Changing the payment/unlock or messaging feature scope beyond what is needed to display engagement updates and ratings."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

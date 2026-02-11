@@ -1,8 +1,8 @@
 import { CATEGORIES } from '../../lib/categories';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardHeader, CardTitle } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Search } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 interface CategoriesPageProps {
   onNavigate: (page: string, params?: any) => void;
@@ -11,13 +11,18 @@ interface CategoriesPageProps {
 export function CategoriesPage({ onNavigate }: CategoriesPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredCategories = CATEGORIES.filter((cat) =>
-    cat.label.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredCategories = useMemo(() => {
+    const normalizedQuery = searchQuery.toLowerCase().trim();
+    if (!normalizedQuery) return CATEGORIES;
+    
+    return CATEGORIES.filter((cat) =>
+      cat.label.toLowerCase().includes(normalizedQuery)
+    );
+  }, [searchQuery]);
 
   return (
     <div className="container py-12">
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-6xl">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold tracking-tight">Browse Services</h1>
           <p className="mt-2 text-muted-foreground">
@@ -36,7 +41,7 @@ export function CategoriesPage({ onNavigate }: CategoriesPageProps) {
           />
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {filteredCategories.map((category) => (
             <Card
               key={category.id}

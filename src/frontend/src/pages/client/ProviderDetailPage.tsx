@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGetProvider, useRequestLink, useProviderUnlockState, useUnlockProvider, useGetMpesaConfig } from '../../hooks/useQueries';
 import { Principal } from '@icp-sdk/core/principal';
 import { Button } from '../../components/ui/button';
@@ -9,7 +9,9 @@ import { UnlockDetailsCard } from '../../components/providers/UnlockDetailsCard'
 import { MpesaUnlockDialog } from '../../components/payments/MpesaUnlockDialog';
 import { ConversationPanel } from '../../components/messaging/ConversationPanel';
 import { ProviderAvatar } from '../../components/providers/ProviderAvatar';
-import { ArrowLeft, MapPin, Star, Phone, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { EngagementStatusNotice } from '../../components/notifications/EngagementStatusNotice';
+import { StarRatingDisplay } from '../../components/ratings/StarRatingDisplay';
+import { ArrowLeft, MapPin, Phone, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { getBusinessTypeLabel } from '../../lib/categories';
 import { calculateConnectionFee } from '../../utils/fees';
 
@@ -21,9 +23,16 @@ interface ProviderDetailPageProps {
 export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPageProps) {
   const [jobDescription, setJobDescription] = useState('');
   const [mpesaDialogOpen, setMpesaDialogOpen] = useState(false);
+  const [showEngagementNotice, setShowEngagementNotice] = useState(false);
+  const previousEngagementStatus = useRef<boolean | null>(null);
   
   const principal = Principal.fromText(providerId);
-  const { data: provider, isLoading } = useGetProvider(principal);
+  
+  // Enable polling for provider details (3 second interval)
+  const { data: provider, isLoading } = useGetProvider(principal, {
+    refetchInterval: 3000,
+  });
+  
   const { data: isUnlocked, isLoading: unlockLoading } = useProviderUnlockState(providerId);
   const { data: mpesaConfig } = useGetMpesaConfig();
   const unlockProvider = useUnlockProvider();
@@ -31,6 +40,20 @@ export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPag
 
   const connectionFee = provider ? calculateConnectionFee(provider.rate) : 0n;
   const mpesaConfigAvailable = !!mpesaConfig;
+
+  // Detect engagement status changes
+  useEffect(() => {
+    if (provider) {
+      const currentStatus = provider.isEngaged;
+      
+      // Only show notice if status actually changed (not on initial load)
+      if (previousEngagementStatus.current !== null && previousEngagementStatus.current !== currentStatus) {
+        setShowEngagementNotice(true);
+      }
+      
+      previousEngagementStatus.current = currentStatus;
+    }
+  }, [provider]);
 
   if (isLoading || unlockLoading) {
     return (
@@ -76,7 +99,7 @@ export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPag
       return (
         <Badge variant="secondary" className="gap-1">
           <Clock className="h-3 w-3" />
-          Pending Verification
+          Pending
         </Badge>
       );
     }
@@ -84,13 +107,13 @@ export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPag
       return (
         <Badge variant="destructive" className="gap-1">
           <XCircle className="h-3 w-3" />
-          Verification Rejected
+          Rejected
         </Badge>
       );
     }
     return (
       <Badge variant="outline" className="gap-1">
-        Not Verified
+        Unverified
       </Badge>
     );
   };
@@ -100,25 +123,25 @@ export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPag
   };
 
   const handlePaymentSuccess = async () => {
-    await unlockProvider.mutateAsync(providerId);
+    try {
+      await unlockProvider.mutateAsync(providerId);
+    } catch (error) {
+      console.error('Failed to unlock provider:', error);
+    }
   };
 
-  const handleHire = async () => {
-    if (!jobDescription.trim()) {
-      alert('Please provide a job description');
-      return;
-    }
-    
+  const handleRequestJob = async () => {
+    if (!jobDescription.trim()) return;
+
     try {
       await requestLink.mutateAsync({
         provider: principal,
-        payment: provider.rate,
+        payment: connectionFee,
         jobDescription: jobDescription.trim(),
       });
-      onNavigate('my-jobs');
+      setJobDescription('');
     } catch (error) {
-      console.error('Failed to create job request:', error);
-      alert('Failed to create job request. Please try again.');
+      console.error('Failed to request job:', error);
     }
   };
 
@@ -127,19 +150,29 @@ export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPag
       <div className="mx-auto max-w-4xl">
         <Button
           variant="ghost"
-          size="sm"
           onClick={() => onNavigate('results')}
-          className="mb-6"
+          className="mb-6 gap-2"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="h-4 w-4" />
           Back to Results
         </Button>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="space-y-6 lg:col-span-2">
+        {/* Engagement Status Notice */}
+        {showEngagementNotice && (
+          <div className="mb-6">
+            <EngagementStatusNotice
+              isEngaged={provider.isEngaged}
+              onDismiss={() => setShowEngagementNotice(false)}
+            />
+          </div>
+        )}
+
+        <div className="grid gap-8 lg:grid-cols-3">
+          {/* Left Column - Provider Info */}
+          <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-6">
                   <ProviderAvatar
                     name={provider.name}
                     profilePictureUrl={profilePictureUrl}
@@ -147,23 +180,39 @@ export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPag
                   />
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-2xl">{provider.name}</CardTitle>
-                        <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-                          <MapPin className="h-4 w-4" />
-                          {provider.location.address || 'Location available'}
-                        </div>
-                      </div>
+                      <CardTitle className="text-2xl">{provider.name}</CardTitle>
                       {getVerificationBadge()}
+                    </div>
+                    <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4" />
+                      {provider.location.address || 'Location available after unlock'}
                     </div>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <h3 className="mb-2 font-semibold">About</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {provider.description || 'No description provided.'}
+              <CardContent className="space-y-4">
+                {/* Engagement Status */}
+                <div className="rounded-lg border bg-muted/50 p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Availability Status</span>
+                    <Badge variant={provider.isEngaged ? 'secondary' : 'default'} className="gap-1">
+                      {provider.isEngaged ? (
+                        <>
+                          <Clock className="h-3 w-3" />
+                          Engaged
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-3 w-3" />
+                          Not Engaged
+                        </>
+                      )}
+                    </Badge>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {provider.isEngaged
+                      ? 'This provider is currently working on active jobs'
+                      : 'This provider is available for new jobs'}
                   </p>
                 </div>
 
@@ -174,18 +223,29 @@ export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPag
                       {getBusinessTypeLabel(provider.businessType)}
                     </Badge>
                   </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Rate</p>
+                    <p className="mt-1 text-xl font-semibold text-primary">
+                      KES {Number(provider.rate).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
 
-                  {ratings.length > 0 && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">Rating</p>
-                      <div className="mt-1 flex items-center gap-1">
-                        <Star className="h-4 w-4 fill-primary text-primary" />
-                        <span className="text-sm font-medium">
-                          {avgRating.toFixed(1)} ({ratings.length} review{ratings.length !== 1 ? 's' : ''})
-                        </span>
-                      </div>
-                    </div>
-                  )}
+                {/* Star Rating Display */}
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Rating</p>
+                  <StarRatingDisplay
+                    averageRating={avgRating}
+                    totalRatings={ratings.length}
+                    size="lg"
+                  />
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium mb-2">About</p>
+                  <p className="text-sm text-muted-foreground">
+                    {provider.description || 'No description provided'}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -196,92 +256,84 @@ export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPag
                 connectionFee={connectionFee}
                 providerName={provider.name}
                 onUnlock={handleUnlock}
-                isUnlocking={unlockProvider.isPending}
               />
             ) : (
-              <>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Contact Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Contact Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <p className="text-sm text-muted-foreground">Phone Number</p>
-                      <div className="mt-1 flex items-center gap-2">
-                        <Phone className="h-4 w-4" />
-                        <span className="font-medium">{provider.phoneNumber || 'Not provided'}</span>
-                      </div>
-                    </div>
-
-                    <Button asChild className="w-full gap-2">
-                      <a href={`tel:${provider.phoneNumber}`}>
-                        <Phone className="h-4 w-4" />
-                        Call Provider
+                      <a
+                        href={`tel:${provider.phoneNumber}`}
+                        className="font-medium text-primary hover:underline"
+                      >
+                        {provider.phoneNumber}
                       </a>
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                <ConversationPanel
-                  providerName={provider.name}
-                  providerId={providerId}
-                />
-              </>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </div>
 
-          <div>
+          {/* Right Column - Job Request & Messaging */}
+          <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Hire This Provider</CardTitle>
+                <CardTitle>Request Job</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Rate</p>
-                  <p className="text-2xl font-bold text-primary">
-                    KES {Number(provider.rate).toLocaleString()}
-                  </p>
-                </div>
-
-                <div>
                   <label className="text-sm font-medium">Job Description</label>
                   <Textarea
-                    placeholder="Describe what you need done..."
+                    placeholder="Describe the job you need done..."
                     value={jobDescription}
                     onChange={(e) => setJobDescription(e.target.value)}
-                    className="mt-1"
+                    className="mt-2"
                     rows={4}
                   />
                 </div>
-
+                <div className="rounded-lg bg-muted p-3 text-sm">
+                  <p className="font-medium">Connection Fee</p>
+                  <p className="text-lg font-semibold text-primary">
+                    KES {Number(connectionFee).toLocaleString()}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    10% of provider rate
+                  </p>
+                </div>
                 <Button
-                  onClick={handleHire}
-                  disabled={requestLink.isPending || !jobDescription.trim()}
+                  onClick={handleRequestJob}
+                  disabled={!jobDescription.trim() || requestLink.isPending}
                   className="w-full"
                 >
-                  {requestLink.isPending ? (
-                    <>
-                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                      Creating Request...
-                    </>
-                  ) : (
-                    'Request Service'
-                  )}
+                  {requestLink.isPending ? 'Requesting...' : 'Request Job'}
                 </Button>
               </CardContent>
             </Card>
+
+            {isUnlocked && (
+              <ConversationPanel
+                providerId={providerId}
+                providerName={provider.name}
+              />
+            )}
           </div>
         </div>
-      </div>
 
-      <MpesaUnlockDialog
-        open={mpesaDialogOpen}
-        onOpenChange={setMpesaDialogOpen}
-        connectionFee={connectionFee}
-        providerName={provider.name}
-        onPaymentSuccess={handlePaymentSuccess}
-        mpesaConfigAvailable={mpesaConfigAvailable}
-      />
+        <MpesaUnlockDialog
+          open={mpesaDialogOpen}
+          onOpenChange={setMpesaDialogOpen}
+          connectionFee={connectionFee}
+          providerName={provider.name}
+          onPaymentSuccess={handlePaymentSuccess}
+          mpesaConfigAvailable={mpesaConfigAvailable}
+        />
+      </div>
     </div>
   );
 }

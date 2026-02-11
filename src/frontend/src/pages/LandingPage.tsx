@@ -2,10 +2,24 @@ import { ArrowRight, Users, Shield, Star, MapPin, Briefcase, CheckCircle } from 
 import { FeaturedProvidersSection } from '../components/providers/FeaturedProvidersSection';
 import { PlatformStatsSection } from '../components/landing/PlatformStatsSection';
 import { TestimonialsSection } from '../components/landing/TestimonialsSection';
+import { RoleQuickSelectSection } from '../components/landing/RoleQuickSelectSection';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useRef } from 'react';
+import { UserRole } from '../backend';
 
-export function LandingPage() {
+interface LandingPageProps {
+  isAuthenticated?: boolean;
+  userRole?: UserRole;
+  profileLoading?: boolean;
+  onNavigate?: (page: string) => void;
+}
+
+export function LandingPage({
+  isAuthenticated = false,
+  userRole,
+  profileLoading = false,
+  onNavigate,
+}: LandingPageProps) {
   const { login, isLoggingIn } = useInternetIdentity();
   const testimonialsSectionRef = useRef<HTMLElement>(null);
 
@@ -71,6 +85,14 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Role Quick Select Section */}
+      <RoleQuickSelectSection
+        isAuthenticated={isAuthenticated}
+        userRole={userRole}
+        profileLoading={profileLoading}
+        onNavigate={onNavigate}
+      />
 
       {/* Platform Stats Section */}
       <PlatformStatsSection />

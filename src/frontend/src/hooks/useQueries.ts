@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { UserRole, BusinessType, Location, VerificationStatus, Job, ProviderPreview, MPesaConfig, DocumentType, ExternalBlob } from '../backend';
+import { UserRole, BusinessType, Location, VerificationStatus, Job, ProviderPreview, MPesaConfig, DocumentType, ExternalBlob, ProviderProfileView } from '../backend';
 import { Principal } from '@icp-sdk/core/principal';
 
 // User Profile & Authentication
@@ -52,6 +52,7 @@ export function useCreateOrUpdateProviderProfile() {
       location: Location;
       phoneNumber: string;
       description: string;
+      isEngaged: boolean;
     }) => {
       if (!actor) throw new Error('Actor not available');
       await actor.createOrUpdateProviderProfile(
@@ -60,7 +61,8 @@ export function useCreateOrUpdateProviderProfile() {
         params.businessType,
         params.location,
         params.phoneNumber,
-        params.description
+        params.description,
+        params.isEngaged
       );
     },
     onSuccess: () => {
@@ -84,7 +86,10 @@ export function useCreateOrUpdateClientProfile() {
   });
 }
 
-export function useGetProvider(principal: Principal) {
+export function useGetProvider(
+  principal: Principal,
+  options?: Partial<UseQueryOptions<ProviderProfileView | null>>
+) {
   const { actor, isFetching } = useActor();
 
   return useQuery({
@@ -94,11 +99,15 @@ export function useGetProvider(principal: Principal) {
       return actor.getProvider(principal);
     },
     enabled: !!actor && !isFetching,
+    ...options,
   });
 }
 
-// Provider Preview (with engagement status)
-export function useGetProviderPreview(principal: Principal) {
+// Provider Preview (with engagement status) - now supports polling
+export function useGetProviderPreview(
+  principal: Principal,
+  options?: Partial<UseQueryOptions<ProviderPreview | null>>
+) {
   const { actor, isFetching } = useActor();
 
   return useQuery<ProviderPreview | null>({
@@ -108,6 +117,7 @@ export function useGetProviderPreview(principal: Principal) {
       return actor.getProviderPreview(principal);
     },
     enabled: !!actor && !isFetching,
+    ...options,
   });
 }
 
@@ -242,6 +252,24 @@ export function useUpdateVerificationStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['providers'] });
       queryClient.invalidateQueries({ queryKey: ['allProviders'] });
+    },
+  });
+}
+
+// Engagement Status Update
+export function useUpdateEngagementStatus() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (isEngaged: boolean) => {
+      if (!actor) throw new Error('Actor not available');
+      await actor.updateEngagementStatus(isEngaged);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['provider'] });
+      queryClient.invalidateQueries({ queryKey: ['providerPreview'] });
     },
   });
 }

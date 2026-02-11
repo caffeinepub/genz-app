@@ -5,6 +5,8 @@ import { MapPin, ExternalLink, Map as MapIcon, CheckCircle, Clock, XCircle } fro
 import { ProviderPreview } from '../../backend';
 import { getBusinessTypeLabel } from '../../lib/categories';
 import { ProviderAvatar } from './ProviderAvatar';
+import { StarRatingDisplay } from '../ratings/StarRatingDisplay';
+import { ReactNode } from 'react';
 
 interface ProviderPreviewDialogProps {
   preview: ProviderPreview | null;
@@ -12,6 +14,7 @@ interface ProviderPreviewDialogProps {
   onOpenChange: (open: boolean) => void;
   onViewDetails: () => void;
   onViewOnMap?: () => void;
+  engagementNotice?: ReactNode;
 }
 
 export function ProviderPreviewDialog({
@@ -20,6 +23,7 @@ export function ProviderPreviewDialog({
   onOpenChange,
   onViewDetails,
   onViewOnMap,
+  engagementNotice,
 }: ProviderPreviewDialogProps) {
   if (!preview) return null;
 
@@ -83,6 +87,11 @@ export function ProviderPreviewDialog({
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Engagement Status Notice */}
+          {engagementNotice && (
+            <div>{engagementNotice}</div>
+          )}
+
           {/* Engagement Status */}
           <div className="rounded-lg border bg-muted/50 p-4">
             <div className="flex items-center justify-between">
@@ -127,14 +136,14 @@ export function ProviderPreviewDialog({
               {getVerificationBadge()}
             </div>
 
-            {ratings.length > 0 && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Rating</span>
-                <span className="text-sm font-medium">
-                  ⭐ {avgRating.toFixed(1)} ({ratings.length} reviews)
-                </span>
-              </div>
-            )}
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Rating</span>
+              <StarRatingDisplay
+                averageRating={avgRating}
+                totalRatings={ratings.length}
+                size="sm"
+              />
+            </div>
           </div>
 
           {/* Location */}

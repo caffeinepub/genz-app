@@ -1,17 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UserRole } from '../../backend';
 import { useSetUserRole } from '../../hooks/useQueries';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Users, Briefcase, Shield } from 'lucide-react';
+import { getPendingRole, clearPendingRole } from '../../utils/pendingRoleSelection';
 
 export function RoleOnboarding() {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const setUserRole = useSetUserRole();
 
+  // Check for pending role selection on mount
+  useEffect(() => {
+    const pendingRole = getPendingRole();
+    if (pendingRole) {
+      setSelectedRole(pendingRole);
+    }
+  }, []);
+
   const handleSubmit = async () => {
     if (!selectedRole) return;
-    await setUserRole.mutateAsync(selectedRole);
+    try {
+      await setUserRole.mutateAsync(selectedRole);
+      // Clear pending role after successful submission
+      clearPendingRole();
+    } catch (error) {
+      console.error('Error setting user role:', error);
+      // Keep pending role in case of error for retry
+    }
   };
 
   const roles = [

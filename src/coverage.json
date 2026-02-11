@@ -1,45 +1,74 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T00:36:33.751Z",
+  "generatedAt": "2026-02-11T12:25:14.119Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
+    "total": 3,
     "implemented": 2,
     "items": [
       {
-        "id": "REQ-56",
-        "summary": "Remove the entire “Troubleshooting Access Issues” section from the unauthenticated Landing page, including its heading, explanatory text about “Canister ID Not Resolved” / “Error 400”, the displayed URL `https://genz-app.icp0.io`, and the step-by-step instructions list.",
+        "id": "REQ-69",
+        "summary": "Implement a near-real-time (“instant”) engagement-status notification experience between client and provider by refreshing provider engagement state automatically while the client is viewing that provider, and showing a clear in-app notification when the status changes between “Engaged” and “Not Engaged”.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/LandingPage.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/notifications/EngagementStatusNotice.tsx",
+          "frontend/src/pages/client/ProviderResultsPage.tsx",
+          "frontend/src/pages/client/ProviderDetailPage.tsx",
+          "frontend/src/components/providers/ProviderPreviewDialog.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/LandingPage.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/notifications/EngagementStatusNotice.tsx",
+          "frontend/src/pages/client/ProviderResultsPage.tsx",
+          "frontend/src/pages/client/ProviderDetailPage.tsx",
+          "frontend/src/components/providers/ProviderPreviewDialog.tsx"
         ]
       },
       {
-        "id": "REQ-57",
-        "summary": "Clean up any unused imports or code left behind by removing the troubleshooting section from `frontend/src/pages/LandingPage.tsx` (for example, remove the `AlertCircle` icon import if it is no longer used).",
+        "id": "REQ-70",
+        "summary": "Ensure the backend engagement status update API is complete and reliably persists provider engagement status changes so clients can observe the updated value through existing read/query APIs.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-71",
+        "summary": "Create and display a clear 1–5 star rating UI for service providers across client-facing provider surfaces, using English labels and consistent visuals (stars), including an explicit empty-state when a provider has no ratings yet.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/LandingPage.tsx"
+          "frontend/src/components/ratings/StarRatingDisplay.tsx",
+          "frontend/src/components/providers/ProviderCard.tsx",
+          "frontend/src/components/providers/ProviderPreviewDialog.tsx",
+          "frontend/src/pages/client/ProviderDetailPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/LandingPage.tsx"
+          "frontend/src/components/ratings/StarRatingDisplay.tsx",
+          "frontend/src/components/providers/ProviderCard.tsx",
+          "frontend/src/components/providers/ProviderPreviewDialog.tsx",
+          "frontend/src/pages/client/ProviderDetailPage.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/pages/LandingPage.tsx",
+    "frontend/src/components/notifications/EngagementStatusNotice.tsx",
+    "frontend/src/components/providers/ProviderCard.tsx",
+    "frontend/src/components/providers/ProviderPreviewDialog.tsx",
+    "frontend/src/components/ratings/StarRatingDisplay.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/client/ProviderDetailPage.tsx",
+    "frontend/src/pages/client/ProviderResultsPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",
