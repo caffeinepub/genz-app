@@ -1,14 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Let service providers set an “Engaged” duration (in hours) and let clients see a live, accurate engaged/available status with remaining time across provider views.
+**Goal:** Make the Provider Profile page summary-first (read-only by default) with an explicit “Change Info” → “Update” flow, while preventing any post-onboarding edits to provider bio-data.
 
 **Planned changes:**
-- Extend `ProviderProfile` to include an optional engagement end time (availability time) alongside the existing engagement boolean, and return it in provider-read views.
-- Add provider-authorized backend APIs to: (1) set Engaged for N hours (store end time), and (2) clear engagement early (set Not Engaged and remove end time), with validation and authorization traps.
-- Make provider-read backend responses automatically treat expired end times as Not Engaged / cleared so client views remain accurate without manual action.
-- Update the Service Provider profile UI to toggle Engaged/Not Engaged; when Engaged is chosen, require an “Hours engaged” input and persist immediately; show friendly errors on failure.
-- Update client-facing Provider Preview dialog and Provider Detail page to show an Engaged/Available badge and, when applicable, the remaining time until available again.
-- Poll provider data while Provider Preview is open and while Provider Detail is visible (following the existing ~3-second refetch pattern), and show engagement change notices via the existing `EngagementStatusNotice` component.
+- Update the Provider Profile page so Service Providers see a read-only summary view by default after navigating to “My Profile” (no editable inputs shown initially).
+- Display key provider details in the summary (at minimum: Name, Service Category, Hourly Rate, Phone Number, Description, Pinned Location, Engagement Status).
+- Add a “Change Info” button to enter edit mode for allowed fields, plus a “Cancel” action to exit edit mode without saving.
+- In edit mode, add an “Update”/“Save Changes” button that is enabled only when changes exist, saves to the backend, disables during save, and shows clear English success/error feedback; refresh summary data after successful save.
+- Lock provider bio-data fields as read-only in the UI and enforce the same restriction server-side so bio-data cannot be modified after initial creation; add English helper text explaining bio-data is sourced from an ID document.
+- Remove/replace outdated Provider Profile messaging about editing being available in a future update and ensure all guidance matches the new flow in English.
 
-**User-visible outcome:** Providers can mark themselves engaged for a set number of hours (or disengage early), and clients see a live-engagement badge plus remaining time that updates automatically until the provider is available again.
+**User-visible outcome:** Service Providers land on a read-only “My Profile” summary, can tap “Change Info” to edit only allowed fields, then tap “Update” to save with clear feedback; bio-data fields remain non-editable and explained in English.

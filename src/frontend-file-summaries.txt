@@ -1,10 +1,10 @@
 {
-  "frontend/src/App.tsx": "Main app component with role-based routing including new client-access, provider-access, and client-profile pages, authentication flow, service worker registration, and navigation handler.",
+  "frontend/src/App.tsx": "Main app component with role-based routing, authentication flow, service worker registration with versioned cache support, and update detection banner integration.",
   "frontend/src/components/AppLayout.tsx": "Layout wrapper component with default currentPage value to prevent undefined type errors, rendering header, main content area, footer, and support drawer with navigation props.",
   "frontend/src/components/Header.tsx": "Responsive header with Genz App branding, Home navigation, role-based navigation items including new \"My Profile\" entry for clients, login button, and mobile menu.",
   "frontend/src/components/Footer.tsx": "Footer component with Genz App branding, support link, and caffeine.ai attribution with UTM tracking.",
   "frontend/src/pages/LandingPage.tsx": "Landing page with hero section, role quick-select, platform stats, featured providers, testimonials, demo video, features, and about sections with navigation to access pages.",
-  "frontend/src/hooks/useQueries.ts": "React Query hooks for OTP verification, pinned location updates, provider engagement mutations (setEngaged/disengage), and provider queries with comprehensive cache invalidation and user-friendly error translation.",
+  "frontend/src/hooks/useQueries.ts": "React Query hooks for OTP verification, pinned location updates, provider engagement mutations (setEngaged/disengage), provider profile update mutation with comprehensive cache invalidation and user-friendly error translation, and provider queries.",
   "frontend/src/index.css": "Global styles with warm OKLCH color palette and new landing-hero-bg component class that applies the fancy background image with gradient overlay for readability in both light and dark modes.",
   "frontend/tailwind.config.js": "Tailwind configuration with custom font families, extended shadows, and animation utilities.",
   "frontend/src/components/auth/LoginButton.tsx": "Internet Identity login/logout button with loading states and query cache clearing on logout.",
@@ -18,7 +18,7 @@
   "frontend/src/pages/client/MapViewPage.tsx": "Simplified map view page displaying unavailable message for map and search functionality not yet implemented in backend.",
   "frontend/src/pages/client/MyJobsPage.tsx": "Simplified jobs page showing placeholder message for job management functionality not yet implemented in backend.",
   "frontend/src/components/ratings/StarRatingInput.tsx": "Interactive 1-5 star rating input component with read-only mode support for displaying and submitting ratings.",
-  "frontend/src/pages/provider/ProviderProfilePage.tsx": "Provider profile page with interactive engagement controls (Engaged/Not Engaged toggle with hours input), pinned location update functionality, and read-only basic information display with immediate persistence and success/failure feedback.",
+  "frontend/src/pages/provider/ProviderProfilePage.tsx": "Provider profile page with summary-first view showing read-only profile information by default, \"Change Info\" button to enter edit mode for allowed fields (rate, service category, description, location), \"Update Profile\" button to save changes with validation and feedback, bio-data fields (name, phone number) displayed as read-only with helper text explaining they come from ID documents, and engagement status controls with local state for immediate UI feedback.",
   "frontend/src/components/location/LocationPicker.tsx": "Location input component with manual lat/lng entry, address field, and browser geolocation autofill button.",
   "frontend/src/pages/provider/VerificationUploadPage.tsx": "Simplified verification upload page showing current verification status with placeholder message for document upload functionality.",
   "frontend/src/pages/backoffice/VerificationReviewPage.tsx": "Simplified verification review page showing placeholder message for provider verification functionality not yet implemented in backend.",
@@ -37,7 +37,7 @@
   "frontend/src/components/providers/ProviderAvatar.tsx": "Reusable avatar component that displays provider profile pictures with fallback to initials when no picture is available.",
   "frontend/public/assets/generated/genz-app-logo.dim_512x512.png": "512×512 PNG of the full Genz Kenya logo with detailed branding, figure, tools, Kenya flag elements, and \"Empowering Careers\" tagline on transparent background.",
   "frontend/public/manifest.webmanifest": "PWA manifest file defining app name \"Genz App\", standalone display mode, theme colors, and icon references for 192x192, 512x512, and maskable variants.",
-  "frontend/public/sw.js": "Service worker with conservative caching strategy that explicitly bypasses `.well-known` paths to prevent interference with IC domain verification.",
+  "frontend/public/sw.js": "Service worker with versioned cache naming strategy that automatically deletes old caches on activation and supports SKIP_WAITING message for immediate updates.",
   "frontend/public/offline.html": "Standalone offline fallback page with branded styling and retry button shown when navigation occurs offline.",
   "frontend/src/hooks/usePWAInstallPrompt.ts": "React hook managing PWA install prompt state, detecting beforeinstallprompt event, iOS Safari detection, installed state, and providing promptInstall function.",
   "frontend/src/components/pwa/InstallPromptBanner.tsx": "Fixed-position install prompt banner component showing \"Install Genz App\" CTA for Chrome/Edge and iOS Safari instructions dialog with step-by-step guidance.",
@@ -51,5 +51,7 @@
   "frontend/src/pages/auth/ProviderAccessPage.tsx": "Service Provider access screen with \"Log in\" and \"Create new account\" sections using Internet Identity authentication and embedded phone OTP verification flow.",
   "frontend/src/components/auth/PhoneOtpVerificationPanel.tsx": "Reusable OTP verification component with phone input, \"Send code\" action, OTP code input, \"Verify code\" action, and clear English error/success messaging for both client and provider roles.",
   "frontend/src/pages/client/ClientProfilePage.tsx": "Client profile/settings page with pinned location section using LocationPicker and dedicated \"Update Location\" action with success/failure feedback and account information display.",
-  "frontend/src/utils/engagementTime.ts": "Shared utilities for computing and formatting remaining engagement time from optional engagement end time (bigint nanoseconds), including safe handling when no end time is present or when time has expired."
+  "frontend/src/utils/engagementTime.ts": "Shared utilities for computing and formatting remaining engagement time from optional engagement end time (bigint nanoseconds), including safe handling when no end time is present or when time has expired.",
+  "frontend/src/hooks/useServiceWorkerUpdate.ts": "React hook that detects service worker updates, manages waiting worker state, and provides updateAndReload function to activate new versions.",
+  "frontend/src/components/pwa/UpdateAvailableBanner.tsx": "Fixed-position banner component that displays \"Update available\" message with one-click refresh action when a new service worker version is detected."
 }

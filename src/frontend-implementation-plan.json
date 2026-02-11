@@ -1,82 +1,92 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Provider engagement duration controls and live remaining-time display",
+  "title": "Provider Profile summary-first view with Change Info edit mode and Update flow",
   "requirements": [
     {
-      "id": "REQ-85",
-      "summary": "Make provider engagement status interactive with an hours duration and immediate persistence.",
+      "id": "REQ-91",
+      "summary": "Show a read-only provider profile summary by default (no editable inputs) for authenticated Service Providers on My Profile.",
       "acceptanceCriteria": [
-        "ProviderProfilePage shows controls to set status to “Engaged” or “Not Engaged” with clear English labels and helper text.",
-        "When setting to “Engaged”, the UI collects an 'Hours engaged' value and calls the new backend API to set the engagement end time.",
-        "When setting to “Not Engaged”, the UI calls the backend API to clear engagement immediately.",
-        "On success, the page refreshes the current user profile query so the displayed status matches backend data.",
-        "On failure (authorization/validation), the UI shows a user-friendly English error message."
+        "When the authenticated user role is Service Provider and they navigate to the Provider Profile page, the default view is a read-only summary (not an edit form).",
+        "The summary shows key provider details currently stored (at minimum: Name, Service Category, Hourly Rate, Phone Number, Description, Pinned Location, and Engagement Status).",
+        "No editable text inputs are shown in the default summary view."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/provider/ProviderProfilePage.tsx",
+          "operation": "modify",
+          "description": "Refactor the Provider Profile page into a summary-first UI: default to a read-only summary section rendering key provider fields as plain text (not Input/Textarea/LocationPicker/Switch). Ensure the summary includes Name, Service Category, Hourly Rate, Phone Number, Description, Pinned Location (address + coordinates if desired), and Engagement Status (including remaining time when engaged). Use existing shadcn-ui composed components (e.g., Card, Button, etc.) for layout; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-92",
+      "summary": "Add a provider-facing “Change Info” action to enter edit mode for allowed provider fields, with a Cancel action to discard changes.",
+      "acceptanceCriteria": [
+        "A visible button labeled “Change Info” is present on the Provider Profile summary view.",
+        "Clicking “Change Info” enters an edit mode that allows the provider to modify only allowed fields (see non-editable bio-data requirement).",
+        "There is a clear way to exit edit mode without saving (e.g., “Cancel” returns to the read-only summary and discards unsaved local changes)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/provider/ProviderProfilePage.tsx",
+          "operation": "modify",
+          "description": "Add an explicit page-level editMode state. On the summary view, render a prominent “Change Info” button that switches to editMode and initializes local draft state from the latest providerProfile. In editMode, render a “Cancel” button that exits editMode and resets/discards any unsaved local draft changes. Use existing shadcn-ui Button/Card building blocks; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-93",
+      "summary": "Provide an Update/Save Changes button in edit mode that saves allowed changes, with proper disabled/loading states, success/error feedback, and cache refresh.",
+      "acceptanceCriteria": [
+        "In edit mode, an “Update”/“Save Changes” button is visible and triggers a backend update for the edited provider fields.",
+        "The button is disabled while a save is in progress, and re-enabled afterward.",
+        "On successful save, the UI returns to the read-only summary view and shows a success message in English.",
+        "On failure, the UI stays in edit mode and shows a user-friendly English error message.",
+        "After a successful save, the Provider Profile data shown in the summary reflects the latest backend values (React Query caches are invalidated/refetched as needed)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add React Query mutations for provider engagement updates using existing backend capabilities: a mutation that calls setEngaged(hours) and a mutation that calls disengage(); translate authorization/validation errors into user-friendly English messages; invalidate/refetch ['currentUserProfile'] (and provider queries where relevant) after successful updates."
+          "description": "Add a React Query mutation hook for saving provider profile edits via the existing backend capability (updateProviderProfile). Ensure it invalidates/refetches the current user profile query (and any provider detail query keys used elsewhere) after success, and translates common authorization/validation traps into user-friendly English errors."
         },
         {
           "path": "frontend/src/pages/provider/ProviderProfilePage.tsx",
           "operation": "modify",
-          "description": "Replace the current placeholder engagement section with interactive controls: an Engaged/Not Engaged toggle and an 'Hours engaged' numeric input required when engaging; wire the controls to the new mutations for immediate persistence; on success, show an English success toast and ensure the profile query refreshes; on failure, show an English error toast. Use existing shadcn-ui primitives already present in this file (Card, Input, Switch, Button, etc.) and verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/utils/engagementTime.ts",
-          "operation": "create",
-          "description": "Create shared utilities to compute and format remaining engagement time from an optional engagement end time (bigint) for display (e.g., “Available in 2h 15m”), including safe handling when no end time is present or when time has expired."
+          "description": "In editMode, render an “Update”/“Save Changes” button wired to the new provider update mutation. Track a local draft of editable fields and compute a hasChanges flag versus the last fetched providerProfile; only enable the button when hasChanges is true and no save is in progress. Disable controls while saving. On success: show an English toast success message, exit editMode, and rely on query invalidation to refresh the summary. On error: keep editMode, show an English toast error message. Use existing shadcn-ui components and current toast system; verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-86",
-      "summary": "Show Engaged/Available plus remaining engaged time on client provider preview and detail surfaces.",
+      "id": "REQ-94",
+      "summary": "Make provider bio-data fields read-only in both summary and edit experiences, and clearly explain why they cannot be changed.",
       "acceptanceCriteria": [
-        "ProviderPreviewDialog displays a clear status badge (“Engaged” / “Available”) and, when Engaged with an end time, also shows remaining time (e.g., “Available in 2h 15m”).",
-        "ProviderDetailPage displays the same engagement status and remaining-time information in English.",
-        "If no end time is available, the UI still shows Engaged/Available but does not show a misleading countdown.",
-        "All user-facing labels are in English."
+        "Bio-data fields are displayed as read-only and cannot be edited in the UI (even in edit mode).",
+        "Backend update logic does not allow overwriting bio-data fields for an existing provider profile (server-side enforcement).",
+        "User-facing helper text in English explains that bio-data cannot be changed because it is taken from an ID document.",
+        "This change does not break existing onboarding/profile creation flows (initial creation can still set these fields, but later updates cannot modify them)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/providers/ProviderPreviewDialog.tsx",
+          "path": "frontend/src/pages/provider/ProviderProfilePage.tsx",
           "operation": "modify",
-          "description": "Enhance the availability section to show remaining engaged time when provider.isEngaged is true and provider.engagementEndTime exists (using the shared engagementTime utility); keep labels in English; avoid showing a countdown when no end time is present. Use existing shadcn-ui Badge/Card styling already used here and verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/client/ProviderDetailPage.tsx",
-          "operation": "modify",
-          "description": "Add remaining-time text near the existing Engaged/Available badge when an engagement end time is present, using the shared engagementTime utility; ensure English labels and avoid displaying a countdown when no end time exists."
+          "description": "Define and enforce a clear separation between non-editable bio-data fields (at minimum: Name and Phone Number) and editable fields. In summary view, show bio-data as plain text. In editMode, do not render editable controls for bio-data; instead show them as read-only display with an English helper note explaining they come from an ID document and cannot be changed. Ensure the save payload only includes allowed editable fields (rate, service category/business type, description, location, profile picture if supported) and never attempts to update bio-data. Use composed shadcn-ui components for helper text/layout; verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-87",
-      "summary": "Make engagement status feel live via React Query polling and show a notice when it changes.",
+      "id": "REQ-95",
+      "summary": "Remove outdated Provider Profile messaging and replace with guidance matching the new summary-first + Change Info + Update flow.",
       "acceptanceCriteria": [
-        "While ProviderPreviewDialog is open, the provider query refetches on an interval (keep the existing 3-second behavior pattern used elsewhere in the app).",
-        "While ProviderDetailPage is visible, the provider query refetches on an interval so engagement changes are reflected without a manual refresh.",
-        "When the engagement state changes between Engaged and Not Engaged, the client sees a clear in-app notice using the existing EngagementStatusNotice component (English text).",
-        "React Query cache invalidation/refetch is performed after provider updates engagement so client views converge quickly to backend values."
+        "The text “Note: Profile editing will be available in a future update...” is not shown on the Provider Profile page.",
+        "All user-facing guidance on the Provider Profile page is in English and accurately describes how to update allowed fields (via “Change Info” then “Update”)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/client/ProviderResultsPage.tsx",
+          "path": "frontend/src/pages/provider/ProviderProfilePage.tsx",
           "operation": "modify",
-          "description": "When the ProviderPreviewDialog is open, enable 3-second polling on the selected provider query (React Query refetchInterval) and pass an EngagementStatusNotice into the dialog's existing engagementNotice slot; detect Engaged/Not Engaged transitions across refetches to show the notice with English text."
-        },
-        {
-          "path": "frontend/src/pages/client/ProviderDetailPage.tsx",
-          "operation": "modify",
-          "description": "Enable 3-second polling for the provider query while the page is visible (React Query refetchInterval); detect Engaged/Not Engaged transitions across refetches and render EngagementStatusNotice to notify the client in English."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Ensure engagement mutations invalidate/refetch provider-related queries so client views converge quickly after provider updates; keep polling-friendly query keys consistent with existing useGetProvider queryKey usage."
+          "description": "Remove the outdated note about profile editing being available in a future update. Replace it with concise English guidance that matches the new flow: view summary by default, click “Change Info” to edit allowed fields, then click “Update” to save (and use “Cancel” to discard). Use existing typography and shadcn-ui composition; verify the component's usage instructions before implementing."
         }
       ]
     }

@@ -88,6 +88,13 @@ export interface PlatformStats {
   'totalClients' : bigint,
 }
 export interface ProfilePicture { 'id' : string, 'blob' : ExternalBlob }
+export interface ProviderProfileUpdate {
+  'rate' : bigint,
+  'businessType' : BusinessType,
+  'description' : string,
+  'profilePicture' : [] | [ProfilePicture],
+  'location' : Location,
+}
 export interface ProviderProfileView {
   'principal' : Principal,
   'engagementEndTime' : [] | [bigint],
@@ -197,6 +204,7 @@ export interface _SERVICE {
     undefined
   >,
   'updateProviderLocation' : ActorMethod<[number, number, string], undefined>,
+  'updateProviderProfile' : ActorMethod<[ProviderProfileUpdate], undefined>,
   'verifyOtp' : ActorMethod<[string], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;

@@ -17,6 +17,7 @@ import { VerificationReviewPage } from './pages/backoffice/VerificationReviewPag
 import { ClientAccessPage } from './pages/auth/ClientAccessPage';
 import { ProviderAccessPage } from './pages/auth/ProviderAccessPage';
 import { InstallPromptBanner } from './components/pwa/InstallPromptBanner';
+import { UpdateAvailableBanner } from './components/pwa/UpdateAvailableBanner';
 import { UserRole, BusinessType } from './backend';
 
 const queryClient = new QueryClient({
@@ -52,13 +53,17 @@ function AppContent() {
   const isAuthenticated = !!identity;
   const showOnboarding = isAuthenticated && !profileLoading && isFetched && userProfile === null;
 
-  // Register service worker
+  // Register service worker with version parameter
   useEffect(() => {
     if ('serviceWorker' in navigator) {
+      // Use a version derived from the current build
+      // In production, Vite generates hashed asset URLs, so we can use the script URL as version indicator
+      const version = import.meta.url ? new URL(import.meta.url).searchParams.get('v') || Date.now().toString() : Date.now().toString();
+      
       navigator.serviceWorker
-        .register('/sw.js')
+        .register(`/sw.js?v=${version}`)
         .then((registration) => {
-          console.log('Service Worker registered:', registration);
+          console.log('Service Worker registered with version:', version);
         })
         .catch((error) => {
           console.error('Service Worker registration failed:', error);
@@ -105,6 +110,7 @@ function AppContent() {
           onNavigate={navigate}
         />
         <InstallPromptBanner />
+        <UpdateAvailableBanner />
       </AppLayout>
     );
   }
@@ -204,42 +210,38 @@ function AppContent() {
         } else if (userRole === UserRole.backOffice) {
           return <VerificationReviewPage />;
         }
-        return (
-          <LandingPage
-            isAuthenticated={isAuthenticated}
-            userRole={userRole}
-            profileLoading={profileLoading}
-            onNavigate={navigate}
-          />
-        );
+        return <LandingPage isAuthenticated={isAuthenticated} onNavigate={navigate} />;
     }
   };
 
   return (
-    <AppLayout currentPage={currentPage} onNavigate={navigate} userRole={userRole}>
+    <AppLayout currentPage={currentPage} onNavigate={navigate}>
       {renderPage()}
       <InstallPromptBanner />
+      <UpdateAvailableBanner />
     </AppLayout>
   );
 }
 
 function AccessDenied() {
   return (
-    <div className="container flex min-h-[60vh] items-center justify-center">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold">Access Denied</h2>
+    <div className="container mx-auto max-w-2xl px-4 py-12">
+      <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-8 text-center">
+        <h2 className="text-2xl font-bold text-destructive">Access Denied</h2>
         <p className="mt-2 text-muted-foreground">
-          You don't have permission to view this page.
+          You do not have permission to view this page.
         </p>
       </div>
     </div>
   );
 }
 
-export default function App() {
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppContent />
     </QueryClientProvider>
   );
 }
+
+export default App;

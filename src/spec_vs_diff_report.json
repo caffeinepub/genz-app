@@ -1,84 +1,90 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T13:34:56.895Z",
-  "summary": "Diff adds engagement end-time support in backend types (with migration), frontend utilities to compute/format remaining time, UI to set engagement hours on provider profile, and client-facing displays with polling and engagement-change notices. However, backend engagement update APIs and auto-expiry behavior are not verifiable from the provided truncated backend diff. Several unrelated UI/theme/category/support features were also modified/added beyond the request.",
+  "generatedAt": "2026-02-11T14:20:23.941Z",
+  "summary": "Diff shows work in Provider Profile page and React Query hooks, plus backend type/model edits. However, due to truncation, only parts of the summary/edit flow are evidenced; several acceptance-criteria items (especially bio-data locking + helper text + backend enforcement and specific UI behaviors) are not clearly demonstrated in the provided diff summary. Additionally, the diff includes multiple changes (OTP messaging, location update hooks, engagement toggling) that are not requested by REQ-91..95.",
   "missing_requirements": [
     {
-      "id": "REQ-83",
-      "requirement": "Implement backend APIs for providers to set and clear engagement status with a duration (hours), including provider-only authorization and input validation with clear traps.",
-      "reason": "The diff shows frontend mutations/hooks calling new engagement APIs (e.g., useSetEngaged/useDisengage), but the backend/main.mo excerpt is truncated before any new engagement methods are shown. No backend function names/definitions for setting/clearing engagement with duration are visible in the provided diff summary.",
+      "id": "REQ-91",
+      "requirement": "Default Provider Profile view is a read-only summary with key provider details (Name, Service Category, Hourly Rate, Phone Number, Description, Pinned Location, Engagement Status) and no editable inputs by default.",
+      "reason": "ProviderProfilePage.tsx shows editMode state defaulting to false, but the diff snippet does not include the rendered JSX for the default view, so it does not confirm a read-only summary with the required fields and no inputs.",
       "evidence": [
-        "backend/main.mo (truncated)",
-        "frontend/src/hooks/useQueries.ts (truncated)",
-        "frontend/src/pages/provider/ProviderProfilePage.tsx"
+        "frontend/src/pages/provider/ProviderProfilePage.tsx (truncated)"
       ]
     },
     {
-      "id": "REQ-84",
-      "requirement": "Ensure provider-read endpoints automatically reflect Not Engaged after engagement end time passes, treating expired end times as cleared on reads.",
-      "reason": "While backend types now include engagementEndTime and frontend computes remaining time, the backend read-path logic to auto-expire engagement based on current time is not shown in the truncated backend/main.mo diff. No evidence of time comparison/clearing during getProvider/getProvider views is included in the visible excerpt.",
+      "id": "REQ-92",
+      "requirement": "Summary view has a visible “Change Info” button that enters edit mode, and a clear way to cancel/exit edit mode without saving and discard local changes.",
+      "reason": "The file shows editMode state and a handleEnterEditMode function, but the truncated snippet does not show a rendered button labeled exactly “Change Info” nor a Cancel path that discards unsaved edits.",
       "evidence": [
-        "backend/main.mo (truncated)",
-        "frontend/src/utils/engagementTime.ts",
-        "frontend/src/pages/client/ProviderDetailPage.tsx"
+        "frontend/src/pages/provider/ProviderProfilePage.tsx (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-93",
+      "requirement": "In edit mode, show an “Update/Save Changes” button enabled only when changes exist; disabled during save; success returns to summary with English success message; failure stays in edit mode with English error; data refetch/invalidation after save.",
+      "reason": "useQueries.ts mentions a provider profile update mutation (per file summary) but the provided truncated code does not show the actual update mutation implementation or cache invalidation; ProviderProfilePage.tsx truncation does not show the Update button enable/disable logic, save-in-progress behavior, or success/error UI behavior.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts (truncated)",
+        "frontend/src/pages/provider/ProviderProfilePage.tsx (truncated)",
+        "frontend-file-summaries.txt (useQueries.ts description)"
+      ]
+    },
+    {
+      "id": "REQ-94",
+      "requirement": "Bio-data fields are read-only in UI (even in edit mode) and backend rejects/ignores attempts to overwrite bio-data; include English helper text explaining bio-data cannot be changed because taken from an ID document; do not break onboarding/creation flows.",
+      "reason": "No bio-data fields or helper text are evidenced in the ProviderProfilePage.tsx snippet. Backend enforcement is not evidenced in backend/main.mo snippet (only type definitions shown; no update logic). Therefore the UI lock + server-side restriction + helper text cannot be confirmed from the diff summary.",
+      "evidence": [
+        "frontend/src/pages/provider/ProviderProfilePage.tsx (truncated)",
+        "backend/main.mo (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-95",
+      "requirement": "Remove/replace outdated Provider Profile copy about editing being available in a future update; ensure messaging matches new Change Info + Update flow in English.",
+      "reason": "The diff summary does not show removal of the specific outdated copy nor the new guidance text; ProviderProfilePage.tsx rendering is truncated.",
+      "evidence": [
+        "frontend/src/pages/provider/ProviderProfilePage.tsx (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Large expansion of service categories/business-type labeling beyond engagement scheduling work.",
-      "reason": "The request is limited to provider engagement scheduling + live remaining time; category expansion is unrelated.",
+      "description": "OTP verification error translation/user-friendly messaging changes and invalidation behavior.",
+      "reason": "REQ-91..95 focus on Provider Profile summary/edit flow and bio-data locking; OTP UX changes are unrelated.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/lib/categories.ts)",
-        "frontend-file-summaries.txt (frontend/src/pages/client/CategoriesPage.tsx)"
+        "frontend/src/hooks/useQueries.ts (truncated)"
       ]
     },
     {
-      "description": "Visual theme and global styling changes (e.g., new warm OKLCH palette, landing hero background).",
-      "reason": "Non-goal states not to redesign overall visual theme beyond what’s necessary for engagement controls/status; these changes appear broader.",
+      "description": "Pinned location update hooks for provider and client (useUpdateProviderPinnedLocation/useUpdateClientPinnedLocation) and associated authorization error translations.",
+      "reason": "Not requested by REQ-91..95 (even though pinned location must be displayed in summary, the request did not ask to add/update location update hooks as part of this change).",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/index.css)",
-        "frontend-file-summaries.txt (frontend/src/pages/LandingPage.tsx)"
+        "frontend/src/hooks/useQueries.ts (truncated)"
       ]
     },
     {
-      "description": "Added/changed support drawer contact information (phone/email) and footer attribution/UTM tracking.",
-      "reason": "Not requested by the engagement schedule requirements.",
+      "description": "Provider engagement status mutation flow (setEngaged/disengage) and related UI behavior (hours engaged input/validation/toasts).",
+      "reason": "Not requested by REQ-91..95; engagement status only needed for display in the summary, not new mutation flows.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/components/support/SupportDrawer.tsx)",
-        "frontend-file-summaries.txt (frontend/src/components/Footer.tsx)"
+        "frontend/src/pages/provider/ProviderProfilePage.tsx (truncated)",
+        "frontend-file-summaries.txt (useQueries.ts description mentions provider engagement mutations)"
       ]
     },
     {
-      "description": "Additional routing/navigation changes including new pages (e.g., client profile, access pages) and header navigation updates.",
-      "reason": "Not requested as part of engagement scheduling and live status display.",
+      "description": "Backend type/model additions unrelated to requested profile summary/edit flow (e.g., PlatformStats type, OTP management types, client profile fields pinnedLocation/isVerified).",
+      "reason": "Not requested by REQ-91..95; request constraints emphasized minimal backend changes tied to provider profile edit/locking behavior.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/App.tsx)",
-        "frontend-file-summaries.txt (frontend/src/components/Header.tsx)"
-      ]
-    },
-    {
-      "description": "Map view page simplified to show unavailable message and other client pages changes unrelated to engagement scheduling.",
-      "reason": "Out of scope for engagement scheduling feature set.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/pages/client/MapViewPage.tsx)",
-        "frontend-file-summaries.txt (frontend/src/pages/client/MyJobsPage.tsx)"
+        "backend/main.mo (truncated)"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.55,
   "changed_files": [
     "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/auth/RoleOnboarding.tsx",
-    "frontend/src/components/providers/ProviderPreviewDialog.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/client/ProviderDetailPage.tsx",
-    "frontend/src/pages/client/ProviderResultsPage.tsx",
     "frontend/src/pages/provider/ProviderProfilePage.tsx",
-    "frontend/src/utils/engagementTime.ts",
     "project_state.json"
   ]
 }

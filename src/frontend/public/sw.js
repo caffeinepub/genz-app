@@ -1,4 +1,7 @@
-const CACHE_NAME = 'genz-app-v1';
+// Extract version from service worker script URL
+const urlParams = new URLSearchParams(self.location.search);
+const SW_VERSION = urlParams.get('v') || 'v1';
+const CACHE_NAME = `genz-app-${SW_VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
 const PRECACHE_URLS = [
@@ -7,27 +10,42 @@ const PRECACHE_URLS = [
 ];
 
 self.addEventListener('install', (event) => {
+  console.log('[SW] Installing version:', SW_VERSION);
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(PRECACHE_URLS);
     })
   );
+  // Force the waiting service worker to become the active service worker
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating version:', SW_VERSION);
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
+          // Delete all old caches with the genz-app prefix but different version
+          if (cacheName.startsWith('genz-app-') && cacheName !== CACHE_NAME) {
+            console.log('[SW] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
+    }).then(() => {
+      // Take control of all clients immediately
+      return self.clients.claim();
     })
   );
-  self.clients.claim();
+});
+
+// Listen for skip waiting message from client
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[SW] Received SKIP_WAITING message');
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', (event) => {

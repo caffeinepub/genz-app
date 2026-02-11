@@ -144,6 +144,13 @@ export interface Document {
     filename: string;
     docType: DocumentType;
 }
+export interface ProviderProfileUpdate {
+    rate: bigint;
+    businessType: BusinessType;
+    description: string;
+    profilePicture?: ProfilePicture;
+    location: Location;
+}
 export interface ProfilePicture {
     id: string;
     blob: ExternalBlob;
@@ -266,5 +273,6 @@ export interface backendInterface {
     setMPesaConfig(config: MPesaConfig): Promise<void>;
     updateClientPinnedLocation(latitude: number, longitude: number, address: string): Promise<void>;
     updateProviderLocation(latitude: number, longitude: number, address: string): Promise<void>;
+    updateProviderProfile(update: ProviderProfileUpdate): Promise<void>;
     verifyOtp(code: string): Promise<boolean>;
 }

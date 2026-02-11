@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { UserRole, BusinessType, Location, VerificationStatus, Job, MPesaConfig, DocumentType, ExternalBlob, ProviderProfileView, OtpRole } from '../backend';
+import { UserRole, BusinessType, Location, VerificationStatus, Job, MPesaConfig, DocumentType, ExternalBlob, ProviderProfileView, OtpRole, ProviderProfileUpdate } from '../backend';
 import { Principal } from '@icp-sdk/core/principal';
 
 // User Profile & Authentication
@@ -116,6 +116,36 @@ export function useUpdateClientPinnedLocation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+// Provider Profile Update
+export function useUpdateProviderProfile() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (update: ProviderProfileUpdate) => {
+      if (!actor) throw new Error('Actor not available');
+      try {
+        await actor.updateProviderProfile(update);
+      } catch (error: any) {
+        // Translate backend errors into user-friendly messages
+        if (error.message?.includes('not a provider') || error.message?.includes('Unauthorized')) {
+          throw new Error('Only service providers can update their profile');
+        } else if (error.message?.includes('Bio-data') || error.message?.includes('cannot be changed')) {
+          throw new Error('Bio-data fields from your ID document cannot be modified');
+        } else if (error.message?.includes('Profile already exists')) {
+          throw new Error('Profile already exists. Use the update function to modify editable fields.');
+        }
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      // Invalidate queries to refresh profile data
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['provider'] });
     },
   });
 }

@@ -146,6 +146,13 @@ export const OtpRole = IDL.Variant({
   'provider' : IDL.Null,
 });
 export const Time = IDL.Int;
+export const ProviderProfileUpdate = IDL.Record({
+  'rate' : IDL.Nat,
+  'businessType' : BusinessType,
+  'description' : IDL.Text,
+  'profilePicture' : IDL.Opt(ProfilePicture),
+  'location' : Location,
+});
 
 export const idlService = IDL.Service({
   '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -246,6 +253,7 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'updateProviderProfile' : IDL.Func([ProviderProfileUpdate], [], []),
   'verifyOtp' : IDL.Func([IDL.Text], [IDL.Bool], []),
 });
 
@@ -384,6 +392,13 @@ export const idlFactory = ({ IDL }) => {
   });
   const OtpRole = IDL.Variant({ 'client' : IDL.Null, 'provider' : IDL.Null });
   const Time = IDL.Int;
+  const ProviderProfileUpdate = IDL.Record({
+    'rate' : IDL.Nat,
+    'businessType' : BusinessType,
+    'description' : IDL.Text,
+    'profilePicture' : IDL.Opt(ProfilePicture),
+    'location' : Location,
+  });
   
   return IDL.Service({
     '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -492,6 +507,7 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'updateProviderProfile' : IDL.Func([ProviderProfileUpdate], [], []),
     'verifyOtp' : IDL.Func([IDL.Text], [IDL.Bool], []),
   });
 };

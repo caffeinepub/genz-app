@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 61,
+  "projectStateVersion": 65,
   "summary": "Pivot to building \"Genz App\": an Uber/Bolt-style marketplace that connects clients with nearby service professionals in Kenya (especially Gen Z), with role-based logins, industry-based search, map-based location visibility, pricing/rates display, provider verification, ratings, and customer care access.",
   "architectural_notes": [
     "Role-based access control for three user types: provider, client, technical/back-office.",
@@ -22,9 +22,11 @@
     "App still not displaying for the user; likely related to missing/broken logo asset at `/assets/generated/genz-app-logo.dim_512x512.png` causing header image load failure.",
     "User wants the broken/unloaded header logo image removed while keeping the “Genz App” text; current logo asset/load path is still causing a broken image in the header.",
     "Production/live app link https://genz-app.icp0.io not working for user; user reports error feedback (previously seen: “Error 400 – Canister ID Not Resolved”), indicating deployment/canister resolution issue.",
-    "Provider self-reported engagement status changes (e.g., set to “Engaged” by provider) are not reflected on the client side (still shows “Not Engaged”); live/near-real-time integration appears not working or not deployed."
+    "Provider self-reported engagement status changes (e.g., set to “Engaged” by provider) are not reflected on the client side (still shows “Not Engaged”); live/near-real-time integration appears not working or not deployed.",
+    "Service Provider cannot see the Engaged/Not Engaged engagement toggle on the Provider Profile page; user appears to be seeing an older/outdated UI block instead (likely stale cached frontend or not on latest deployment/version).",
+    "Service Provider profile page lacks a visible “Update/Save” action when making changes, preventing providers from submitting updates."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-create-a-minimal-working-app-shell-that-loads-successfully-and-displays-a-landing-page-confirming-the-app-is-set-up",
@@ -633,6 +635,70 @@
         "REQ-87"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-ensure-the-service-provider-engagement-status-control-renders-as-an-interactive-engaged-not-engaged-toggle-with-hours-input-on-the-provider-profile-page-and-remove-avoid-showing-any-outdated-placeholder-copy-such-as-note-engagement-status-updates-will-be-available-in-a-future-update",
+      "title": "Ensure the Service Provider \"Engagement Status\" control renders as an interactive Engaged/Not Engaged toggle (with hours input) on the Provider Profile page, and remove/avoid showing any outdated placeholder copy such as “Note: Engagement status updates will be available in a future update.”",
+      "reqIds": [
+        "REQ-88"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-service-worker-caching-so-users-reliably-receive-the-latest-frontend-bundle-after-a-deployment-prevent-stale-ui-that-hides-the-engagement-toggle-update-the-service-worker-cache-versioning-strategy-so-older-caches-are-invalidated-on-new-deployments",
+      "title": "Fix service worker caching so users reliably receive the latest frontend bundle after a deployment (prevent stale UI that hides the engagement toggle). Update the service worker cache versioning strategy so older caches are invalidated on new deployments.",
+      "reqIds": [
+        "REQ-89"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-in-app-update-available-ux-so-when-a-new-service-worker-is-installed-activated-the-app-prompts-the-user-in-english-to-refresh-reload-to-get-the-latest-version-and-provides-a-one-click-action-to-reload",
+      "title": "Add an in-app “Update available” UX so when a new service worker is installed/activated, the app prompts the user in English to refresh/reload to get the latest version, and provides a one-click action to reload.",
+      "reqIds": [
+        "REQ-90"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-service-provider-profile-experience-so-that-immediately-after-a-service-provider-logs-in-and-navigates-to-my-profile-provider-profile-page-they-first-see-a-read-only-summary-of-their-provider-information-no-editable-inputs-by-default",
+      "title": "Update the Service Provider profile experience so that, immediately after a Service Provider logs in and navigates to “My Profile” (Provider Profile page), they first see a read-only summary of their provider information (no editable inputs by default).",
+      "reqIds": [
+        "REQ-91"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-clear-provider-facing-action-button-labeled-change-info-on-the-provider-profile-summary-view-that-switches-the-page-into-an-edit-mode-for-allowed-fields",
+      "title": "Add a clear provider-facing action button labeled “Change Info” on the Provider Profile summary view that switches the page into an edit mode for allowed fields.",
+      "reqIds": [
+        "REQ-92"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-provider-profile-edit-mode-add-an-explicit-update-or-save-changes-button-that-becomes-enabled-only-when-there-are-changes-and-persists-the-changes-to-the-backend-show-clear-english-success-error-feedback",
+      "title": "In Provider Profile edit mode, add an explicit “Update” (or “Save Changes”) button that becomes enabled only when there are changes and persists the changes to the backend; show clear English success/error feedback.",
+      "reqIds": [
+        "REQ-93"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enforce-that-provider-bio-data-identity-details-sourced-from-an-id-document-is-not-editable-in-the-app-by-making-those-fields-read-only-in-both-summary-and-edit-experiences-and-by-enforcing-the-same-restriction-server-side-so-attempts-to-modify-bio-data-are-ignored-or-rejected",
+      "title": "Enforce that provider bio-data (identity details sourced from an ID document) is not editable in the app by making those fields read-only in both summary and edit experiences, and by enforcing the same restriction server-side so attempts to modify bio-data are ignored or rejected.",
+      "reqIds": [
+        "REQ-94"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-remove-the-outdated-provider-profile-copy-that-says-profile-editing-will-be-available-in-a-future-update-and-ensure-the-provider-profile-page-messaging-matches-the-new-summary-first-change-info-update-flow",
+      "title": "Replace/remove the outdated Provider Profile copy that says profile editing will be available in a future update, and ensure the Provider Profile page messaging matches the new summary-first + Change Info + Update flow.",
+      "reqIds": [
+        "REQ-95"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -994,6 +1060,18 @@
       "reqIds": [
         "REQ-84"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-68",
+      "summary": "On Service Provider login, show a read-only summary view of their profile first; provide a clear “Change Info” button to enter edit mode for allowed fields.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-69",
+      "summary": "Enforce that provider bio-data (identity details sourced from ID document) is not editable in the app; only non-bio fields can be changed via the edit flow.",
+      "reqIds": [],
       "status": "pending"
     }
   ],

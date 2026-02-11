@@ -226,6 +226,13 @@ export interface _CaffeineStorageCreateCertificateResult {
     method: string;
     blob_hash: string;
 }
+export interface ProviderProfileUpdate {
+    rate: bigint;
+    businessType: BusinessType;
+    description: string;
+    profilePicture?: ProfilePicture;
+    location: Location;
+}
 export interface ProfilePicture {
     id: string;
     blob: ExternalBlob;
@@ -359,9 +366,10 @@ export interface backendInterface {
     setMPesaConfig(config: MPesaConfig): Promise<void>;
     updateClientPinnedLocation(latitude: number, longitude: number, address: string): Promise<void>;
     updateProviderLocation(latitude: number, longitude: number, address: string): Promise<void>;
+    updateProviderProfile(update: ProviderProfileUpdate): Promise<void>;
     verifyOtp(code: string): Promise<boolean>;
 }
-import type { BusinessType as _BusinessType, ClientProfile as _ClientProfile, Document as _Document, DocumentType as _DocumentType, ExternalBlob as _ExternalBlob, Job as _Job, Location as _Location, MPesaConfig as _MPesaConfig, OtpRole as _OtpRole, ProfilePicture as _ProfilePicture, ProviderProfileView as _ProviderProfileView, UserProfileView as _UserProfileView, UserRole as _UserRole, UserRole__1 as _UserRole__1, VerificationStatus as _VerificationStatus, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { BusinessType as _BusinessType, ClientProfile as _ClientProfile, Document as _Document, DocumentType as _DocumentType, ExternalBlob as _ExternalBlob, Job as _Job, Location as _Location, MPesaConfig as _MPesaConfig, OtpRole as _OtpRole, ProfilePicture as _ProfilePicture, ProviderProfileUpdate as _ProviderProfileUpdate, ProviderProfileView as _ProviderProfileView, UserProfileView as _UserProfileView, UserRole as _UserRole, UserRole__1 as _UserRole__1, VerificationStatus as _VerificationStatus, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -722,6 +730,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.updateProviderLocation(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async updateProviderProfile(arg0: ProviderProfileUpdate): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateProviderProfile(await to_candid_ProviderProfileUpdate_n64(this._uploadFile, this._downloadFile, arg0));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateProviderProfile(await to_candid_ProviderProfileUpdate_n64(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
@@ -1384,6 +1406,9 @@ function to_candid_OtpRole_n44(_uploadFile: (file: ExternalBlob) => Promise<Uint
 async function to_candid_ProfilePicture_n59(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ProfilePicture): Promise<_ProfilePicture> {
     return await to_candid_record_n60(_uploadFile, _downloadFile, value);
 }
+async function to_candid_ProviderProfileUpdate_n64(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ProviderProfileUpdate): Promise<_ProviderProfileUpdate> {
+    return await to_candid_record_n65(_uploadFile, _downloadFile, value);
+}
 function to_candid_UserRole__1_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole__1): _UserRole__1 {
     return to_candid_variant_n9(_uploadFile, _downloadFile, value);
 }
@@ -1534,6 +1559,27 @@ async function to_candid_record_n60(_uploadFile: (file: ExternalBlob) => Promise
     return {
         id: value.id,
         blob: await to_candid_ExternalBlob_n56(_uploadFile, _downloadFile, value.blob)
+    };
+}
+async function to_candid_record_n65(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    rate: bigint;
+    businessType: BusinessType;
+    description: string;
+    profilePicture?: ProfilePicture;
+    location: Location;
+}): Promise<{
+    rate: bigint;
+    businessType: _BusinessType;
+    description: string;
+    profilePicture: [] | [_ProfilePicture];
+    location: _Location;
+}> {
+    return {
+        rate: value.rate,
+        businessType: to_candid_BusinessType_n51(_uploadFile, _downloadFile, value.businessType),
+        description: value.description,
+        profilePicture: value.profilePicture ? candid_some(await to_candid_ProfilePicture_n59(_uploadFile, _downloadFile, value.profilePicture)) : candid_none(),
+        location: value.location
     };
 }
 function to_candid_variant_n45(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: OtpRole): {

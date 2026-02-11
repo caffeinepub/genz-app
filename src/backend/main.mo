@@ -8,7 +8,6 @@ import Nat "mo:core/Nat";
 import Time "mo:core/Time";
 import Int "mo:core/Int";
 import Array "mo:core/Array";
-import Migration "migration";
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
@@ -17,7 +16,6 @@ import MixinStorage "blob-storage/Mixin";
 import OutCall "http-outcalls/outcall";
 
 // Use migration mechanism to upgrade custom data model. Critical for persistence!
-(with migration = Migration.run)
 actor {
   // Types
   type Location = {
@@ -105,7 +103,7 @@ actor {
     description : Text;
     academicDocuments : List.List<Document>;
     goodConductCert : ?Document;
-    isEngaged : Bool; // deprecated, but constructor required for migration
+    isEngaged : Bool;
     engagementEndTime : ?Int;
   };
 
@@ -123,7 +121,7 @@ actor {
     academicDocuments : [Document];
     goodConductCert : ?Document;
     isEngaged : Bool;
-    engagementEndTime : ?Int; // Include engagement end time in view
+    engagementEndTime : ?Int;
   };
 
   public type ClientProfile = {
@@ -185,6 +183,15 @@ actor {
     role : OtpRole;
     code : Text;
     expiresAt : Time.Time;
+  };
+
+  // Type for editable provider profile fields (excludes bio-data)
+  public type ProviderProfileUpdate = {
+    rate : Nat;
+    businessType : BusinessType;
+    location : Location;
+    profilePicture : ?ProfilePicture;
+    description : Text;
   };
 
   // Component initialization
@@ -342,7 +349,9 @@ actor {
     convertUserProfileOptionToView(profile);
   };
 
-  // Enforce only public immutable API
+  // SECURITY: This function is for INITIAL profile creation only.
+  // Bio-data fields (name, phoneNumber from ID) cannot be modified after creation.
+  // Use updateProviderProfile() for subsequent edits of non-bio-data fields.
   public shared ({ caller }) func saveCallerUserProfile(profile : {
     role : UserRole;
     providerProfile : ?{
@@ -366,6 +375,17 @@ actor {
   }) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can save profiles");
+    };
+
+    // Check if profile already exists - prevent overwriting bio-data
+    let existingRole = userRoles.get(caller);
+    switch (existingRole) {
+      case (?_) {
+        Runtime.trap("Profile already exists. Use updateProviderProfile() to modify editable fields. Bio-data (name, phoneNumber) cannot be changed.");
+      };
+      case (null) {
+        // New profile creation allowed
+      };
     };
 
     userRoles.add(caller, profile.role);
@@ -406,6 +426,35 @@ actor {
       };
       case (null) {};
     };
+  };
+
+  // NEW: Update provider profile - ONLY editable fields, bio-data is protected
+  public shared ({ caller }) func updateProviderProfile(update : ProviderProfileUpdate) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can update profiles");
+    };
+
+    ensureIsProvider(caller);
+    let existingProfile = getProviderInternal(caller);
+
+    // Create updated profile preserving bio-data (name, phoneNumber, verificationStatus, etc.)
+    let updatedProfile = {
+      existingProfile with
+      rate = update.rate;
+      businessType = update.businessType;
+      location = update.location;
+      profilePicture = update.profilePicture;
+      description = update.description;
+      // Bio-data fields are NOT updated:
+      // - name (from ID document)
+      // - phoneNumber (from ID document)
+      // - verificationStatus (managed by admin/system)
+      // - academicDocuments (managed separately)
+      // - goodConductCert (managed separately)
+      // - ratings (managed by job completion)
+    };
+
+    providerProfiles.add(caller, updatedProfile);
   };
 
   func buildUserProfile(user : Principal) : ?UserProfile {

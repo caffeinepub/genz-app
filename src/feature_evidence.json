@@ -2,12 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-service-provider-profile-ui-to-make-engagement-status-interactive-allow-toggling-engaged-not-engaged-and-when-engaged-is-selected-require-the-provider-to-set-the-number-of-hours-they-will-remain-engaged-persist-changes-immediately-via-the-backend-no-future-update-placeholder-text",
-      "featureTitle": "Update the Service Provider profile UI to make engagement status interactive: allow toggling Engaged/Not Engaged and, when Engaged is selected, require the provider to set the number of hours they will remain engaged; persist changes immediately via the backend (no 'future update' placeholder text).",
+      "featureId": "feature-update-the-service-provider-profile-experience-so-that-immediately-after-a-service-provider-logs-in-and-navigates-to-my-profile-provider-profile-page-they-first-see-a-read-only-summary-of-their-provider-information-no-editable-inputs-by-default",
+      "featureTitle": "Update the Service Provider profile experience so that, immediately after a Service Provider logs in and navigates to “My Profile” (Provider Profile page), they first see a read-only summary of their provider information (no editable inputs by default).",
       "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/provider/ProviderProfilePage.tsx",
-        "frontend/src/utils/engagementTime.ts"
+        "frontend/src/pages/provider/ProviderProfilePage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -20,16 +18,15 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-85"
+        "REQ-91"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-client-facing-provider-surfaces-to-visibly-show-engagement-openness-display-engaged-not-engaged-plus-the-remaining-engaged-time-when-engaged-end-time-exists-in-the-provider-preview-dialog-and-provider-detail-page",
-      "featureTitle": "Update client-facing provider surfaces to visibly show engagement openness: display Engaged/Not Engaged plus the remaining engaged time (when engaged end time exists) in the Provider Preview dialog and Provider Detail page.",
+      "featureId": "feature-add-a-clear-provider-facing-action-button-labeled-change-info-on-the-provider-profile-summary-view-that-switches-the-page-into-an-edit-mode-for-allowed-fields",
+      "featureTitle": "Add a clear provider-facing action button labeled “Change Info” on the Provider Profile summary view that switches the page into an edit mode for allowed fields.",
       "files": [
-        "frontend/src/components/providers/ProviderPreviewDialog.tsx",
-        "frontend/src/pages/client/ProviderDetailPage.tsx"
+        "frontend/src/pages/provider/ProviderProfilePage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -42,17 +39,16 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-86"
+        "REQ-92"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-make-the-engagement-status-feel-live-to-clients-by-polling-provider-data-while-the-provider-preview-dialog-is-open-and-while-the-provider-detail-page-is-visible-and-update-the-ui-immediately-when-the-engagement-status-or-remaining-time-changes",
-      "featureTitle": "Make the engagement status feel 'live' to clients by polling provider data while the Provider Preview dialog is open and while the Provider Detail page is visible, and update the UI immediately when the engagement status or remaining time changes.",
+      "featureId": "feature-in-provider-profile-edit-mode-add-an-explicit-update-or-save-changes-button-that-becomes-enabled-only-when-there-are-changes-and-persists-the-changes-to-the-backend-show-clear-english-success-error-feedback",
+      "featureTitle": "In Provider Profile edit mode, add an explicit “Update” (or “Save Changes”) button that becomes enabled only when there are changes and persists the changes to the backend; show clear English success/error feedback.",
       "files": [
         "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/client/ProviderDetailPage.tsx",
-        "frontend/src/pages/client/ProviderResultsPage.tsx"
+        "frontend/src/pages/provider/ProviderProfilePage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -65,7 +61,49 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-87"
+        "REQ-93"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-enforce-that-provider-bio-data-identity-details-sourced-from-an-id-document-is-not-editable-in-the-app-by-making-those-fields-read-only-in-both-summary-and-edit-experiences-and-by-enforcing-the-same-restriction-server-side-so-attempts-to-modify-bio-data-are-ignored-or-rejected",
+      "featureTitle": "Enforce that provider bio-data (identity details sourced from an ID document) is not editable in the app by making those fields read-only in both summary and edit experiences, and by enforcing the same restriction server-side so attempts to modify bio-data are ignored or rejected.",
+      "files": [
+        "frontend/src/pages/provider/ProviderProfilePage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-94"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-replace-remove-the-outdated-provider-profile-copy-that-says-profile-editing-will-be-available-in-a-future-update-and-ensure-the-provider-profile-page-messaging-matches-the-new-summary-first-change-info-update-flow",
+      "featureTitle": "Replace/remove the outdated Provider Profile copy that says profile editing will be available in a future update, and ensure the Provider Profile page messaging matches the new summary-first + Change Info + Update flow.",
+      "files": [
+        "frontend/src/pages/provider/ProviderProfilePage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-95"
       ],
       "confidence": "high"
     }
