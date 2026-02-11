@@ -1,90 +1,50 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T14:20:23.941Z",
-  "summary": "Diff shows work in Provider Profile page and React Query hooks, plus backend type/model edits. However, due to truncation, only parts of the summary/edit flow are evidenced; several acceptance-criteria items (especially bio-data locking + helper text + backend enforcement and specific UI behaviors) are not clearly demonstrated in the provided diff summary. Additionally, the diff includes multiple changes (OTP messaging, location update hooks, engagement toggling) that are not requested by REQ-91..95.",
+  "generatedAt": "2026-02-11T14:29:45.989Z",
+  "summary": "Frontend was updated to fetch real provider results via a new React Query hook and to display engagement status on each provider card. However, the diff summary does not provide evidence that the backend exposes the required new/extended provider-browsing query API with correct engagement-time logic and authorization, and the provider-results empty-state behavior is not fully evidenced due to truncation.",
   "missing_requirements": [
     {
-      "id": "REQ-91",
-      "requirement": "Default Provider Profile view is a read-only summary with key provider details (Name, Service Category, Hourly Rate, Phone Number, Description, Pinned Location, Engagement Status) and no editable inputs by default.",
-      "reason": "ProviderProfilePage.tsx shows editMode state defaulting to false, but the diff snippet does not include the rendered JSX for the default view, so it does not confirm a read-only summary with the required fields and no inputs.",
+      "id": "REQ-97",
+      "requirement": "Add/extend a backend query API that returns a list of provider profiles suitable for client browsing (including each provider’s current engagement state), and ensure it is callable by authenticated clients.",
+      "reason": "The backend diff snippet only shows type definitions and imports; it does not show any new/updated public query method that returns an array of ProviderProfileView for browsing/filtering, nor logic to force isEngaged=false when engagementEndTime is in the past, nor authorization checks.",
       "evidence": [
-        "frontend/src/pages/provider/ProviderProfilePage.tsx (truncated)"
+        "backend/main.mo (truncated; no provider-results query method shown)"
       ]
     },
     {
-      "id": "REQ-92",
-      "requirement": "Summary view has a visible “Change Info” button that enters edit mode, and a clear way to cancel/exit edit mode without saving and discard local changes.",
-      "reason": "The file shows editMode state and a handleEnterEditMode function, but the truncated snippet does not show a rendered button labeled exactly “Change Info” nor a Cancel path that discards unsaved edits.",
+      "id": "REQ-96",
+      "requirement": "If there are genuinely zero providers for the filter, the UI shows an empty-state that indicates there are no providers for that category (not a placeholder message implying search is not implemented).",
+      "reason": "ProviderResultsPage shows loading skeletons and a providers count, but the diff is truncated before any explicit zero-results empty-state UI/message can be verified.",
       "evidence": [
-        "frontend/src/pages/provider/ProviderProfilePage.tsx (truncated)"
+        "frontend/src/pages/client/ProviderResultsPage.tsx (truncated)"
       ]
     },
     {
-      "id": "REQ-93",
-      "requirement": "In edit mode, show an “Update/Save Changes” button enabled only when changes exist; disabled during save; success returns to summary with English success message; failure stays in edit mode with English error; data refetch/invalidation after save.",
-      "reason": "useQueries.ts mentions a provider profile update mutation (per file summary) but the provided truncated code does not show the actual update mutation implementation or cache invalidation; ProviderProfilePage.tsx truncation does not show the Update button enable/disable logic, save-in-progress behavior, or success/error UI behavior.",
+      "id": "REQ-99",
+      "requirement": "If the backend call fails, the page shows a clear English error message and a retry action.",
+      "reason": "ProviderResultsPage imports AlertCircle and destructures isError/error/refetch, and the file summary claims error handling with retry, but the truncated diff does not show the rendered error state UI and retry control.",
       "evidence": [
-        "frontend/src/hooks/useQueries.ts (truncated)",
-        "frontend/src/pages/provider/ProviderProfilePage.tsx (truncated)",
-        "frontend-file-summaries.txt (useQueries.ts description)"
-      ]
-    },
-    {
-      "id": "REQ-94",
-      "requirement": "Bio-data fields are read-only in UI (even in edit mode) and backend rejects/ignores attempts to overwrite bio-data; include English helper text explaining bio-data cannot be changed because taken from an ID document; do not break onboarding/creation flows.",
-      "reason": "No bio-data fields or helper text are evidenced in the ProviderProfilePage.tsx snippet. Backend enforcement is not evidenced in backend/main.mo snippet (only type definitions shown; no update logic). Therefore the UI lock + server-side restriction + helper text cannot be confirmed from the diff summary.",
-      "evidence": [
-        "frontend/src/pages/provider/ProviderProfilePage.tsx (truncated)",
-        "backend/main.mo (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-95",
-      "requirement": "Remove/replace outdated Provider Profile copy about editing being available in a future update; ensure messaging matches new Change Info + Update flow in English.",
-      "reason": "The diff summary does not show removal of the specific outdated copy nor the new guidance text; ProviderProfilePage.tsx rendering is truncated.",
-      "evidence": [
-        "frontend/src/pages/provider/ProviderProfilePage.tsx (truncated)"
+        "frontend/src/pages/client/ProviderResultsPage.tsx (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "OTP verification error translation/user-friendly messaging changes and invalidation behavior.",
-      "reason": "REQ-91..95 focus on Provider Profile summary/edit flow and bio-data locking; OTP UX changes are unrelated.",
+      "description": "Added verification status badges (Verified/Pending/Rejected/Unverified) and rating display elements on provider cards beyond the requested engagement status indicator.",
+      "reason": "REQ-98 only asks to show engagement status (Engaged / Not Engaged/Available) on provider cards; the diff adds/contains additional visible badge logic and a star rating display that are not part of the stated requirements for this change.",
       "evidence": [
-        "frontend/src/hooks/useQueries.ts (truncated)"
-      ]
-    },
-    {
-      "description": "Pinned location update hooks for provider and client (useUpdateProviderPinnedLocation/useUpdateClientPinnedLocation) and associated authorization error translations.",
-      "reason": "Not requested by REQ-91..95 (even though pinned location must be displayed in summary, the request did not ask to add/update location update hooks as part of this change).",
-      "evidence": [
-        "frontend/src/hooks/useQueries.ts (truncated)"
-      ]
-    },
-    {
-      "description": "Provider engagement status mutation flow (setEngaged/disengage) and related UI behavior (hours engaged input/validation/toasts).",
-      "reason": "Not requested by REQ-91..95; engagement status only needed for display in the summary, not new mutation flows.",
-      "evidence": [
-        "frontend/src/pages/provider/ProviderProfilePage.tsx (truncated)",
-        "frontend-file-summaries.txt (useQueries.ts description mentions provider engagement mutations)"
-      ]
-    },
-    {
-      "description": "Backend type/model additions unrelated to requested profile summary/edit flow (e.g., PlatformStats type, OTP management types, client profile fields pinnedLocation/isVerified).",
-      "reason": "Not requested by REQ-91..95; request constraints emphasized minimal backend changes tied to provider profile edit/locking behavior.",
-      "evidence": [
-        "backend/main.mo (truncated)"
+        "frontend/src/components/providers/ProviderCard.tsx"
       ]
     }
   ],
-  "confidence": 0.55,
+  "confidence": 0.62,
   "changed_files": [
     "backend/main.mo",
     "frontend-file-summaries.txt",
+    "frontend/src/components/providers/ProviderCard.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/provider/ProviderProfilePage.tsx",
+    "frontend/src/pages/client/ProviderResultsPage.tsx",
     "project_state.json"
   ]
 }

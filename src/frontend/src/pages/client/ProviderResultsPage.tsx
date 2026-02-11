@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { useGetProvider } from '../../hooks/useQueries';
+import { useGetProvider, useGetProviderResults } from '../../hooks/useQueries';
 import { BusinessType, ProviderProfileView } from '../../backend';
 import { ProviderCard } from '../../components/providers/ProviderCard';
 import { ProviderPreviewDialog } from '../../components/providers/ProviderPreviewDialog';
 import { EngagementStatusNotice } from '../../components/notifications/EngagementStatusNotice';
 import { Button } from '../../components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { Skeleton } from '../../components/ui/skeleton';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { Principal } from '@icp-sdk/core/principal';
 import { getBusinessTypeLabel } from '../../lib/categories';
 
@@ -19,6 +20,15 @@ export function ProviderResultsPage({ businessType, onNavigate }: ProviderResult
   const [previewOpen, setPreviewOpen] = useState(false);
   const [showEngagementNotice, setShowEngagementNotice] = useState(false);
   const previousEngagementRef = useRef<boolean | null>(null);
+
+  // Fetch provider results from backend
+  const { 
+    data: providers, 
+    isLoading, 
+    isError, 
+    error,
+    refetch 
+  } = useGetProviderResults(businessType);
 
   // Fetch selected provider when preview is open with polling
   const { data: selectedProvider } = useGetProvider(
@@ -48,9 +58,6 @@ export function ProviderResultsPage({ businessType, onNavigate }: ProviderResult
       setShowEngagementNotice(false);
     }
   }, [previewOpen]);
-
-  // Mock providers list - in real app this would come from backend search
-  const providers: ProviderProfileView[] = [];
 
   const handleProviderClick = (providerId: string) => {
     setSelectedProviderId(providerId);
@@ -86,11 +93,37 @@ export function ProviderResultsPage({ businessType, onNavigate }: ProviderResult
           {businessType ? getBusinessTypeLabel(businessType) : 'All Providers'}
         </h1>
         <p className="mt-2 text-muted-foreground">
-          {providers?.length || 0} provider{providers?.length !== 1 ? 's' : ''} available
+          {isLoading ? 'Loading...' : `${providers?.length || 0} provider${providers?.length !== 1 ? 's' : ''} available`}
         </p>
       </div>
 
-      {providers && providers.length > 0 ? (
+      {isLoading ? (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="space-y-4 rounded-lg border p-6">
+              <div className="flex justify-center">
+                <Skeleton className="h-20 w-20 rounded-full" />
+              </div>
+              <Skeleton className="h-6 w-3/4" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          ))}
+        </div>
+      ) : isError ? (
+        <div className="flex min-h-[40vh] items-center justify-center">
+          <div className="text-center">
+            <AlertCircle className="mx-auto h-12 w-12 text-destructive" />
+            <h2 className="mt-4 text-2xl font-bold">Failed to Load Providers</h2>
+            <p className="mt-2 text-muted-foreground">
+              {error instanceof Error ? error.message : 'An error occurred while loading providers'}
+            </p>
+            <Button onClick={() => refetch()} className="mt-4">
+              Try Again
+            </Button>
+          </div>
+        </div>
+      ) : providers && providers.length > 0 ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {providers.map((provider) => (
             <ProviderCard
@@ -105,10 +138,12 @@ export function ProviderResultsPage({ businessType, onNavigate }: ProviderResult
           <div className="text-center">
             <h2 className="text-2xl font-bold">No Providers Found</h2>
             <p className="mt-2 text-muted-foreground">
-              Provider search functionality will be available soon
+              {businessType 
+                ? `There are currently no providers in the ${getBusinessTypeLabel(businessType)} category.`
+                : 'There are currently no providers available.'}
             </p>
             <Button onClick={() => onNavigate('categories')} className="mt-4">
-              Browse Categories
+              Browse Other Categories
             </Button>
           </div>
         </div>

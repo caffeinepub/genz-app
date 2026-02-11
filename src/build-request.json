@@ -1,111 +1,93 @@
 {
   "kind": "build_request",
-  "title": "Add provider profile summary-first view with Change Info + Update flow, and lock bio-data fields",
+  "title": "Fix client provider results so all providers show and display Engaged/Not Engaged status",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-91",
-      "text": "Update the Service Provider profile experience so that, immediately after a Service Provider logs in and navigates to “My Profile” (Provider Profile page), they first see a read-only summary of their provider information (no editable inputs by default).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "recent-messages-5"
-        ],
-        "quotes": [
-          "ENSURE THAT THE MOMENT THE SERVICE PROVIDER LOGS IN HE/SHE FIRST SEES A SUMMARY OF THE INFO"
-        ]
-      },
-      "acceptanceCriteria": [
-        "When the authenticated user role is Service Provider and they navigate to the Provider Profile page, the default view is a read-only summary (not an edit form).",
-        "The summary shows key provider details currently stored (at minimum: Name, Service Category, Hourly Rate, Phone Number, Description, Pinned Location, and Engagement Status).",
-        "No editable text inputs are shown in the default summary view."
-      ]
-    },
-    {
-      "id": "REQ-92",
-      "text": "Add a clear provider-facing action button labeled “Change Info” on the Provider Profile summary view that switches the page into an edit mode for allowed fields.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "recent-messages-5"
-        ],
-        "quotes": [
-          "IF THEY INTEND TO ALTER ANYTHING CREATE A BUTTON TO CHANGE INFO"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A visible button labeled “Change Info” is present on the Provider Profile summary view.",
-        "Clicking “Change Info” enters an edit mode that allows the provider to modify only allowed fields (see non-editable bio-data requirement).",
-        "There is a clear way to exit edit mode without saving (e.g., “Cancel” returns to the read-only summary and discards unsaved local changes)."
-      ]
-    },
-    {
-      "id": "REQ-93",
-      "text": "In Provider Profile edit mode, add an explicit “Update” (or “Save Changes”) button that becomes enabled only when there are changes and persists the changes to the backend; show clear English success/error feedback.",
+      "id": "REQ-96",
+      "text": "Replace the empty/mock provider list on the Client \"Provider Results\" page with real backend data so a logged-in client can see every service provider for the selected category (and also support viewing \"All Providers\" when no category filter is provided).",
       "target": "both",
       "source": {
         "messageIds": [
-          "recent-messages-5"
+          "recent-messages"
         ],
         "quotes": [
-          "THERE IS NO UPDATE BUTTON WHEN A SERVICE PROVIDER DOES ANY CHANGES IN THEIR PAGE"
+          "ENSURE THAT AS A CLIENT I CAN SEE EVERY SERVICE PROVIDER WHO IS ENGAGED OR NOT. RIGHT NOW I CANT SEE ANYTHING"
         ]
       },
       "acceptanceCriteria": [
-        "In edit mode, an “Update”/“Save Changes” button is visible and triggers a backend update for the edited provider fields.",
-        "The button is disabled while a save is in progress, and re-enabled afterward.",
-        "On successful save, the UI returns to the read-only summary view and shows a success message in English.",
-        "On failure, the UI stays in edit mode and shows a user-friendly English error message.",
-        "After a successful save, the Provider Profile data shown in the summary reflects the latest backend values (React Query caches are invalidated/refetched as needed)."
+        "When a logged-in client navigates to the provider results screen, the page loads a non-empty list if provider profiles exist in the backend (it must not always be an empty array).",
+        "If a category/businessType filter is selected, only providers matching that businessType are shown; if no filter is selected, providers across all business types are shown.",
+        "The provider count shown on the page reflects the number of providers returned from the backend query (not a constant 0).",
+        "If there are genuinely zero providers for the filter, the UI shows an empty-state that indicates there are no providers for that category (not a placeholder message implying search is not implemented)."
       ]
     },
     {
-      "id": "REQ-94",
-      "text": "Enforce that provider bio-data (identity details sourced from an ID document) is not editable in the app by making those fields read-only in both summary and edit experiences, and by enforcing the same restriction server-side so attempts to modify bio-data are ignored or rejected.",
-      "target": "both",
+      "id": "REQ-97",
+      "text": "Add/extend a backend query API that returns a list of provider profiles suitable for client browsing (including each provider’s current engagement state), and ensure it is callable by authenticated clients.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "recent-messages-5"
+          "recent-messages"
         ],
         "quotes": [
-          "BIO DATA IS SUPPOSED TO BE PICKED FROM AN ID DOCUMENT AS IT IS THEREFORE CANNOT BE ALTERED"
+          "ENSURE THAT AS A CLIENT I CAN SEE EVERY SERVICE PROVIDER WHO IS ENGAGED OR NOT. RIGHT NOW I CANT SEE ANYTHING"
         ]
       },
       "acceptanceCriteria": [
-        "Bio-data fields are displayed as read-only and cannot be edited in the UI (even in edit mode).",
-        "Backend update logic does not allow overwriting bio-data fields for an existing provider profile (server-side enforcement).",
-        "User-facing helper text in English explains that bio-data cannot be changed because it is taken from an ID document.",
-        "This change does not break existing onboarding/profile creation flows (initial creation can still set these fields, but later updates cannot modify them)."
+        "Backend exposes a query method that returns an array of ProviderProfileView for browsing/search results, optionally filtered by BusinessType.",
+        "Returned ProviderProfileView entries include correct `isEngaged` and `engagementEndTime` values.",
+        "If a provider’s `engagementEndTime` is in the past, the provider is returned as Not Engaged (`isEngaged` is false) to clients.",
+        "The method is authorized such that authenticated users can call it (consistent with existing getProvider behavior that requires #user permission)."
       ]
     },
     {
-      "id": "REQ-95",
-      "text": "Replace/remove the outdated Provider Profile copy that says profile editing will be available in a future update, and ensure the Provider Profile page messaging matches the new summary-first + Change Info + Update flow.",
+      "id": "REQ-98",
+      "text": "Update the client provider listing UI so each provider card clearly shows engagement status (Engaged / Not Engaged) in English, for every provider in the results grid.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages-5"
+          "recent-messages"
         ],
         "quotes": [
-          "THERE IS NO UPDATE BUTTON WHEN A SERVICE PROVIDER DOES ANY CHANGES IN THEIR PAGE"
+          "ENSURE THAT AS A CLIENT I CAN SEE EVERY SERVICE PROVIDER WHO IS ENGAGED OR NOT. RIGHT NOW I CANT SEE ANYTHING"
         ]
       },
       "acceptanceCriteria": [
-        "The text “Note: Profile editing will be available in a future update...” is not shown on the Provider Profile page.",
-        "All user-facing guidance on the Provider Profile page is in English and accurately describes how to update allowed fields (via “Change Info” then “Update”)."
+        "Each provider card in the results grid displays a visible status indicator with English text that distinguishes Engaged vs Not Engaged (or Available).",
+        "The status indicator uses the provider’s `isEngaged` value coming from the backend list query (not only from the preview modal polling).",
+        "The UI remains readable on mobile and desktop and does not break the existing card layout."
+      ]
+    },
+    {
+      "id": "REQ-99",
+      "text": "Add React Query wiring for the new/updated provider list query and integrate it into `frontend/src/pages/client/ProviderResultsPage.tsx`, including loading and error states with English user-facing text.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "ENSURE THAT AS A CLIENT I CAN SEE EVERY SERVICE PROVIDER WHO IS ENGAGED OR NOT. RIGHT NOW I CANT SEE ANYTHING"
+        ]
+      },
+      "acceptanceCriteria": [
+        "`ProviderResultsPage` uses a React Query hook (in `frontend/src/hooks/useQueries.ts`) to fetch providers instead of `const providers: ProviderProfileView[] = [];`.",
+        "While loading, the page shows a clear loading UI (e.g., skeletons or \"Loading providers…\").",
+        "If the backend call fails, the page shows a clear English error message and a retry action.",
+        "Selecting a provider still opens the existing preview dialog and continues to poll the selected provider every ~3 seconds while the dialog is open."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in `backend/main.mo` (no additional backend services).",
-    "Only create `backend/migration.mo` if a state/schema upgrade is required by the changes.",
-    "Do not edit frontend files under `frontend/src/components/ui` or other paths listed in `frontend.immutablePaths`; compose them instead.",
+    "Do not modify files under `frontend/src/components/ui` (compose existing UI components instead).",
+    "Backend must remain a single Motoko actor in `backend/main.mo`; only create `backend/migration.mo` if a state schema upgrade is required.",
     "All user-facing text must be in English."
   ],
   "nonGoals": [
-    "Do not implement OCR/ID-document scanning or automatic extraction of bio-data from images in this change.",
-    "Do not add third-party authentication providers (only Internet Identity).",
-    "Do not redesign unrelated client/back-office pages beyond what is necessary to support the provider summary/edit flow."
+    "Implement advanced geospatial proximity search or sorting logic.",
+    "Implement real-time subscriptions/WebSockets for engagement updates (polling is acceptable and already used).",
+    "Change payment/unlock behavior or contact gating as part of this fix."
   ],
   "imageRequirements": {
     "required": [],

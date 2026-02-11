@@ -1,70 +1,55 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T14:20:23.947Z",
+  "generatedAt": "2026-02-11T14:29:45.995Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 5,
-    "implemented": 5,
+    "total": 4,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-91",
-        "summary": "Update the Service Provider profile experience so that, immediately after a Service Provider logs in and navigates to “My Profile” (Provider Profile page), they first see a read-only summary of their provider information (no editable inputs by default).",
+        "id": "REQ-96",
+        "summary": "Replace the empty/mock provider list on the Client \"Provider Results\" page with real backend data so a logged-in client can see every service provider for the selected category (and also support viewing \"All Providers\" when no category filter is provided).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/provider/ProviderProfilePage.tsx"
+          "frontend/src/pages/client/ProviderResultsPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/provider/ProviderProfilePage.tsx"
+          "frontend/src/pages/client/ProviderResultsPage.tsx"
         ]
       },
       {
-        "id": "REQ-92",
-        "summary": "Add a clear provider-facing action button labeled “Change Info” on the Provider Profile summary view that switches the page into an edit mode for allowed fields.",
+        "id": "REQ-97",
+        "summary": "Add/extend a backend query API that returns a list of provider profiles suitable for client browsing (including each provider’s current engagement state), and ensure it is callable by authenticated clients.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-98",
+        "summary": "Update the client provider listing UI so each provider card clearly shows engagement status (Engaged / Not Engaged) in English, for every provider in the results grid.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/provider/ProviderProfilePage.tsx"
+          "frontend/src/components/providers/ProviderCard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/provider/ProviderProfilePage.tsx"
+          "frontend/src/components/providers/ProviderCard.tsx"
         ]
       },
       {
-        "id": "REQ-93",
-        "summary": "In Provider Profile edit mode, add an explicit “Update” (or “Save Changes”) button that becomes enabled only when there are changes and persists the changes to the backend; show clear English success/error feedback.",
+        "id": "REQ-99",
+        "summary": "Add React Query wiring for the new/updated provider list query and integrate it into `frontend/src/pages/client/ProviderResultsPage.tsx`, including loading and error states with English user-facing text.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/provider/ProviderProfilePage.tsx"
+          "frontend/src/pages/client/ProviderResultsPage.tsx"
         ],
         "matchedFiles": [
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/provider/ProviderProfilePage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-94",
-        "summary": "Enforce that provider bio-data (identity details sourced from an ID document) is not editable in the app by making those fields read-only in both summary and edit experiences, and by enforcing the same restriction server-side so attempts to modify bio-data are ignored or rejected.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/provider/ProviderProfilePage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/provider/ProviderProfilePage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-95",
-        "summary": "Replace/remove the outdated Provider Profile copy that says profile editing will be available in a future update, and ensure the Provider Profile page messaging matches the new summary-first + Change Info + Update flow.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/provider/ProviderProfilePage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/provider/ProviderProfilePage.tsx"
+          "frontend/src/pages/client/ProviderResultsPage.tsx"
         ]
       }
     ]
@@ -77,10 +62,11 @@
     "frontend-implementation-plan.json",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
+    "frontend/src/components/providers/ProviderCard.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/provider/ProviderProfilePage.tsx",
+    "frontend/src/pages/client/ProviderResultsPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

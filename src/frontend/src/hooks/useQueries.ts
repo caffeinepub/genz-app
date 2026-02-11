@@ -146,6 +146,7 @@ export function useUpdateProviderProfile() {
       // Invalidate queries to refresh profile data
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['provider'] });
+      queryClient.invalidateQueries({ queryKey: ['providerResults'] });
     },
   });
 }
@@ -174,6 +175,7 @@ export function useSetEngaged() {
       // Invalidate queries to refresh engagement state
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['provider'] });
+      queryClient.invalidateQueries({ queryKey: ['providerResults'] });
     },
   });
 }
@@ -199,6 +201,7 @@ export function useDisengage() {
       // Invalidate queries to refresh engagement state
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['provider'] });
+      queryClient.invalidateQueries({ queryKey: ['providerResults'] });
     },
   });
 }
@@ -217,6 +220,20 @@ export function useGetProvider(
     },
     enabled: !!actor && !isFetching,
     ...options,
+  });
+}
+
+// Provider Results for browsing/search
+export function useGetProviderResults(category: BusinessType | null) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<ProviderProfileView[]>({
+    queryKey: ['providerResults', category],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getProviderResults(category);
+    },
+    enabled: !!actor && !isFetching,
   });
 }
 

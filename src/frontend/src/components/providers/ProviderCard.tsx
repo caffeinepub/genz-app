@@ -51,6 +51,23 @@ export function ProviderCard({ provider, onClick }: ProviderCardProps) {
     );
   };
 
+  const getEngagementBadge = () => {
+    if (provider.isEngaged) {
+      return (
+        <Badge variant="destructive" className="gap-1">
+          <Clock className="h-3 w-3" />
+          Engaged
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="default" className="gap-1 bg-green-600 hover:bg-green-700">
+        <CheckCircle className="h-3 w-3" />
+        Available
+      </Badge>
+    );
+  };
+
   return (
     <Card
       className="cursor-pointer transition-all hover:shadow-soft"
@@ -64,9 +81,12 @@ export function ProviderCard({ provider, onClick }: ProviderCardProps) {
             size="md"
           />
         </div>
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-2">
           <CardTitle className="text-lg">{provider.name}</CardTitle>
-          {getVerificationBadge()}
+          <div className="flex flex-col gap-1">
+            {getVerificationBadge()}
+            {getEngagementBadge()}
+          </div>
         </div>
         <div className="flex items-center gap-1 text-sm text-muted-foreground">
           <MapPin className="h-3.5 w-3.5" />

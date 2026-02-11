@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-service-provider-profile-experience-so-that-immediately-after-a-service-provider-logs-in-and-navigates-to-my-profile-provider-profile-page-they-first-see-a-read-only-summary-of-their-provider-information-no-editable-inputs-by-default",
-      "featureTitle": "Update the Service Provider profile experience so that, immediately after a Service Provider logs in and navigates to “My Profile” (Provider Profile page), they first see a read-only summary of their provider information (no editable inputs by default).",
+      "featureId": "feature-replace-the-empty-mock-provider-list-on-the-client-provider-results-page-with-real-backend-data-so-a-logged-in-client-can-see-every-service-provider-for-the-selected-category-and-also-support-viewing-all-providers-when-no-category-filter-is-provided",
+      "featureTitle": "Replace the empty/mock provider list on the Client \"Provider Results\" page with real backend data so a logged-in client can see every service provider for the selected category (and also support viewing \"All Providers\" when no category filter is provided).",
       "files": [
-        "frontend/src/pages/provider/ProviderProfilePage.tsx"
+        "frontend/src/pages/client/ProviderResultsPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -18,15 +18,15 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-91"
+        "REQ-96"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-clear-provider-facing-action-button-labeled-change-info-on-the-provider-profile-summary-view-that-switches-the-page-into-an-edit-mode-for-allowed-fields",
-      "featureTitle": "Add a clear provider-facing action button labeled “Change Info” on the Provider Profile summary view that switches the page into an edit mode for allowed fields.",
+      "featureId": "feature-update-the-client-provider-listing-ui-so-each-provider-card-clearly-shows-engagement-status-engaged-not-engaged-in-english-for-every-provider-in-the-results-grid",
+      "featureTitle": "Update the client provider listing UI so each provider card clearly shows engagement status (Engaged / Not Engaged) in English, for every provider in the results grid.",
       "files": [
-        "frontend/src/pages/provider/ProviderProfilePage.tsx"
+        "frontend/src/components/providers/ProviderCard.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -39,16 +39,16 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-92"
+        "REQ-98"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-in-provider-profile-edit-mode-add-an-explicit-update-or-save-changes-button-that-becomes-enabled-only-when-there-are-changes-and-persists-the-changes-to-the-backend-show-clear-english-success-error-feedback",
-      "featureTitle": "In Provider Profile edit mode, add an explicit “Update” (or “Save Changes”) button that becomes enabled only when there are changes and persists the changes to the backend; show clear English success/error feedback.",
+      "featureId": "feature-add-react-query-wiring-for-the-new-updated-provider-list-query-and-integrate-it-into-frontend-src-pages-client-providerresultspage-tsx-including-loading-and-error-states-with-english-user-facing-text",
+      "featureTitle": "Add React Query wiring for the new/updated provider list query and integrate it into `frontend/src/pages/client/ProviderResultsPage.tsx`, including loading and error states with English user-facing text.",
       "files": [
         "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/provider/ProviderProfilePage.tsx"
+        "frontend/src/pages/client/ProviderResultsPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -61,49 +61,7 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-93"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-enforce-that-provider-bio-data-identity-details-sourced-from-an-id-document-is-not-editable-in-the-app-by-making-those-fields-read-only-in-both-summary-and-edit-experiences-and-by-enforcing-the-same-restriction-server-side-so-attempts-to-modify-bio-data-are-ignored-or-rejected",
-      "featureTitle": "Enforce that provider bio-data (identity details sourced from an ID document) is not editable in the app by making those fields read-only in both summary and edit experiences, and by enforcing the same restriction server-side so attempts to modify bio-data are ignored or rejected.",
-      "files": [
-        "frontend/src/pages/provider/ProviderProfilePage.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-94"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-replace-remove-the-outdated-provider-profile-copy-that-says-profile-editing-will-be-available-in-a-future-update-and-ensure-the-provider-profile-page-messaging-matches-the-new-summary-first-change-info-update-flow",
-      "featureTitle": "Replace/remove the outdated Provider Profile copy that says profile editing will be available in a future update, and ensure the Provider Profile page messaging matches the new summary-first + Change Info + Update flow.",
-      "files": [
-        "frontend/src/pages/provider/ProviderProfilePage.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-95"
+        "REQ-99"
       ],
       "confidence": "high"
     }

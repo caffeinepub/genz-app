@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 65,
+  "projectStateVersion": 67,
   "summary": "Pivot to building \"Genz App\": an Uber/Bolt-style marketplace that connects clients with nearby service professionals in Kenya (especially Gen Z), with role-based logins, industry-based search, map-based location visibility, pricing/rates display, provider verification, ratings, and customer care access.",
   "architectural_notes": [
     "Role-based access control for three user types: provider, client, technical/back-office.",
@@ -699,6 +699,30 @@
         "REQ-95"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-replace-the-empty-mock-provider-list-on-the-client-provider-results-page-with-real-backend-data-so-a-logged-in-client-can-see-every-service-provider-for-the-selected-category-and-also-support-viewing-all-providers-when-no-category-filter-is-provided",
+      "title": "Replace the empty/mock provider list on the Client \"Provider Results\" page with real backend data so a logged-in client can see every service provider for the selected category (and also support viewing \"All Providers\" when no category filter is provided).",
+      "reqIds": [
+        "REQ-96"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-client-provider-listing-ui-so-each-provider-card-clearly-shows-engagement-status-engaged-not-engaged-in-english-for-every-provider-in-the-results-grid",
+      "title": "Update the client provider listing UI so each provider card clearly shows engagement status (Engaged / Not Engaged) in English, for every provider in the results grid.",
+      "reqIds": [
+        "REQ-98"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-react-query-wiring-for-the-new-updated-provider-list-query-and-integrate-it-into-frontend-src-pages-client-providerresultspage-tsx-including-loading-and-error-states-with-english-user-facing-text",
+      "title": "Add React Query wiring for the new/updated provider list query and integrate it into `frontend/src/pages/client/ProviderResultsPage.tsx`, including loading and error states with English user-facing text.",
+      "reqIds": [
+        "REQ-99"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -1072,6 +1096,14 @@
       "id": "AR-69",
       "summary": "Enforce that provider bio-data (identity details sourced from ID document) is not editable in the app; only non-bio fields can be changed via the edit flow.",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-71",
+      "summary": "Add/extend a backend query API that returns a list of provider profiles suitable for client browsing (including each provider’s current engagement state), and ensure it is callable by authenticated clients.",
+      "reqIds": [
+        "REQ-97"
+      ],
       "status": "pending"
     }
   ],

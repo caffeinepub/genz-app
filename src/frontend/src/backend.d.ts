@@ -233,6 +233,7 @@ export enum UserRole__1 {
 export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole__1): Promise<void>;
     disengage(): Promise<void>;
+    getAllProviders(): Promise<Array<ProviderProfileView>>;
     getCallerUserProfile(): Promise<UserProfileView | null>;
     getCallerUserRole(): Promise<UserRole__1>;
     getClient(client: Principal): Promise<ClientProfile | null>;
@@ -240,6 +241,7 @@ export interface backendInterface {
     getMpesaConfig(): Promise<MPesaConfig | null>;
     getPlatformStats(): Promise<PlatformStats>;
     getProvider(provider: Principal): Promise<ProviderProfileView | null>;
+    getProviderResults(category: BusinessType | null): Promise<Array<ProviderProfileView>>;
     getUserProfile(user: Principal): Promise<UserProfileView | null>;
     initiateOtp(phoneNumber: string, role: OtpRole): Promise<{
         expiresAt: Time;

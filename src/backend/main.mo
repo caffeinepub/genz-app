@@ -631,6 +631,38 @@ actor {
     };
   };
 
+  // NEW: Enhanced fetch provider API for browsing
+  public query ({ caller }) func getProviderResults(category : ?BusinessType) : async [ProviderProfileView] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can fetch providers");
+    };
+
+    let filteredProviders = List.empty<ProviderProfileView>();
+
+    for ((_, profile) in providerProfiles.entries()) {
+      let matchesCategory = switch (category) {
+        case (null) { true };
+        case (?filterCat) { profile.businessType == filterCat };
+      };
+      if (matchesCategory) {
+        filteredProviders.add(convertProviderProfileToView(profile));
+      };
+    };
+
+    filteredProviders.values().toArray();
+  };
+
+  public query ({ caller }) func getAllProviders() : async [ProviderProfileView] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can fetch providers");
+    };
+    let allViews = List.empty<ProviderProfileView>();
+    for ((_, profile) in providerProfiles.entries()) {
+      allViews.add(convertProviderProfileToView(profile));
+    };
+    allViews.values().toArray();
+  };
+
   // Public stats for landing page - no authentication required
   public query func getPlatformStats() : async PlatformStats {
     {

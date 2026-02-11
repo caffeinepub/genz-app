@@ -24,22 +24,6 @@ export const UserRole__1 = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
-export const UserRole = IDL.Variant({
-  'client' : IDL.Null,
-  'provider' : IDL.Null,
-  'backOffice' : IDL.Null,
-});
-export const Location = IDL.Record({
-  'latitude' : IDL.Float64,
-  'longitude' : IDL.Float64,
-  'address' : IDL.Text,
-});
-export const ClientProfile = IDL.Record({
-  'principal' : IDL.Principal,
-  'pinnedLocation' : IDL.Opt(Location),
-  'isVerified' : IDL.Bool,
-  'phoneNumber' : IDL.Text,
-});
 export const BusinessType = IDL.Variant({
   'it' : IDL.Null,
   'repair' : IDL.Null,
@@ -90,6 +74,11 @@ export const ProfilePicture = IDL.Record({
   'id' : IDL.Text,
   'blob' : ExternalBlob,
 });
+export const Location = IDL.Record({
+  'latitude' : IDL.Float64,
+  'longitude' : IDL.Float64,
+  'address' : IDL.Text,
+});
 export const VerificationStatus = IDL.Variant({
   'verified' : IDL.Null,
   'pending' : IDL.Null,
@@ -111,6 +100,17 @@ export const ProviderProfileView = IDL.Record({
   'goodConductCert' : IDL.Opt(Document),
   'verificationStatus' : VerificationStatus,
   'isEngaged' : IDL.Bool,
+});
+export const UserRole = IDL.Variant({
+  'client' : IDL.Null,
+  'provider' : IDL.Null,
+  'backOffice' : IDL.Null,
+});
+export const ClientProfile = IDL.Record({
+  'principal' : IDL.Principal,
+  'pinnedLocation' : IDL.Opt(Location),
+  'isVerified' : IDL.Bool,
+  'phoneNumber' : IDL.Text,
 });
 export const UserProfileView = IDL.Record({
   'role' : UserRole,
@@ -184,6 +184,7 @@ export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
   'disengage' : IDL.Func([], [], []),
+  'getAllProviders' : IDL.Func([], [IDL.Vec(ProviderProfileView)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfileView)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
   'getClient' : IDL.Func([IDL.Principal], [IDL.Opt(ClientProfile)], ['query']),
@@ -193,6 +194,11 @@ export const idlService = IDL.Service({
   'getProvider' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(ProviderProfileView)],
+      ['query'],
+    ),
+  'getProviderResults' : IDL.Func(
+      [IDL.Opt(BusinessType)],
+      [IDL.Vec(ProviderProfileView)],
       ['query'],
     ),
   'getUserProfile' : IDL.Func(
@@ -276,22 +282,6 @@ export const idlFactory = ({ IDL }) => {
     'user' : IDL.Null,
     'guest' : IDL.Null,
   });
-  const UserRole = IDL.Variant({
-    'client' : IDL.Null,
-    'provider' : IDL.Null,
-    'backOffice' : IDL.Null,
-  });
-  const Location = IDL.Record({
-    'latitude' : IDL.Float64,
-    'longitude' : IDL.Float64,
-    'address' : IDL.Text,
-  });
-  const ClientProfile = IDL.Record({
-    'principal' : IDL.Principal,
-    'pinnedLocation' : IDL.Opt(Location),
-    'isVerified' : IDL.Bool,
-    'phoneNumber' : IDL.Text,
-  });
   const BusinessType = IDL.Variant({
     'it' : IDL.Null,
     'repair' : IDL.Null,
@@ -339,6 +329,11 @@ export const idlFactory = ({ IDL }) => {
     'docType' : DocumentType,
   });
   const ProfilePicture = IDL.Record({ 'id' : IDL.Text, 'blob' : ExternalBlob });
+  const Location = IDL.Record({
+    'latitude' : IDL.Float64,
+    'longitude' : IDL.Float64,
+    'address' : IDL.Text,
+  });
   const VerificationStatus = IDL.Variant({
     'verified' : IDL.Null,
     'pending' : IDL.Null,
@@ -360,6 +355,17 @@ export const idlFactory = ({ IDL }) => {
     'goodConductCert' : IDL.Opt(Document),
     'verificationStatus' : VerificationStatus,
     'isEngaged' : IDL.Bool,
+  });
+  const UserRole = IDL.Variant({
+    'client' : IDL.Null,
+    'provider' : IDL.Null,
+    'backOffice' : IDL.Null,
+  });
+  const ClientProfile = IDL.Record({
+    'principal' : IDL.Principal,
+    'pinnedLocation' : IDL.Opt(Location),
+    'isVerified' : IDL.Bool,
+    'phoneNumber' : IDL.Text,
   });
   const UserProfileView = IDL.Record({
     'role' : UserRole,
@@ -430,6 +436,7 @@ export const idlFactory = ({ IDL }) => {
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
     'disengage' : IDL.Func([], [], []),
+    'getAllProviders' : IDL.Func([], [IDL.Vec(ProviderProfileView)], ['query']),
     'getCallerUserProfile' : IDL.Func(
         [],
         [IDL.Opt(UserProfileView)],
@@ -447,6 +454,11 @@ export const idlFactory = ({ IDL }) => {
     'getProvider' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(ProviderProfileView)],
+        ['query'],
+      ),
+    'getProviderResults' : IDL.Func(
+        [IDL.Opt(BusinessType)],
+        [IDL.Vec(ProviderProfileView)],
         ['query'],
       ),
     'getUserProfile' : IDL.Func(

@@ -157,6 +157,7 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole__1], undefined>,
   'disengage' : ActorMethod<[], undefined>,
+  'getAllProviders' : ActorMethod<[], Array<ProviderProfileView>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfileView]>,
   'getCallerUserRole' : ActorMethod<[], UserRole__1>,
   'getClient' : ActorMethod<[Principal], [] | [ClientProfile]>,
@@ -164,6 +165,10 @@ export interface _SERVICE {
   'getMpesaConfig' : ActorMethod<[], [] | [MPesaConfig]>,
   'getPlatformStats' : ActorMethod<[], PlatformStats>,
   'getProvider' : ActorMethod<[Principal], [] | [ProviderProfileView]>,
+  'getProviderResults' : ActorMethod<
+    [[] | [BusinessType]],
+    Array<ProviderProfileView>
+  >,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfileView]>,
   'initiateOtp' : ActorMethod<
     [string, OtpRole],

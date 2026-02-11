@@ -1,92 +1,60 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Provider Profile summary-first view with Change Info edit mode and Update flow",
+  "title": "Client Provider Results: load real provider list and show Engaged/Not Engaged status",
   "requirements": [
     {
-      "id": "REQ-91",
-      "summary": "Show a read-only provider profile summary by default (no editable inputs) for authenticated Service Providers on My Profile.",
+      "id": "REQ-96",
+      "summary": "Use real provider results data (all providers or filtered by selected category) instead of the mock empty list on the client Provider Results page.",
       "acceptanceCriteria": [
-        "When the authenticated user role is Service Provider and they navigate to the Provider Profile page, the default view is a read-only summary (not an edit form).",
-        "The summary shows key provider details currently stored (at minimum: Name, Service Category, Hourly Rate, Phone Number, Description, Pinned Location, and Engagement Status).",
-        "No editable text inputs are shown in the default summary view."
+        "When a logged-in client navigates to the provider results screen, the page loads a non-empty list if provider profiles exist in the backend (it must not always be an empty array).",
+        "If a category/businessType filter is selected, only providers matching that businessType are shown; if no filter is selected, providers across all business types are shown.",
+        "The provider count shown on the page reflects the number of providers returned from the backend query (not a constant 0).",
+        "If there are genuinely zero providers for the filter, the UI shows an empty-state that indicates there are no providers for that category (not a placeholder message implying search is not implemented)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/provider/ProviderProfilePage.tsx",
+          "path": "frontend/src/pages/client/ProviderResultsPage.tsx",
           "operation": "modify",
-          "description": "Refactor the Provider Profile page into a summary-first UI: default to a read-only summary section rendering key provider fields as plain text (not Input/Textarea/LocationPicker/Switch). Ensure the summary includes Name, Service Category, Hourly Rate, Phone Number, Description, Pinned Location (address + coordinates if desired), and Engagement Status (including remaining time when engaged). Use existing shadcn-ui composed components (e.g., Card, Button, etc.) for layout; verify the component's usage instructions before implementing."
+          "description": "Replace the mock `providers: ProviderProfileView[] = []` with data returned from a React Query hook that calls the backend capability for provider browsing results (supporting `businessType` filter and the \"All Providers\" case when null). Ensure the header count uses the fetched list length and replace the current placeholder empty message with a truthful empty-state for zero results. Use existing shadcn-ui-based UI primitives already in the page (e.g., Button) and keep all user-facing text in English. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-92",
-      "summary": "Add a provider-facing “Change Info” action to enter edit mode for allowed provider fields, with a Cancel action to discard changes.",
+      "id": "REQ-98",
+      "summary": "Show a clear Engaged / Not Engaged status indicator on every provider card in the results grid using the backend-provided `isEngaged` value.",
       "acceptanceCriteria": [
-        "A visible button labeled “Change Info” is present on the Provider Profile summary view.",
-        "Clicking “Change Info” enters an edit mode that allows the provider to modify only allowed fields (see non-editable bio-data requirement).",
-        "There is a clear way to exit edit mode without saving (e.g., “Cancel” returns to the read-only summary and discards unsaved local changes)."
+        "Each provider card in the results grid displays a visible status indicator with English text that distinguishes Engaged vs Not Engaged (or Available).",
+        "The status indicator uses the provider’s `isEngaged` value coming from the backend list query (not only from the preview modal polling).",
+        "The UI remains readable on mobile and desktop and does not break the existing card layout."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/provider/ProviderProfilePage.tsx",
+          "path": "frontend/src/components/providers/ProviderCard.tsx",
           "operation": "modify",
-          "description": "Add an explicit page-level editMode state. On the summary view, render a prominent “Change Info” button that switches to editMode and initializes local draft state from the latest providerProfile. In editMode, render a “Cancel” button that exits editMode and resets/discards any unsaved local draft changes. Use existing shadcn-ui Button/Card building blocks; verify the component's usage instructions before implementing."
+          "description": "Add an engagement status badge/label to the provider card layout that reads \"Engaged\" when `provider.isEngaged` is true and \"Not Engaged\" (or \"Available\") when false. Compose existing shadcn-ui-based components already used here (e.g., Badge) without modifying anything under `frontend/src/components/ui`. Keep text in English and ensure the indicator fits within the existing responsive card layout. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-93",
-      "summary": "Provide an Update/Save Changes button in edit mode that saves allowed changes, with proper disabled/loading states, success/error feedback, and cache refresh.",
+      "id": "REQ-99",
+      "summary": "Add React Query hook wiring for provider results and integrate it into ProviderResultsPage with loading/error states and retry, while keeping the existing provider preview dialog polling behavior intact.",
       "acceptanceCriteria": [
-        "In edit mode, an “Update”/“Save Changes” button is visible and triggers a backend update for the edited provider fields.",
-        "The button is disabled while a save is in progress, and re-enabled afterward.",
-        "On successful save, the UI returns to the read-only summary view and shows a success message in English.",
-        "On failure, the UI stays in edit mode and shows a user-friendly English error message.",
-        "After a successful save, the Provider Profile data shown in the summary reflects the latest backend values (React Query caches are invalidated/refetched as needed)."
+        "`ProviderResultsPage` uses a React Query hook (in `frontend/src/hooks/useQueries.ts`) to fetch providers instead of `const providers: ProviderProfileView[] = [];`.",
+        "While loading, the page shows a clear loading UI (e.g., skeletons or \"Loading providers…\").",
+        "If the backend call fails, the page shows a clear English error message and a retry action.",
+        "Selecting a provider still opens the existing preview dialog and continues to poll the selected provider every ~3 seconds while the dialog is open."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add a React Query mutation hook for saving provider profile edits via the existing backend capability (updateProviderProfile). Ensure it invalidates/refetches the current user profile query (and any provider detail query keys used elsewhere) after success, and translates common authorization/validation traps into user-friendly English errors."
+          "description": "Add a new React Query hook (e.g., `useGetProviderResults`) that calls the backend actor method for provider browsing results with an optional `BusinessType | null` filter. Gate the query with actor availability (and keep consistent with the app’s authorization/authentication flow) and expose a queryKey that includes the filter so switching categories refetches correctly. This uses React Query infrastructure from core-infrastructure and authentication expectations from authorization. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/provider/ProviderProfilePage.tsx",
+          "path": "frontend/src/pages/client/ProviderResultsPage.tsx",
           "operation": "modify",
-          "description": "In editMode, render an “Update”/“Save Changes” button wired to the new provider update mutation. Track a local draft of editable fields and compute a hasChanges flag versus the last fetched providerProfile; only enable the button when hasChanges is true and no save is in progress. Disable controls while saving. On success: show an English toast success message, exit editMode, and rely on query invalidation to refresh the summary. On error: keep editMode, show an English toast error message. Use existing shadcn-ui components and current toast system; verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-94",
-      "summary": "Make provider bio-data fields read-only in both summary and edit experiences, and clearly explain why they cannot be changed.",
-      "acceptanceCriteria": [
-        "Bio-data fields are displayed as read-only and cannot be edited in the UI (even in edit mode).",
-        "Backend update logic does not allow overwriting bio-data fields for an existing provider profile (server-side enforcement).",
-        "User-facing helper text in English explains that bio-data cannot be changed because it is taken from an ID document.",
-        "This change does not break existing onboarding/profile creation flows (initial creation can still set these fields, but later updates cannot modify them)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/provider/ProviderProfilePage.tsx",
-          "operation": "modify",
-          "description": "Define and enforce a clear separation between non-editable bio-data fields (at minimum: Name and Phone Number) and editable fields. In summary view, show bio-data as plain text. In editMode, do not render editable controls for bio-data; instead show them as read-only display with an English helper note explaining they come from an ID document and cannot be changed. Ensure the save payload only includes allowed editable fields (rate, service category/business type, description, location, profile picture if supported) and never attempts to update bio-data. Use composed shadcn-ui components for helper text/layout; verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-95",
-      "summary": "Remove outdated Provider Profile messaging and replace with guidance matching the new summary-first + Change Info + Update flow.",
-      "acceptanceCriteria": [
-        "The text “Note: Profile editing will be available in a future update...” is not shown on the Provider Profile page.",
-        "All user-facing guidance on the Provider Profile page is in English and accurately describes how to update allowed fields (via “Change Info” then “Update”)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/provider/ProviderProfilePage.tsx",
-          "operation": "modify",
-          "description": "Remove the outdated note about profile editing being available in a future update. Replace it with concise English guidance that matches the new flow: view summary by default, click “Change Info” to edit allowed fields, then click “Update” to save (and use “Cancel” to discard). Use existing typography and shadcn-ui composition; verify the component's usage instructions before implementing."
+          "description": "Integrate the new provider results hook: render an English loading state (e.g., \"Loading providers…\") while fetching, render an English error state with a retry action (using the query `refetch`), and render the fetched grid or a truthful empty-state. Preserve existing selection behavior so clicking a provider still opens `ProviderPreviewDialog`, and keep the existing `useGetProvider` polling (every ~3 seconds) when the dialog is open. Compose existing shadcn-ui-based components (e.g., Button) and do not modify `frontend/src/components/ui/*`. Verify the component's usage instructions before implementing."
         }
       ]
     }

@@ -1,14 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Make the Provider Profile page summary-first (read-only by default) with an explicit “Change Info” → “Update” flow, while preventing any post-onboarding edits to provider bio-data.
+**Goal:** Fix the Client “Provider Results” page to show real provider profiles from the backend (optionally filtered by category/businessType) and clearly display each provider’s Engaged / Not Engaged status.
 
 **Planned changes:**
-- Update the Provider Profile page so Service Providers see a read-only summary view by default after navigating to “My Profile” (no editable inputs shown initially).
-- Display key provider details in the summary (at minimum: Name, Service Category, Hourly Rate, Phone Number, Description, Pinned Location, Engagement Status).
-- Add a “Change Info” button to enter edit mode for allowed fields, plus a “Cancel” action to exit edit mode without saving.
-- In edit mode, add an “Update”/“Save Changes” button that is enabled only when changes exist, saves to the backend, disables during save, and shows clear English success/error feedback; refresh summary data after successful save.
-- Lock provider bio-data fields as read-only in the UI and enforce the same restriction server-side so bio-data cannot be modified after initial creation; add English helper text explaining bio-data is sourced from an ID document.
-- Remove/replace outdated Provider Profile messaging about editing being available in a future update and ensure all guidance matches the new flow in English.
+- Backend: add/extend an authenticated query that returns a list of provider profiles for client browsing, optionally filtered by BusinessType, including `isEngaged` and `engagementEndTime` (treat past `engagementEndTime` as Not Engaged).
+- Frontend: replace the current empty/mock provider array on `ProviderResultsPage` with React Query fetching from the backend list query, including loading and error UI with English text and a retry action.
+- Frontend: update provider cards in the results grid to show an English engagement status indicator (Engaged / Not Engaged) based on the backend list query data, while preserving the existing preview dialog behavior and polling when the dialog is open.
+- Frontend: ensure provider counts and empty-state messaging reflect real backend results (including a “no providers for this category” empty-state when appropriate).
 
-**User-visible outcome:** Service Providers land on a read-only “My Profile” summary, can tap “Change Info” to edit only allowed fields, then tap “Update” to save with clear feedback; bio-data fields remain non-editable and explained in English.
+**User-visible outcome:** A logged-in client can browse a non-empty list of providers (or a correct empty-state), filter by category or view all providers, see accurate provider counts, and view each provider’s Engaged / Not Engaged status directly on the results cards.
