@@ -56,7 +56,7 @@ export function ProviderDatasetToolsPanel({ isAdmin }: ProviderDatasetToolsPanel
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Technical Team Tools</CardTitle>
+          <CardTitle>Administrator Tools</CardTitle>
           <CardDescription>Provider dataset management</CardDescription>
         </CardHeader>
         <CardContent>
@@ -64,7 +64,7 @@ export function ProviderDatasetToolsPanel({ isAdmin }: ProviderDatasetToolsPanel
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Permission Denied</AlertTitle>
             <AlertDescription>
-              You do not have permission to perform these actions. Only administrators can manage the provider dataset.
+              You do not have permission to perform these actions. Only Administrators can manage the provider dataset.
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -75,7 +75,7 @@ export function ProviderDatasetToolsPanel({ isAdmin }: ProviderDatasetToolsPanel
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Technical Team Tools</CardTitle>
+        <CardTitle>Administrator Tools</CardTitle>
         <CardDescription>Manage the service provider dataset for testing and development</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -198,6 +198,14 @@ function generateSeedData(): Array<[Principal, ProviderProfileView]> {
     'Expert in the field with modern tools and techniques. Offering same-day service for urgent needs.',
   ];
 
+  const servicesWriteUps = [
+    'I specialize in residential and commercial projects with a focus on quality craftsmanship. My services include installations, repairs, maintenance, and emergency call-outs. I use modern equipment and follow industry best practices.',
+    'Offering comprehensive solutions tailored to your needs. I handle everything from basic maintenance to complex installations. Available for one-time jobs or ongoing service contracts.',
+    'Professional service with attention to detail. I provide free consultations and transparent pricing. My work is guaranteed and I always clean up after completing a job.',
+    'Experienced in both residential and commercial settings. I offer flexible scheduling including evenings and weekends. All work is completed to code and comes with a satisfaction guarantee.',
+    'Providing reliable and efficient service. I specialize in troubleshooting and problem-solving. Quick turnaround times and competitive rates. References available upon request.',
+  ];
+
   // Distribute providers across categories
   const categoriesWithProviders = CATEGORIES.slice(0, 15); // Use first 15 categories
   
@@ -209,6 +217,7 @@ function generateSeedData(): Array<[Principal, ProviderProfileView]> {
       const nameIndex = (categoryIndex * 3 + i) % sampleNames.length;
       const locationIndex = (categoryIndex * 2 + i) % locations.length;
       const descIndex = (categoryIndex + i) % descriptions.length;
+      const servicesIndex = (categoryIndex + i) % servicesWriteUps.length;
       
       // Generate a unique principal for each provider
       const principalBytes = new Uint8Array(29);
@@ -224,14 +233,18 @@ function generateSeedData(): Array<[Principal, ProviderProfileView]> {
         ? BigInt(Date.now() * 1_000_000 + (2 + Math.floor(Math.random() * 6)) * 3600 * 1_000_000_000)
         : undefined;
       
+      const fullName = sampleNames[nameIndex];
+      const surname = fullName.split(' ')[1] || 'Unknown';
+      const lastName = fullName.split(' ')[0] || 'Unknown';
+      
       const provider: ProviderProfileView = {
         principal,
-        surname: sampleNames[nameIndex].split(' ')[1] || 'Unknown',
+        surname,
         middleName: 'M',
-        lastName: sampleNames[nameIndex].split(' ')[0] || 'Unknown',
+        lastName,
         yearOfBirth: String(1980 + Math.floor(Math.random() * 30)),
         idNumber: String(10000000 + Math.floor(Math.random() * 90000000)),
-        name: sampleNames[nameIndex],
+        name: fullName,
         rate: BigInt(500 + Math.floor(Math.random() * 2000)),
         businessType: category.businessType,
         location: locations[locationIndex],
@@ -245,6 +258,9 @@ function generateSeedData(): Array<[Principal, ProviderProfileView]> {
         isEngaged,
         engagementEndTime,
         category: category.businessType,
+        displayName: fullName,
+        servicesWriteUp: servicesWriteUps[servicesIndex],
+        workSampleImages: [],
       };
       
       providers.push([principal, provider]);

@@ -1,19 +1,20 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useGetProvider } from '@/hooks/useQueries';
+import { StarRatingDisplay } from '@/components/ratings/StarRatingDisplay';
+import { WorkSampleGalleryViewer } from '@/components/providers/WorkSampleGalleryViewer';
+import { MapPin, Phone, Mail, Clock, CheckCircle, AlertCircle, FileText, Info } from 'lucide-react';
+import { formatRemainingTime } from '@/utils/engagementTime';
+import { getBusinessTypeLabel } from '@/lib/categories';
+import { ProviderLocationMapEmbed } from '@/components/location/ProviderLocationMapEmbed';
+import { isValidCoordinates } from '@/utils/googleMaps';
 import { Principal } from '@icp-sdk/core/principal';
-import { useGetProvider, useGetMpesaConfig } from '../../hooks/useQueries';
-import { useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
-import { Badge } from '../../components/ui/badge';
-import { Separator } from '../../components/ui/separator';
-import { StarRatingDisplay } from '../../components/ratings/StarRatingDisplay';
-import { UnlockDetailsCard } from '../../components/providers/UnlockDetailsCard';
-import { EngagementStatusNotice } from '../../components/notifications/EngagementStatusNotice';
-import { ProviderAvatar } from '../../components/providers/ProviderAvatar';
-import { ArrowLeft, MapPin, Phone, Mail, Clock, CheckCircle, AlertCircle } from 'lucide-react';
-import { getBusinessTypeLabel } from '../../lib/categories';
-import { formatRemainingTime } from '../../utils/engagementTime';
-import { calculateConnectionFee } from '../../utils/fees';
+import { MpesaUnlockDialog } from '@/components/payments/MpesaUnlockDialog';
+import { calculateConnectionFee, formatKES } from '@/utils/fees';
 
 interface ProviderDetailPageProps {
   providerId: string;
@@ -21,58 +22,40 @@ interface ProviderDetailPageProps {
 }
 
 export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPageProps) {
-  const queryClient = useQueryClient();
-  const [showEngagementNotice, setShowEngagementNotice] = useState(false);
-  const previousEngagementRef = useRef<boolean | null>(null);
+  const providerPrincipal = Principal.fromText(providerId);
+  const { data: provider, isLoading, error, refetch } = useGetProvider(providerPrincipal);
+  const [showUnlockDialog, setShowUnlockDialog] = useState(false);
 
-  const { data: provider, isLoading, isError, error } = useGetProvider(
-    Principal.fromText(providerId),
-    { refetchInterval: 3000 }
-  );
-
-  const { data: mpesaConfig } = useGetMpesaConfig();
-
-  // Invalidate and refetch provider data on mount/provider change
+  // Poll every 3 seconds for live engagement updates
   useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ['provider', providerId] });
-  }, [providerId, queryClient]);
+    const interval = setInterval(() => {
+      refetch();
+    }, 3000);
 
-  // Detect engagement status changes
-  useEffect(() => {
-    if (provider && previousEngagementRef.current !== null) {
-      if (previousEngagementRef.current !== provider.isEngaged) {
-        setShowEngagementNotice(true);
-      }
-    }
-    if (provider) {
-      previousEngagementRef.current = provider.isEngaged;
-    }
-  }, [provider]);
+    return () => clearInterval(interval);
+  }, [refetch]);
 
   if (isLoading) {
     return (
-      <div className="container flex min-h-[60vh] items-center justify-center py-12">
-        <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <p className="mt-4 text-sm text-muted-foreground">Loading provider details...</p>
+      <div className="container mx-auto max-w-4xl px-4 py-12">
+        <div className="flex items-center justify-center py-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
         </div>
       </div>
     );
   }
 
-  if (isError || !provider) {
+  if (error || !provider) {
     return (
-      <div className="container flex min-h-[60vh] items-center justify-center py-12">
-        <div className="text-center">
-          <AlertCircle className="mx-auto h-12 w-12 text-destructive" />
-          <h2 className="mt-4 text-2xl font-bold">Failed to Load Provider</h2>
-          <p className="mt-2 text-muted-foreground">
-            {error instanceof Error ? error.message : 'Provider not found'}
-          </p>
-          <Button onClick={() => onNavigate('categories')} className="mt-4">
-            Back to Categories
-          </Button>
-        </div>
+      <div className="container mx-auto max-w-4xl px-4 py-12">
+        <Card>
+          <CardHeader>
+            <CardTitle>Provider Not Found</CardTitle>
+            <CardDescription>
+              The provider you are looking for could not be found.
+            </CardDescription>
+          </CardHeader>
+        </Card>
       </div>
     );
   }
@@ -82,129 +65,153 @@ export function ProviderDetailPage({ providerId, onNavigate }: ProviderDetailPag
     : 0;
 
   const remainingTimeText = formatRemainingTime(provider.engagementEndTime);
-  const isUnlocked = false; // Placeholder - implement unlock state tracking
+
+  const hasValidLocation = isValidCoordinates(provider.location.latitude, provider.location.longitude);
+
   const connectionFee = calculateConnectionFee(provider.rate);
 
   return (
-    <div className="container py-12">
-      <div className="mx-auto max-w-4xl">
-        <Button
-          variant="ghost"
-          onClick={() => onNavigate('categories')}
-          className="mb-6 gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Results
-        </Button>
-
-        {showEngagementNotice && (
-          <div className="mb-6">
-            <EngagementStatusNotice
-              isEngaged={provider.isEngaged}
-              onDismiss={() => setShowEngagementNotice(false)}
-            />
-          </div>
-        )}
-
+    <div className="container mx-auto max-w-4xl px-4 py-12">
+      <div className="space-y-6">
         <Card>
           <CardHeader>
-            <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
-              <ProviderAvatar
-                name={provider.name}
-                profilePictureUrl={provider.profilePicture?.blob.getDirectURL()}
-                size="lg"
-              />
-              <div className="flex-1 text-center sm:text-left">
-                <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-start">
-                  <CardTitle className="text-2xl">{provider.name}</CardTitle>
-                  {provider.verificationStatus.__kind__ === 'verified' && (
-                    <Badge variant="default" className="gap-1">
-                      <CheckCircle className="h-3 w-3" />
-                      Verified
-                    </Badge>
-                  )}
-                  {provider.isEngaged && (
-                    <Badge variant="destructive" className="gap-1">
-                      <Clock className="h-3 w-3" />
-                      Engaged
-                      {remainingTimeText && ` (${remainingTimeText})`}
-                    </Badge>
-                  )}
-                  {!provider.isEngaged && (
-                    <Badge variant="default" className="gap-1 bg-green-600">
-                      <CheckCircle className="h-3 w-3" />
-                      Available
-                    </Badge>
-                  )}
-                </div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex-1">
+                <CardTitle className="text-2xl">{provider.displayName}</CardTitle>
                 <CardDescription className="mt-2">
-                  {getBusinessTypeLabel(provider.businessType)}
+                  {getBusinessTypeLabel(provider.category || provider.businessType)}
                 </CardDescription>
-                <div className="mt-3">
-                  <StarRatingDisplay 
-                    averageRating={averageRating} 
-                    totalRatings={provider.ratings.length} 
-                  />
-                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {provider.verificationStatus.__kind__ === 'verified' && (
+                  <Badge variant="default" className="gap-1">
+                    <CheckCircle className="h-3 w-3" />
+                    Verified
+                  </Badge>
+                )}
+                {provider.isEngaged ? (
+                  <Badge variant="destructive" className="gap-1">
+                    <Clock className="h-3 w-3" />
+                    Engaged{remainingTimeText ? ` (${remainingTimeText})` : ''}
+                  </Badge>
+                ) : (
+                  <Badge variant="default" className="gap-1 bg-green-600">
+                    <CheckCircle className="h-3 w-3" />
+                    Available
+                  </Badge>
+                )}
               </div>
             </div>
           </CardHeader>
-
-          <Separator />
-
-          <CardContent className="space-y-6 pt-6">
-            <div>
-              <h3 className="mb-2 font-semibold">About</h3>
-              <p className="text-muted-foreground">
-                {provider.description || 'No description provided'}
-              </p>
-            </div>
-
-            <div>
-              <h3 className="mb-2 font-semibold">Hourly Rate</h3>
-              <p className="text-2xl font-bold">
-                KES {Number(provider.rate).toLocaleString()}
-                <span className="text-base font-normal text-muted-foreground">/hour</span>
-              </p>
-            </div>
-
-            <div>
-              <h3 className="mb-3 font-semibold">Location</h3>
-              <div className="flex items-start gap-2 text-muted-foreground">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>{provider.location.address}</span>
-              </div>
+          <CardContent className="space-y-6">
+            <div className="flex items-center gap-2">
+              <StarRatingDisplay 
+                averageRating={averageRating} 
+                totalRatings={provider.ratings.length}
+              />
             </div>
 
             <Separator />
 
-            {!isUnlocked ? (
-              <UnlockDetailsCard
-                connectionFee={connectionFee}
-                providerName={provider.name}
-                onUnlock={() => {
-                  // Implement unlock logic
-                  console.log('Unlock provider details');
-                }}
-              />
-            ) : (
-              <div className="space-y-4">
-                <h3 className="font-semibold">Contact Information</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span>{provider.phoneNumber}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span>Contact via phone</span>
+            <div>
+              <h3 className="mb-2 font-semibold">Standard Rate for the service</h3>
+              <p className="text-2xl font-bold text-primary">
+                KES {Number(provider.rate).toLocaleString()}
+              </p>
+            </div>
+
+            <Separator />
+
+            <div>
+              <h3 className="mb-2 font-semibold">About</h3>
+              <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                {provider.description || 'No description provided'}
+              </p>
+            </div>
+
+            {provider.servicesWriteUp && (
+              <>
+                <Separator />
+                <div>
+                  <h3 className="mb-2 flex items-center gap-2 font-semibold">
+                    <FileText className="h-4 w-4" />
+                    Services Offered
+                  </h3>
+                  <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                    {provider.servicesWriteUp}
+                  </p>
+                </div>
+              </>
+            )}
+
+            {provider.workSampleImages.length > 0 && (
+              <>
+                <Separator />
+                <WorkSampleGalleryViewer 
+                  workSampleImages={provider.workSampleImages}
+                  variant="full"
+                />
+              </>
+            )}
+
+            <Separator />
+
+            <div>
+              <h3 className="mb-3 font-semibold">Location</h3>
+              {hasValidLocation ? (
+                <ProviderLocationMapEmbed 
+                  latitude={provider.location.latitude}
+                  longitude={provider.location.longitude}
+                  address={provider.location.address}
+                  providerName={provider.displayName}
+                />
+              ) : (
+                <div className="flex items-start gap-2 rounded-lg border p-4">
+                  <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                  <div className="text-sm">
+                    <p>{provider.location.address || 'Address not available'}</p>
+                    {provider.location.latitude !== 0 && provider.location.longitude !== 0 && (
+                      <p className="text-muted-foreground">
+                        {provider.location.latitude.toFixed(4)}, {provider.location.longitude.toFixed(4)}
+                      </p>
+                    )}
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
+
+            <Separator />
+
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Connection Fee:</strong> A 10% connection fee ({formatKES(connectionFee)}) will be charged to unlock this provider's contact details.
+              </AlertDescription>
+            </Alert>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button 
+                className="flex-1 gap-2"
+                onClick={() => setShowUnlockDialog(true)}
+              >
+                <Phone className="h-4 w-4" />
+                Contact Service Provider
+              </Button>
+              <Button variant="outline" className="flex-1 gap-2">
+                <Mail className="h-4 w-4" />
+                Send Message
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
+
+      <MpesaUnlockDialog
+        open={showUnlockDialog}
+        onOpenChange={setShowUnlockDialog}
+        providerId={providerId}
+        amount={connectionFee}
+      />
     </div>
   );
 }

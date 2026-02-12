@@ -1,46 +1,77 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-12T09:30:00.451Z",
+  "generatedAt": "2026-02-12T13:34:14.904Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 2,
+    "total": 5,
+    "implemented": 4,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Fix the client profile “Save Required Information” action so it updates an existing client profile instead of calling the backend method intended only for initial profile creation, and ensure the save action does not trigger a full page reload/refresh.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/client/ClientProfilePage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/client/ClientProfilePage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Add a dedicated backend update method for client required profile fields (names, yearOfBirth, idNumber, mobileNumber/phoneNumber, pinnedLocation) that validates input and updates the caller’s existing client profile record without requiring profile re-creation.",
+        "summary": "Implement backend endpoints for a provider verification workflow where service providers can submit required verification documents and the Administrator can review a provider’s full profile and set the provider’s verification status via a single “Verify” action.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
+        "id": "REQ-2",
+        "summary": "Replace the placeholder “Verification Review” admin page with a functional Administrator verification review UI that allows the Administrator to browse providers, open a provider’s profile for review (identity + service info + uploaded verification documents + current status), and click a “Verify” button to mark the provider as Verified.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
         "id": "REQ-3",
-        "summary": "Update the frontend Client Profile page to use the new client-profile update mutation for saving required fields, and ensure React Query cache invalidation/refetch updates the UI state without navigation loops.",
+        "summary": "Replace the placeholder provider “Verification Status / Document Upload” page with a working document upload & submission UI for providers, including status display (Unverified / Pending / Verified / Rejected) and a submission action that sends the required documents for Administrator review.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/provider/VerificationUploadPage.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/provider/VerificationUploadPage.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Update all user-facing terminology in the verification-related UI to use “Administrator” instead of “technical team”, including admin-only tooling panels that are currently labeled “Technical Team Tools”.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/provider/VerificationUploadPage.tsx",
+          "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx",
+          "frontend/src/pages/backoffice/VerificationReviewPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/provider/VerificationUploadPage.tsx",
+          "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx",
+          "frontend/src/pages/backoffice/VerificationReviewPage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Add React Query hooks and UI wiring needed to call the new backend verification/document endpoints, ensuring relevant queries are invalidated so status changes appear without a full reload.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/client/ClientProfilePage.tsx"
+          "frontend/src/backend.d.ts",
+          "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
+          "frontend/src/pages/provider/VerificationUploadPage.tsx"
         ],
         "matchedFiles": [
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/client/ClientProfilePage.tsx"
+          "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
+          "frontend/src/pages/provider/VerificationUploadPage.tsx"
         ]
       }
     ]
@@ -52,13 +83,12 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/client/ClientProfilePage.tsx",
+    "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx",
+    "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
+    "frontend/src/pages/client/ProviderResultsPage.tsx",
     "frontend/src/pages/provider/ProviderProfilePage.tsx",
+    "frontend/src/pages/provider/VerificationUploadPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

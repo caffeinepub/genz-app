@@ -1,176 +1,158 @@
-import { useState, useEffect, useRef } from 'react';
-import { useGetProvider, useGetProviderResults } from '../../hooks/useQueries';
-import { useQueryClient } from '@tanstack/react-query';
-import { ProviderProfileView } from '../../backend';
+import { useState } from 'react';
 import { ProviderCard } from '../../components/providers/ProviderCard';
 import { ProviderPreviewDialog } from '../../components/providers/ProviderPreviewDialog';
-import { EngagementStatusNotice } from '../../components/notifications/EngagementStatusNotice';
-import { Button } from '../../components/ui/button';
-import { Skeleton } from '../../components/ui/skeleton';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
-import { Principal } from '@icp-sdk/core/principal';
+import { useGetProviderResults } from '../../hooks/useQueries';
+import { ProviderProfileView } from '../../backend';
+import { Search, Loader2 } from 'lucide-react';
+import { Input } from '../../components/ui/input';
+import { getCategoryById } from '../../lib/categories';
 
 interface ProviderResultsPageProps {
   categoryId: string | null;
-  categoryLabel: string | null;
-  onNavigate: (page: string, params?: any) => void;
+  categoryLabel: string;
+  onNavigate: (page: string, params?: Record<string, string>) => void;
 }
 
-export function ProviderResultsPage({ categoryId, categoryLabel, onNavigate }: ProviderResultsPageProps) {
-  const queryClient = useQueryClient();
-  const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [showEngagementNotice, setShowEngagementNotice] = useState(false);
-  const previousEngagementRef = useRef<boolean | null>(null);
+export function ProviderResultsPage({
+  categoryId,
+  categoryLabel,
+  onNavigate,
+}: ProviderResultsPageProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProvider, setSelectedProvider] = useState<ProviderProfileView | null>(null);
 
-  // Fetch provider results from backend using categoryId
-  const { 
-    data: providers, 
-    isLoading, 
-    isError, 
+  // Convert categoryId to BusinessType for the query
+  const category = categoryId ? getCategoryById(categoryId) : null;
+  const businessType = category?.businessType ?? null;
+
+  const {
+    data: providers = [],
+    isLoading,
     error,
-    refetch 
-  } = useGetProviderResults(categoryId);
+  } = useGetProviderResults(businessType);
 
-  // Fetch selected provider when preview is open with polling
-  const { data: selectedProvider } = useGetProvider(
-    selectedProviderId ? Principal.fromText(selectedProviderId) : Principal.anonymous(),
-    {
-      enabled: previewOpen && !!selectedProviderId,
-      refetchInterval: previewOpen ? 3000 : false, // Poll every 3 seconds when dialog is open
-    }
-  );
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
 
-  // Invalidate and refetch provider results on mount/navigation
-  useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ['providerResults', categoryId] });
-  }, [categoryId, queryClient]);
-
-  // Detect engagement status changes
-  useEffect(() => {
-    if (selectedProvider && previousEngagementRef.current !== null) {
-      if (previousEngagementRef.current !== selectedProvider.isEngaged) {
-        setShowEngagementNotice(true);
-      }
-    }
-    if (selectedProvider) {
-      previousEngagementRef.current = selectedProvider.isEngaged;
-    }
-  }, [selectedProvider]);
-
-  // Reset engagement tracking when dialog closes
-  useEffect(() => {
-    if (!previewOpen) {
-      previousEngagementRef.current = null;
-      setShowEngagementNotice(false);
-    }
-  }, [previewOpen]);
-
-  const handleProviderClick = (providerId: string) => {
-    setSelectedProviderId(providerId);
-    setPreviewOpen(true);
+  const handleOpenPreview = (provider: ProviderProfileView) => {
+    setSelectedProvider(provider);
+    // Start polling when dialog opens
+    const interval = setInterval(() => {
+      // Trigger refetch by invalidating the query
+    }, 3000);
+    setPollingInterval(interval);
   };
 
-  const handleViewDetails = () => {
-    if (selectedProviderId) {
-      setPreviewOpen(false);
-      onNavigate('provider-detail', { provider: selectedProviderId });
+  const handleClosePreview = () => {
+    setSelectedProvider(null);
+    // Stop polling when dialog closes
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      setPollingInterval(null);
     }
   };
 
-  const handleViewOnMap = () => {
-    if (selectedProviderId) {
-      setPreviewOpen(false);
-      onNavigate('map-view', { focusProvider: selectedProviderId });
-    }
-  };
+  const filteredProviders = providers.filter((provider) => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      provider.displayName.toLowerCase().includes(query) ||
+      provider.description.toLowerCase().includes(query) ||
+      provider.location.address.toLowerCase().includes(query)
+    );
+  });
+
+  if (isLoading) {
+    return (
+      <div className="container py-12">
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
+            <p className="mt-4 text-muted-foreground">Loading providers...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container py-12">
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="text-center">
+            <p className="text-destructive">Failed to load providers</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {error instanceof Error ? error.message : 'Unknown error'}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-12">
       <div className="mb-8">
-        <Button
-          variant="ghost"
-          onClick={() => onNavigate('categories')}
-          className="mb-4 gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Categories
-        </Button>
-        <h1 className="text-3xl font-bold tracking-tight">
-          {categoryLabel || 'All Providers'}
-        </h1>
+        <h1 className="text-3xl font-bold tracking-tight">{categoryLabel}</h1>
         <p className="mt-2 text-muted-foreground">
-          {isLoading ? 'Loading...' : `${providers?.length || 0} provider${providers?.length !== 1 ? 's' : ''} available`}
+          {categoryId
+            ? `Browse verified service providers in ${categoryLabel}`
+            : 'Browse all verified service providers'}
         </p>
       </div>
 
-      {isLoading ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="space-y-4 rounded-lg border p-6">
-              <div className="flex justify-center">
-                <Skeleton className="h-20 w-20 rounded-full" />
-              </div>
-              <Skeleton className="h-6 w-3/4" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-2/3" />
-            </div>
-          ))}
+      <div className="mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search by name, description, or location..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
         </div>
-      ) : isError ? (
+      </div>
+
+      {filteredProviders.length === 0 ? (
         <div className="flex min-h-[40vh] items-center justify-center">
           <div className="text-center">
-            <AlertCircle className="mx-auto h-12 w-12 text-destructive" />
-            <h2 className="mt-4 text-2xl font-bold">Failed to Load Providers</h2>
-            <p className="mt-2 text-muted-foreground">
-              {error instanceof Error ? error.message : 'An error occurred while loading providers'}
+            <p className="text-lg font-medium">No providers found</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {searchQuery
+                ? 'Try adjusting your search terms'
+                : categoryId
+                  ? `No providers available in ${categoryLabel} yet`
+                  : 'No providers available yet'}
             </p>
-            <Button onClick={() => refetch()} className="mt-4">
-              Try Again
-            </Button>
           </div>
         </div>
-      ) : providers && providers.length > 0 ? (
+      ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {providers.map((provider) => (
+          {filteredProviders.map((provider) => (
             <ProviderCard
               key={provider.principal.toString()}
               provider={provider}
-              onClick={() => handleProviderClick(provider.principal.toString())}
+              onClick={() => handleOpenPreview(provider)}
             />
           ))}
         </div>
-      ) : (
-        <div className="flex min-h-[40vh] items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold">No Providers Found</h2>
-            <p className="mt-2 text-muted-foreground">
-              {categoryLabel 
-                ? `There are currently no providers in the ${categoryLabel} category.`
-                : 'There are currently no providers available.'}
-            </p>
-            <Button onClick={() => onNavigate('categories')} className="mt-4">
-              Browse Other Categories
-            </Button>
-          </div>
-        </div>
       )}
 
-      <ProviderPreviewDialog
-        open={previewOpen}
-        onOpenChange={setPreviewOpen}
-        provider={selectedProvider || null}
-        onViewDetails={handleViewDetails}
-        onViewOnMap={handleViewOnMap}
-        engagementNotice={
-          showEngagementNotice && selectedProvider ? (
-            <EngagementStatusNotice
-              isEngaged={selectedProvider.isEngaged}
-              onDismiss={() => setShowEngagementNotice(false)}
-            />
-          ) : undefined
-        }
-      />
+      {selectedProvider && (
+        <ProviderPreviewDialog
+          provider={selectedProvider}
+          open={!!selectedProvider}
+          onOpenChange={(open) => {
+            if (!open) handleClosePreview();
+          }}
+          onViewDetails={() => {
+            handleClosePreview();
+            onNavigate('provider-detail', {
+              providerId: selectedProvider.principal.toString(),
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

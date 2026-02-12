@@ -17,6 +17,8 @@ export class ExternalBlob {
 export interface ProviderProfileView {
     yearOfBirth: string;
     principal: Principal;
+    workSampleImages: Array<ExternalBlob>;
+    displayName: string;
     engagementEndTime?: bigint;
     name: string;
     rate: bigint;
@@ -28,6 +30,7 @@ export interface ProviderProfileView {
     idNumber: string;
     academicDocuments: Array<Document>;
     category?: BusinessType;
+    servicesWriteUp: string;
     phoneNumber: string;
     profilePicture?: ProfilePicture;
     lastName: string;
@@ -166,6 +169,7 @@ export interface ProviderProfileUpdate {
     description: string;
     surname: string;
     category: BusinessType;
+    servicesWriteUp: string;
     profilePicture?: ProfilePicture;
     location: Location;
 }
@@ -197,6 +201,12 @@ export type VerificationStatus = {
     __kind__: "rejected";
     rejected: string;
 };
+export interface ProviderIdentityUpdate {
+    middleName: string;
+    idNumber: string;
+    phoneNumber: string;
+    lastName: string;
+}
 export interface Job {
     id: string;
     status: {
@@ -263,6 +273,7 @@ export enum UserRole__1 {
     guest = "guest"
 }
 export interface backendInterface {
+    addWorkSampleImage(blob: ExternalBlob): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole__1): Promise<void>;
     disengage(): Promise<void>;
     getAllProviders(): Promise<Array<ProviderProfileView>>;
@@ -279,6 +290,7 @@ export interface backendInterface {
     getWhatsAppConfig(): Promise<WhatsAppConfig | null>;
     isCallerAdmin(): Promise<boolean>;
     removeAllProviders(): Promise<void>;
+    removeWorkSampleImage(blob: ExternalBlob): Promise<void>;
     saveCallerUserProfile(profile: {
         role: UserRole;
         clientProfile?: {
@@ -323,6 +335,7 @@ export interface backendInterface {
     setWhatsAppConfig(config: WhatsAppConfig): Promise<void>;
     updateClientPinnedLocation(latitude: number, longitude: number, address: string): Promise<void>;
     updateClientProfile(update: ClientProfileUpdate): Promise<void>;
+    updateProviderIdentityFields(update: ProviderIdentityUpdate): Promise<void>;
     updateProviderLocation(latitude: number, longitude: number, address: string): Promise<void>;
     updateProviderProfile(update: ProviderProfileUpdate): Promise<void>;
 }

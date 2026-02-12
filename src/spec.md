@@ -1,11 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the Client Profile “Save Required Information” flow so required profile fields persist correctly without triggering a page reload/refresh loop.
+**Goal:** Add an Administrator-only provider verification workflow where providers submit required documents and the Administrator reviews profiles and verifies providers via a single “Verify” action.
 
 **Planned changes:**
-- Backend: add a dedicated update method for required client profile fields (names, yearOfBirth, idNumber, mobile/phone number, pinnedLocation) that updates the caller’s existing profile with current validation and clear auth/role/existence errors.
-- Frontend: update Client Profile save to call the new update mutation (instead of the initial create method), show a pending/loading state during save, and display clear error messages on failure.
-- Frontend: ensure React Query invalidation/refetch updates the displayed profile after save without repeated refresh/navigation loops.
+- Add backend endpoints for providers to upload/submit verification documents (academic qualification(s), certificate of good conduct) and set verification status to Pending upon submission.
+- Add backend Administrator-only endpoints to list providers needing review, fetch a provider’s full profile + submitted documents + current verification status, and mark the provider as Verified (optionally Rejected with a reason).
+- Replace the admin “Verification Review” placeholder page with a functional, access-controlled review UI to browse providers, view profile + documents + status, and click “Verify” with loading and success/error feedback.
+- Replace the provider “Verification Status / Document Upload” placeholder page with a functional upload + submission UI that displays status (Unverified / Pending / Verified / Rejected) and shows rejection reasons when applicable.
+- Update all verification-related UI terminology to use “Administrator” instead of “technical team”, including renaming “Technical Team Tools” to “Administrator Tools” (or equivalent).
+- Add/extend React Query hooks for the new verification endpoints and invalidate/refetch relevant queries so status updates appear immediately without a full reload.
 
-**User-visible outcome:** From the Client Profile page, users can click “Save Required Information” to update their existing profile fields without the page reloading; after saving, the updated values remain stored and are shown again when revisiting the page, and failures show a clear error message.
+**User-visible outcome:** Providers can upload and submit required verification documents and see their verification status, while Administrators can review provider profiles/documents and verify (or reject) providers from a working admin review page.

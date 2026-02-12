@@ -3,35 +3,52 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useInternetIdentity } from '@/hooks/useInternetIdentity';
 import { LogIn, UserPlus } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface ProviderAccessPageProps {
   onComplete: () => void;
+  profileLoading: boolean;
+  isFetched: boolean;
 }
 
-export function ProviderAccessPage({ onComplete }: ProviderAccessPageProps) {
+export function ProviderAccessPage({ onComplete, profileLoading, isFetched }: ProviderAccessPageProps) {
   const { identity, login, loginStatus } = useInternetIdentity();
 
   const isAuthenticated = !!identity;
   const isLoggingIn = loginStatus === 'logging-in';
 
+  // Once authenticated and profile is loaded, trigger completion
+  useEffect(() => {
+    if (isAuthenticated && !profileLoading && isFetched) {
+      onComplete();
+    }
+  }, [isAuthenticated, profileLoading, isFetched, onComplete]);
+
   const handleAuthAction = async () => {
     if (!isAuthenticated) {
       try {
         await login();
-        // After successful login, proceed immediately
-        onComplete();
+        // onComplete will be called by useEffect once profile loads
       } catch (error: any) {
         console.error('Login error:', error);
         if (error.message === 'User is already authenticated') {
-          // Already authenticated, proceed
-          onComplete();
+          // Already authenticated, onComplete will be called by useEffect
         }
       }
-    } else {
-      // Already authenticated, proceed
-      onComplete();
     }
   };
+
+  // Show loading state while profile is being fetched after login
+  if (isAuthenticated && (profileLoading || !isFetched)) {
+    return (
+      <div className="container mx-auto max-w-2xl px-4 py-12">
+        <div className="flex flex-col items-center justify-center space-y-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          <p className="text-muted-foreground">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-12">

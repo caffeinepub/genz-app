@@ -13,12 +13,13 @@ import { Label } from '../ui/label';
 import { useGetMpesaConfig } from '../../hooks/useQueries';
 import { Alert, AlertDescription } from '../ui/alert';
 import { CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import { formatKES } from '@/utils/fees';
 
 interface MpesaUnlockDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   providerId: string;
-  amount: number;
+  amount: bigint;
 }
 
 export function MpesaUnlockDialog({
@@ -62,18 +63,21 @@ export function MpesaUnlockDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>M-Pesa Payment</DialogTitle>
+            <DialogTitle>Unlock Contact Details</DialogTitle>
             <DialogDescription>
-              Unlock provider contact details
+              Pay {formatKES(amount)} (10% connection fee) to unlock provider contact details
             </DialogDescription>
           </DialogHeader>
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              M-Pesa payment is not configured. Contact details will be unlocked for demonstration purposes.
+              M-Pesa payment is not configured. A 10% connection fee ({formatKES(amount)}) is required to unlock contact details. For demonstration purposes, contact details will be unlocked without payment.
             </AlertDescription>
           </Alert>
           <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
             <Button onClick={() => handleUnlock()}>
               Unlock (Demo Mode)
             </Button>
@@ -89,7 +93,7 @@ export function MpesaUnlockDialog({
         <DialogHeader>
           <DialogTitle>M-Pesa Payment</DialogTitle>
           <DialogDescription>
-            Pay KES {amount.toLocaleString()} to unlock provider contact details
+            Pay {formatKES(amount)} (10% connection fee) to unlock provider contact details
           </DialogDescription>
         </DialogHeader>
 
@@ -141,7 +145,7 @@ export function MpesaUnlockDialog({
               Cancel
             </Button>
             <Button onClick={handleUnlock} disabled={!phoneNumber}>
-              Pay KES {amount.toLocaleString()}
+              Pay {formatKES(amount)}
             </Button>
           </DialogFooter>
         )}

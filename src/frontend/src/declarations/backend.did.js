@@ -19,6 +19,7 @@ export const _CaffeineStorageRefillResult = IDL.Record({
   'success' : IDL.Opt(IDL.Bool),
   'topped_up_amount' : IDL.Opt(IDL.Nat),
 });
+export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const UserRole__1 = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
@@ -60,7 +61,6 @@ export const BusinessType = IDL.Variant({
   'hairAndBeauty' : IDL.Null,
   'mediar' : IDL.Null,
 });
-export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const DocumentType = IDL.Variant({
   'goodConductCertificate' : IDL.Null,
   'academicQualification' : IDL.Null,
@@ -88,6 +88,8 @@ export const VerificationStatus = IDL.Variant({
 export const ProviderProfileView = IDL.Record({
   'yearOfBirth' : IDL.Text,
   'principal' : IDL.Principal,
+  'workSampleImages' : IDL.Vec(ExternalBlob),
+  'displayName' : IDL.Text,
   'engagementEndTime' : IDL.Opt(IDL.Int),
   'name' : IDL.Text,
   'rate' : IDL.Nat,
@@ -99,6 +101,7 @@ export const ProviderProfileView = IDL.Record({
   'idNumber' : IDL.Text,
   'academicDocuments' : IDL.Vec(Document),
   'category' : IDL.Opt(BusinessType),
+  'servicesWriteUp' : IDL.Text,
   'phoneNumber' : IDL.Text,
   'profilePicture' : IDL.Opt(ProfilePicture),
   'lastName' : IDL.Text,
@@ -175,6 +178,12 @@ export const ClientProfileUpdate = IDL.Record({
   'phoneNumber' : IDL.Text,
   'lastName' : IDL.Text,
 });
+export const ProviderIdentityUpdate = IDL.Record({
+  'middleName' : IDL.Text,
+  'idNumber' : IDL.Text,
+  'phoneNumber' : IDL.Text,
+  'lastName' : IDL.Text,
+});
 export const ProviderProfileUpdate = IDL.Record({
   'yearOfBirth' : IDL.Text,
   'rate' : IDL.Nat,
@@ -182,6 +191,7 @@ export const ProviderProfileUpdate = IDL.Record({
   'description' : IDL.Text,
   'surname' : IDL.Text,
   'category' : BusinessType,
+  'servicesWriteUp' : IDL.Text,
   'profilePicture' : IDL.Opt(ProfilePicture),
   'location' : Location,
 });
@@ -214,6 +224,7 @@ export const idlService = IDL.Service({
     ),
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+  'addWorkSampleImage' : IDL.Func([ExternalBlob], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
   'disengage' : IDL.Func([], [], []),
   'getAllProviders' : IDL.Func([], [IDL.Vec(ProviderProfileView)], ['query']),
@@ -242,6 +253,7 @@ export const idlService = IDL.Service({
   'getWhatsAppConfig' : IDL.Func([], [IDL.Opt(WhatsAppConfig)], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'removeAllProviders' : IDL.Func([], [], []),
+  'removeWorkSampleImage' : IDL.Func([ExternalBlob], [], []),
   'saveCallerUserProfile' : IDL.Func(
       [
         IDL.Record({
@@ -306,6 +318,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'updateClientProfile' : IDL.Func([ClientProfileUpdate], [], []),
+  'updateProviderIdentityFields' : IDL.Func([ProviderIdentityUpdate], [], []),
   'updateProviderLocation' : IDL.Func(
       [IDL.Float64, IDL.Float64, IDL.Text],
       [],
@@ -328,6 +341,7 @@ export const idlFactory = ({ IDL }) => {
     'success' : IDL.Opt(IDL.Bool),
     'topped_up_amount' : IDL.Opt(IDL.Nat),
   });
+  const ExternalBlob = IDL.Vec(IDL.Nat8);
   const UserRole__1 = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
@@ -369,7 +383,6 @@ export const idlFactory = ({ IDL }) => {
     'hairAndBeauty' : IDL.Null,
     'mediar' : IDL.Null,
   });
-  const ExternalBlob = IDL.Vec(IDL.Nat8);
   const DocumentType = IDL.Variant({
     'goodConductCertificate' : IDL.Null,
     'academicQualification' : IDL.Null,
@@ -394,6 +407,8 @@ export const idlFactory = ({ IDL }) => {
   const ProviderProfileView = IDL.Record({
     'yearOfBirth' : IDL.Text,
     'principal' : IDL.Principal,
+    'workSampleImages' : IDL.Vec(ExternalBlob),
+    'displayName' : IDL.Text,
     'engagementEndTime' : IDL.Opt(IDL.Int),
     'name' : IDL.Text,
     'rate' : IDL.Nat,
@@ -405,6 +420,7 @@ export const idlFactory = ({ IDL }) => {
     'idNumber' : IDL.Text,
     'academicDocuments' : IDL.Vec(Document),
     'category' : IDL.Opt(BusinessType),
+    'servicesWriteUp' : IDL.Text,
     'phoneNumber' : IDL.Text,
     'profilePicture' : IDL.Opt(ProfilePicture),
     'lastName' : IDL.Text,
@@ -481,6 +497,12 @@ export const idlFactory = ({ IDL }) => {
     'phoneNumber' : IDL.Text,
     'lastName' : IDL.Text,
   });
+  const ProviderIdentityUpdate = IDL.Record({
+    'middleName' : IDL.Text,
+    'idNumber' : IDL.Text,
+    'phoneNumber' : IDL.Text,
+    'lastName' : IDL.Text,
+  });
   const ProviderProfileUpdate = IDL.Record({
     'yearOfBirth' : IDL.Text,
     'rate' : IDL.Nat,
@@ -488,6 +510,7 @@ export const idlFactory = ({ IDL }) => {
     'description' : IDL.Text,
     'surname' : IDL.Text,
     'category' : BusinessType,
+    'servicesWriteUp' : IDL.Text,
     'profilePicture' : IDL.Opt(ProfilePicture),
     'location' : Location,
   });
@@ -520,6 +543,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
+    'addWorkSampleImage' : IDL.Func([ExternalBlob], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
     'disengage' : IDL.Func([], [], []),
     'getAllProviders' : IDL.Func([], [IDL.Vec(ProviderProfileView)], ['query']),
@@ -560,6 +584,7 @@ export const idlFactory = ({ IDL }) => {
     'getWhatsAppConfig' : IDL.Func([], [IDL.Opt(WhatsAppConfig)], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'removeAllProviders' : IDL.Func([], [], []),
+    'removeWorkSampleImage' : IDL.Func([ExternalBlob], [], []),
     'saveCallerUserProfile' : IDL.Func(
         [
           IDL.Record({
@@ -624,6 +649,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'updateClientProfile' : IDL.Func([ClientProfileUpdate], [], []),
+    'updateProviderIdentityFields' : IDL.Func([ProviderIdentityUpdate], [], []),
     'updateProviderLocation' : IDL.Func(
         [IDL.Float64, IDL.Float64, IDL.Text],
         [],

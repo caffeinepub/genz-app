@@ -25,6 +25,7 @@ export function ClientProfilePage() {
     yearOfBirth: '',
     idNumber: '',
     mobileNumber: '',
+    phoneNumber: '',
   });
 
   const [location, setLocation] = useState<Location>({
@@ -49,6 +50,7 @@ export function ClientProfilePage() {
         yearOfBirth: clientProfile.yearOfBirth || '',
         idNumber: clientProfile.idNumber || '',
         mobileNumber: clientProfile.mobileNumber || '',
+        phoneNumber: clientProfile.phoneNumber || '',
       });
       setLocation(clientProfile.pinnedLocation || { latitude: 0, longitude: 0, address: '' });
       if (clientProfile.bioData) {
@@ -80,6 +82,10 @@ export function ClientProfilePage() {
       toast.error('Please enter your mobile number');
       return;
     }
+    if (!requiredFields.phoneNumber) {
+      toast.error('Please enter your phone number');
+      return;
+    }
     if (!location.address || location.latitude === 0 || location.longitude === 0) {
       toast.error('Please set your exact location with valid coordinates and address');
       return;
@@ -93,7 +99,7 @@ export function ClientProfilePage() {
         yearOfBirth: requiredFields.yearOfBirth,
         idNumber: requiredFields.idNumber,
         mobileNumber: requiredFields.mobileNumber,
-        phoneNumber: requiredFields.mobileNumber,
+        phoneNumber: requiredFields.phoneNumber,
         pinnedLocation: location,
       });
       toast.success('Profile information saved successfully');
@@ -203,13 +209,13 @@ export function ClientProfilePage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="mobileNumber">Mobile Number *</Label>
+              <Label htmlFor="yearOfBirth">Year of Birth *</Label>
               <Input
-                id="mobileNumber"
-                type="tel"
-                placeholder="+254 712 345 678"
-                value={requiredFields.mobileNumber}
-                onChange={(e) => setRequiredFields({ ...requiredFields, mobileNumber: e.target.value })}
+                id="yearOfBirth"
+                type="text"
+                placeholder="e.g., 1990"
+                value={requiredFields.yearOfBirth}
+                onChange={(e) => setRequiredFields({ ...requiredFields, yearOfBirth: e.target.value })}
               />
             </div>
 
@@ -225,13 +231,24 @@ export function ClientProfilePage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="yearOfBirth">Year of Birth *</Label>
+              <Label htmlFor="mobileNumber">Mobile Number *</Label>
               <Input
-                id="yearOfBirth"
-                type="text"
-                placeholder="e.g., 1990"
-                value={requiredFields.yearOfBirth}
-                onChange={(e) => setRequiredFields({ ...requiredFields, yearOfBirth: e.target.value })}
+                id="mobileNumber"
+                type="tel"
+                placeholder="+254 712 345 678"
+                value={requiredFields.mobileNumber}
+                onChange={(e) => setRequiredFields({ ...requiredFields, mobileNumber: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phoneNumber">Phone Number *</Label>
+              <Input
+                id="phoneNumber"
+                type="tel"
+                placeholder="+254 723 456 789"
+                value={requiredFields.phoneNumber}
+                onChange={(e) => setRequiredFields({ ...requiredFields, phoneNumber: e.target.value })}
               />
             </div>
 

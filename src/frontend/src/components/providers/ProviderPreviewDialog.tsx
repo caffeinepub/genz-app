@@ -1,166 +1,132 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { ProviderAvatar } from './ProviderAvatar';
+import { Separator } from '../ui/separator';
+import { ProviderProfileView } from '@/backend';
 import { StarRatingDisplay } from '../ratings/StarRatingDisplay';
-import { MapPin, CheckCircle, Clock, XCircle } from 'lucide-react';
-import { ProviderProfileView } from '../../backend';
-import { getBusinessTypeLabel } from '../../lib/categories';
-import { ReactNode } from 'react';
-import { formatRemainingTime } from '../../utils/engagementTime';
+import { WorkSampleGalleryViewer } from './WorkSampleGalleryViewer';
+import { MapPin, Clock, CheckCircle, FileText } from 'lucide-react';
+import { formatRemainingTime } from '@/utils/engagementTime';
+import { getBusinessTypeLabel } from '@/lib/categories';
 
 interface ProviderPreviewDialogProps {
+  provider: ProviderProfileView | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  provider: ProviderProfileView | null;
-  onViewDetails: () => void;
-  onViewOnMap: () => void;
-  engagementNotice?: ReactNode;
+  onViewDetails?: () => void;
 }
 
 export function ProviderPreviewDialog({
+  provider,
   open,
   onOpenChange,
-  provider,
   onViewDetails,
-  onViewOnMap,
-  engagementNotice,
 }: ProviderPreviewDialogProps) {
   if (!provider) return null;
 
-  const ratings = provider.ratings.map((r) => Number(r));
-  const avgRating = ratings.length > 0
-    ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
+  const averageRating = provider.ratings.length > 0
+    ? provider.ratings.reduce((sum, r) => sum + Number(r), 0) / provider.ratings.length
     : 0;
 
-  const profilePictureUrl = provider.profilePicture?.blob.getDirectURL();
   const remainingTimeText = formatRemainingTime(provider.engagementEndTime);
-
-  const getVerificationBadge = () => {
-    if ('verified' in provider.verificationStatus) {
-      return (
-        <Badge variant="default" className="gap-1">
-          <CheckCircle className="h-3 w-3" />
-          Verified
-        </Badge>
-      );
-    }
-    if ('pending' in provider.verificationStatus) {
-      return (
-        <Badge variant="secondary" className="gap-1">
-          <Clock className="h-3 w-3" />
-          Pending
-        </Badge>
-      );
-    }
-    if ('rejected' in provider.verificationStatus) {
-      return (
-        <Badge variant="destructive" className="gap-1">
-          <XCircle className="h-3 w-3" />
-          Rejected
-        </Badge>
-      );
-    }
-    return (
-      <Badge variant="outline" className="gap-1">
-        Unverified
-      </Badge>
-    );
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Quick Preview</DialogTitle>
+          <DialogTitle className="text-xl">{provider.displayName}</DialogTitle>
+          <DialogDescription>
+            {getBusinessTypeLabel(provider.category || provider.businessType)}
+          </DialogDescription>
         </DialogHeader>
 
-        {engagementNotice && (
-          <div className="mb-4">
-            {engagementNotice}
-          </div>
-        )}
-
         <div className="space-y-4">
-          <div className="flex items-start gap-4">
-            <ProviderAvatar
-              name={provider.name}
-              profilePictureUrl={profilePictureUrl}
-              size="lg"
-            />
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg truncate">{provider.name}</h3>
-              <div className="flex items-center gap-2 mt-1">
-                {getVerificationBadge()}
-              </div>
-            </div>
+          <div className="flex flex-wrap gap-2">
+            {provider.verificationStatus.__kind__ === 'verified' && (
+              <Badge variant="default" className="gap-1">
+                <CheckCircle className="h-3 w-3" />
+                Verified
+              </Badge>
+            )}
+            {provider.isEngaged ? (
+              <Badge variant="destructive" className="gap-1">
+                <Clock className="h-3 w-3" />
+                Engaged{remainingTimeText ? ` (${remainingTimeText})` : ''}
+              </Badge>
+            ) : (
+              <Badge variant="default" className="gap-1 bg-green-600">
+                <CheckCircle className="h-3 w-3" />
+                Available
+              </Badge>
+            )}
           </div>
 
-          <div className="space-y-3">
-            <div className="rounded-lg border bg-muted/50 p-3">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium">Availability Status</span>
-                <Badge variant={provider.isEngaged ? 'secondary' : 'default'} className="gap-1">
-                  {provider.isEngaged ? (
-                    <>
-                      <Clock className="h-3 w-3" />
-                      Engaged
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="h-3 w-3" />
-                      Available
-                    </>
-                  )}
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {provider.isEngaged && remainingTimeText
-                  ? remainingTimeText
-                  : provider.isEngaged
-                  ? 'Currently working on active jobs'
-                  : 'Available for new jobs'}
-              </p>
-            </div>
+          <div className="flex items-center gap-2">
+            <StarRatingDisplay 
+              averageRating={averageRating} 
+              totalRatings={provider.ratings.length}
+            />
+          </div>
 
-            <div className="grid grid-cols-2 gap-3">
+          <Separator />
+
+          <div>
+            <p className="text-sm text-muted-foreground">Standard Rate for the service</p>
+            <p className="text-xl font-bold text-primary">
+              KES {Number(provider.rate).toLocaleString()}
+            </p>
+          </div>
+
+          <Separator />
+
+          <div>
+            <p className="mb-1 text-sm font-medium">About</p>
+            <p className="line-clamp-3 text-sm text-muted-foreground">
+              {provider.description || 'No description provided'}
+            </p>
+          </div>
+
+          {provider.servicesWriteUp && (
+            <>
+              <Separator />
               <div>
-                <p className="text-xs text-muted-foreground">Category</p>
-                <Badge variant="outline" className="mt-1">
-                  {getBusinessTypeLabel(provider.businessType)}
-                </Badge>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Rate</p>
-                <p className="mt-1 text-lg font-semibold text-primary">
-                  KES {Number(provider.rate).toLocaleString()}
+                <p className="mb-1 flex items-center gap-1.5 text-sm font-medium">
+                  <FileText className="h-3.5 w-3.5" />
+                  Services
+                </p>
+                <p className="line-clamp-4 whitespace-pre-wrap text-sm text-muted-foreground">
+                  {provider.servicesWriteUp}
                 </p>
               </div>
-            </div>
+            </>
+          )}
 
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Rating</p>
-              <StarRatingDisplay
-                averageRating={avgRating}
-                totalRatings={ratings.length}
-                size="sm"
+          {provider.workSampleImages.length > 0 && (
+            <>
+              <Separator />
+              <WorkSampleGalleryViewer 
+                workSampleImages={provider.workSampleImages}
+                variant="compact"
+                maxThumbnails={3}
               />
-            </div>
+            </>
+          )}
 
-            <div className="flex items-start gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-muted-foreground">
-                {provider.location.address || 'Location not specified'}
-              </p>
-            </div>
+          <Separator />
+
+          <div className="flex items-start gap-2">
+            <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              {provider.location.address}
+            </p>
           </div>
 
           <div className="flex gap-2 pt-2">
             <Button onClick={onViewDetails} className="flex-1">
               View Full Details
             </Button>
-            <Button onClick={onViewOnMap} variant="outline" className="flex-1">
-              View on Map
+            <Button variant="outline" className="flex-1">
+              Contact
             </Button>
           </div>
         </div>

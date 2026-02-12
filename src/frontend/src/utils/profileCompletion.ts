@@ -53,6 +53,9 @@ export function checkClientProfileCompletion(profile: ClientProfile | undefined)
   if (!isValidPhoneNumber(profile.mobileNumber)) {
     missingFields.push('Mobile Number');
   }
+  if (!isValidPhoneNumber(profile.phoneNumber)) {
+    missingFields.push('Phone Number');
+  }
   if (!isValidLocation(profile.pinnedLocation)) {
     missingFields.push('Exact Location (address and coordinates)');
   }

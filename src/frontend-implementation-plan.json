@@ -1,48 +1,106 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix client profile save loop by updating existing profile and stabilizing React Query state",
+  "title": "Administrator-only provider verification workflow (frontend UI + React Query wiring)",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Update the Client Profile “Save Required Information” action to persist changes via an update flow (not initial profile creation) and prevent any browser page reload/refresh during save.",
+      "id": "REQ-2",
+      "summary": "Implement a functional Administrator verification review UI (browse providers, review profile + documents, Verify action) with admin-only access control and feedback states.",
       "acceptanceCriteria": [
-        "From the Client Profile page, clicking “Save Required Information” does not reload the browser page.",
-        "If the user already has a client profile, saving required fields updates the stored profile successfully (surname, middleName, lastName, yearOfBirth, idNumber, mobileNumber/phoneNumber, pinnedLocation).",
-        "After saving, reloading the app and revisiting the Client Profile page shows the newly saved values populated from the backend.",
-        "If saving fails due to validation/authorization, the UI shows a clear error message and does not reload the page."
+        "frontend/src/pages/backoffice/VerificationReviewPage.tsx no longer shows a “future update” placeholder and instead renders a working review experience for admins.",
+        "The page is access-controlled using the existing admin check (useIsCallerAdmin) and shows a clear access denied state for non-admins.",
+        "The Administrator can select a provider, view their profile fields, see current verification status, and click “Verify” to set status to Verified; the UI refreshes to show the updated status.",
+        "Verification actions show loading/progress state and success/error feedback."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
           "operation": "modify",
-          "description": "Add a dedicated React Query mutation hook for updating an existing client profile’s required fields using the backend update capability (use the authorization + core-infrastructure actor connection already provided). Ensure onSuccess invalidates the ['currentUserProfile'] query so refreshed data repopulates the form. Verify the component's usage instructions before implementing."
+          "description": "Replace the placeholder card with an admin-only review workflow: list providers needing review, allow selecting a provider to view full profile details (identity + service info + submitted verification documents via direct URLs) and current verificationStatus, and provide a single “Verify” button that triggers the admin verification mutation with loading/disabled state and success/error messaging. Use existing shadcn-ui components (e.g., Card, Alert, Button, Badge) for layout/feedback. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/client/ClientProfilePage.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Switch “Save Required Information” to call the new client update mutation (instead of the initial save/creation mutation). Ensure the click handler cannot trigger a native form submission/page reload (e.g., by preventing default submission if applicable and/or ensuring the button behaves as a non-submit action). Show a clear, non-refreshing error state/message when the mutation fails due to validation/authorization and keep the user on the page. Verify the component's usage instructions before implementing."
+          "description": "Add React Query query/mutation hooks used by the admin review page: (a) fetch list of providers requiring verification review, (b) fetch a specific provider’s full review view, (c) perform the “Verify” action. Ensure the hooks expose pending/loading and error states for UI rendering."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Refactor the Client Profile page save behavior to use the new client-profile update mutation and ensure React Query invalidation/refetch updates UI state without navigation loops, with proper loading states.",
+      "summary": "Implement provider document upload + submission UI showing verification status (Unverified/Pending/Verified/Rejected) with rejection reason and refetch after submit.",
       "acceptanceCriteria": [
-        "ClientProfilePage no longer calls the initial profile-creation mutation to save required fields.",
-        "On successful save, the current user profile query is invalidated and the updated profile is shown (either immediately or after refetch) without the page appearing to refresh repeatedly.",
-        "The Save button shows a loading state while the mutation is pending and is re-enabled afterward."
+        "frontend/src/pages/provider/VerificationUploadPage.tsx provides file upload inputs for the required document types (academic qualifications and certificate of good conduct) and a submission control to send them for review.",
+        "After submission, the provider’s verificationStatus becomes Pending and the UI reflects the updated state via refetch.",
+        "If verificationStatus is Rejected, the rejection reason is displayed to the provider.",
+        "All user-facing strings in this flow refer to “Administrator” (not “technical team”)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/provider/VerificationUploadPage.tsx",
+          "operation": "modify",
+          "description": "Replace placeholder copy with a working provider flow: show current verificationStatus (Unverified/Pending/Verified/Rejected) and, when Rejected, display the rejection reason; add file inputs for required documents (academic qualification(s) and certificate of good conduct), show selected filenames, and provide a “Submit for Administrator Review” action that uploads documents using blob-storage ExternalBlob and triggers a submit mutation. Include upload progress and disable submit while uploading/submitting. Use existing shadcn-ui components for inputs/buttons/alerts. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add React Query mutation hook(s) for provider document submission that accept the selected files, convert them to blob-storage ExternalBlob instances (with upload progress), and call the backend capability to submit documents; on success, invalidate/refetch current profile so verificationStatus shows Pending immediately."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Update verification-related terminology to use “Administrator” instead of “technical team” across provider and admin tooling UI.",
+      "acceptanceCriteria": [
+        "frontend/src/pages/provider/VerificationUploadPage.tsx status descriptions mention “Administrator”.",
+        "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx headings/descriptions replace “Technical Team Tools” with “Administrator Tools” (or equivalent) while preserving meaning.",
+        "No remaining visible UI copy in verification/admin review areas refers to “technical team”."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/provider/VerificationUploadPage.tsx",
+          "operation": "modify",
+          "description": "Update all status/help text and any submission guidance to refer to “Administrator” (including Pending/Verified messaging), and ensure the Rejected state copy remains clear and in English."
+        },
+        {
+          "path": "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx",
+          "operation": "modify",
+          "description": "Replace the “Technical Team Tools” heading/description text with “Administrator Tools” (or equivalent) in both the admin and non-admin render paths while preserving meaning. Continue using existing shadcn-ui components for alerts/dialogs. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
+          "operation": "modify",
+          "description": "Ensure all admin review UI copy uses “Administrator” terminology consistently (including access denied state messaging) and remove any lingering “technical team” references."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Add React Query hooks and UI wiring for verification/document backend capabilities with proper cache invalidation and user-readable error handling.",
+      "acceptanceCriteria": [
+        "frontend/src/hooks/useQueries.ts (or a new non-immutable hooks file) includes mutations/queries for provider document submission and admin verification actions.",
+        "After successful mutations, the app invalidates/refetches at least ['currentUserProfile'] and any provider/admin review lists so updated verificationStatus is visible immediately.",
+        "Non-admin errors from admin endpoints are surfaced to the UI in a user-readable way."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Ensure the new client required-fields update mutation hook cleanly integrates with React Query by invalidating/refetching ['currentUserProfile'] on success and surfacing errors for UI display, avoiding any manual navigation triggers. Verify the component's usage instructions before implementing."
+          "description": "Implement the verification React Query layer: add query keys for admin review lists and provider review detail, plus mutations for provider document submission and admin verification. On success, invalidate/refetch at minimum ['currentUserProfile'] and the relevant admin/provider review list/detail queries. Standardize error normalization (e.g., mapping authorization failures into a user-readable message) so pages can show friendly errors."
         },
         {
-          "path": "frontend/src/pages/client/ClientProfilePage.tsx",
+          "path": "frontend/src/backend.d.ts",
           "operation": "modify",
-          "description": "Use the new update mutation for required fields; drive the Save button disabled/loading state from the mutation pending state; after success, rely on query invalidation/refetch (not navigation) so the profile completion gating in App.tsx stabilizes without repeated apparent refreshes. Verify the component's usage instructions before implementing."
+          "description": "Update the TypeScript backend interface declarations to include the new verification/document backend capabilities (provider submission, admin list/review fetch, admin verify/reject) so the new hooks/pages can call them without type errors."
+        },
+        {
+          "path": "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
+          "operation": "modify",
+          "description": "Wire the new hooks into the admin review UI: use React Query data for provider lists/details, trigger the Verify mutation, and ensure the UI refreshes based on invalidations (no full reload). Display backend authorization failures and other errors in a user-readable way using existing shadcn-ui Alert components. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/provider/VerificationUploadPage.tsx",
+          "operation": "modify",
+          "description": "Wire the new submission mutation into the provider upload page and refetch via query invalidation after success. Ensure submission/authorization errors are displayed clearly (English) and that status changes appear immediately after refetch."
         }
       ]
     }

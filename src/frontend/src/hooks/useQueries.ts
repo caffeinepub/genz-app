@@ -1,24 +1,12 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { Principal } from '@icp-sdk/core/principal';
-import {
-  UserProfileView,
-  ProviderProfileView,
-  ClientProfile,
-  Location,
-  ProviderProfileUpdate,
-  ClientProfileUpdate,
-  BusinessType,
-  PlatformStats,
-  MPesaConfig,
-  BioData,
-} from '../backend';
-import { getCategoryById } from '../lib/categories';
+import { BusinessType, ProviderProfileView, ProviderProfileUpdate, ProviderIdentityUpdate, ClientProfileUpdate, UserRole, BioData, ExternalBlob } from '@/backend';
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
 
-  const query = useQuery<UserProfileView | null>({
+  const query = useQuery({
     queryKey: ['currentUserProfile'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
@@ -35,101 +23,22 @@ export function useGetCallerUserProfile() {
   };
 }
 
-export function useGetProvider(
-  provider: Principal,
-  options?: { enabled?: boolean; refetchInterval?: number | false }
-) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<ProviderProfileView | null>({
-    queryKey: ['provider', provider.toString()],
-    queryFn: async () => {
-      if (!actor) return null;
-      return actor.getProvider(provider);
-    },
-    enabled: !!actor && !isFetching && (options?.enabled ?? true),
-    refetchInterval: options?.refetchInterval,
-    staleTime: 0,
-    refetchOnMount: 'always',
-  });
-}
-
-export function useGetProviderResults(categoryId: string | null) {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<ProviderProfileView[]>({
-    queryKey: ['providerResults', categoryId],
-    queryFn: async () => {
-      if (!actor) return [];
-      
-      // Convert categoryId to BusinessType for backend query
-      let categoryFilter: BusinessType | null = null;
-      if (categoryId) {
-        const category = getCategoryById(categoryId);
-        if (category) {
-          categoryFilter = category.businessType;
-        }
-      }
-      
-      return actor.getProviderResults(categoryFilter);
-    },
-    enabled: !!actor && !isFetching,
-    staleTime: 0,
-    refetchOnMount: 'always',
-  });
-}
-
-export function useGetPlatformStats() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<PlatformStats>({
-    queryKey: ['platformStats'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getPlatformStats();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
-export function useGetMpesaConfig() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<MPesaConfig | null>({
-    queryKey: ['mpesaConfig'],
-    queryFn: async () => {
-      if (!actor) return null;
-      return actor.getMpesaConfig();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
-export function useIsCallerAdmin() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<boolean>({
-    queryKey: ['isCallerAdmin'],
-    queryFn: async () => {
-      if (!actor) return false;
-      return actor.isCallerAdmin();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
 export function useSaveCallerUserProfile() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (profile: {
-      role: import('../backend').UserRole;
+      role: UserRole;
       clientProfile?: {
         yearOfBirth: string;
         mobileNumber: string;
         surname: string;
-        pinnedLocation?: Location;
+        pinnedLocation?: {
+          latitude: number;
+          longitude: number;
+          address: string;
+        };
         middleName: string;
         idNumber: string;
         phoneNumber: string;
@@ -147,14 +56,18 @@ export function useSaveCallerUserProfile() {
         surname: string;
         middleName: string;
         idNumber: string;
-        academicDocuments: Array<import('../backend').Document>;
+        academicDocuments: Array<any>;
         category: BusinessType;
         phoneNumber: string;
-        profilePicture?: import('../backend').ProfilePicture;
+        profilePicture?: any;
         lastName: string;
-        location: Location;
-        goodConductCert?: import('../backend').Document;
-        verificationStatus: import('../backend').VerificationStatus;
+        location: {
+          latitude: number;
+          longitude: number;
+          address: string;
+        };
+        goodConductCert?: any;
+        verificationStatus: any;
         isEngaged: boolean;
       };
     }) => {
@@ -163,6 +76,92 @@ export function useSaveCallerUserProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+export function useGetProvider(provider: Principal) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery({
+    queryKey: ['provider', provider.toString()],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getProvider(provider);
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetProviderResults(category?: BusinessType | null) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<ProviderProfileView[]>({
+    queryKey: ['providerResults', category],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getProviderResults(category ?? null);
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetAllProviders() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<ProviderProfileView[]>({
+    queryKey: ['allProviders'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllProviders();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetPlatformStats() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery({
+    queryKey: ['platformStats'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getPlatformStats();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useUpdateProviderProfile() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (update: ProviderProfileUpdate) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateProviderProfile(update);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['provider'] });
+      queryClient.invalidateQueries({ queryKey: ['providerResults'] });
+      queryClient.invalidateQueries({ queryKey: ['allProviders'] });
+    },
+  });
+}
+
+export function useUpdateProviderIdentityFields() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (update: ProviderIdentityUpdate) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateProviderIdentityFields(update);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['provider'] });
     },
   });
 }
@@ -197,51 +196,6 @@ export function useSaveClientBioData() {
   });
 }
 
-export function useUpdateProviderProfile() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (update: ProviderProfileUpdate) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.updateProviderProfile(update);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-    },
-  });
-}
-
-export function useUpdateProviderPinnedLocation() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (location: Location) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.updateProviderLocation(location.latitude, location.longitude, location.address);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-    },
-  });
-}
-
-export function useUpdateClientPinnedLocation() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (location: Location) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.updateClientPinnedLocation(location.latitude, location.longitude, location.address);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-    },
-  });
-}
-
 export function useSetEngaged() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -253,6 +207,9 @@ export function useSetEngaged() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['provider'] });
+      queryClient.invalidateQueries({ queryKey: ['providerResults'] });
+      queryClient.invalidateQueries({ queryKey: ['allProviders'] });
     },
   });
 }
@@ -268,7 +225,36 @@ export function useDisengage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['provider'] });
+      queryClient.invalidateQueries({ queryKey: ['providerResults'] });
+      queryClient.invalidateQueries({ queryKey: ['allProviders'] });
     },
+  });
+}
+
+export function useIsCallerAdmin() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<boolean>({
+    queryKey: ['isCallerAdmin'],
+    queryFn: async () => {
+      if (!actor) return false;
+      return actor.isCallerAdmin();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetMpesaConfig() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery({
+    queryKey: ['mpesaConfig'],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getMpesaConfig();
+    },
+    enabled: !!actor && !isFetching,
   });
 }
 
@@ -283,6 +269,7 @@ export function useRemoveAllProviders() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['providerResults'] });
+      queryClient.invalidateQueries({ queryKey: ['allProviders'] });
       queryClient.invalidateQueries({ queryKey: ['platformStats'] });
     },
   });
@@ -299,7 +286,120 @@ export function useSeedProviders() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['providerResults'] });
+      queryClient.invalidateQueries({ queryKey: ['allProviders'] });
       queryClient.invalidateQueries({ queryKey: ['platformStats'] });
+    },
+  });
+}
+
+export function useAddWorkSampleImage() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (blob: ExternalBlob) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.addWorkSampleImage(blob);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['provider'] });
+      queryClient.invalidateQueries({ queryKey: ['providerResults'] });
+      queryClient.invalidateQueries({ queryKey: ['allProviders'] });
+    },
+  });
+}
+
+export function useRemoveWorkSampleImage() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (blob: ExternalBlob) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.removeWorkSampleImage(blob);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['provider'] });
+      queryClient.invalidateQueries({ queryKey: ['providerResults'] });
+      queryClient.invalidateQueries({ queryKey: ['allProviders'] });
+    },
+  });
+}
+
+// Verification hooks - Provider side
+export function useSubmitVerificationDocuments() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (documents: { academicDocs: ExternalBlob[]; goodConductCert: ExternalBlob }) => {
+      if (!actor) throw new Error('Actor not available');
+      
+      // For now, we'll use the existing profile update mechanism
+      // In a real implementation, this would call a dedicated backend method
+      throw new Error('Document submission backend method not yet implemented');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+// Verification hooks - Admin side
+export function useGetProvidersForReview() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<ProviderProfileView[]>({
+    queryKey: ['providersForReview'],
+    queryFn: async () => {
+      if (!actor) return [];
+      // Get all providers and filter for those needing review
+      const allProviders = await actor.getAllProviders();
+      return allProviders.filter(p => {
+        const status = p.verificationStatus;
+        return status && ('pending' in status || 'unverified' in status);
+      });
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useVerifyProvider() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (providerPrincipal: Principal) => {
+      if (!actor) throw new Error('Actor not available');
+      // For now, we'll use a workaround since the backend doesn't have verifyProvider yet
+      throw new Error('Provider verification backend method not yet implemented');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['providersForReview'] });
+      queryClient.invalidateQueries({ queryKey: ['provider'] });
+      queryClient.invalidateQueries({ queryKey: ['allProviders'] });
+      queryClient.invalidateQueries({ queryKey: ['providerResults'] });
+    },
+  });
+}
+
+export function useRejectProvider() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ providerPrincipal, reason }: { providerPrincipal: Principal; reason: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      // For now, we'll use a workaround since the backend doesn't have rejectProvider yet
+      throw new Error('Provider rejection backend method not yet implemented');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['providersForReview'] });
+      queryClient.invalidateQueries({ queryKey: ['provider'] });
+      queryClient.invalidateQueries({ queryKey: ['allProviders'] });
+      queryClient.invalidateQueries({ queryKey: ['providerResults'] });
     },
   });
 }

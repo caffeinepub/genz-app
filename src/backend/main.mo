@@ -13,6 +13,8 @@ import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import Migration "migration";
 
+// With migration to carry over unchanged state
+
 (with migration = Migration.run)
 actor {
   // Types
@@ -109,6 +111,8 @@ actor {
     isEngaged : Bool;
     engagementEndTime : ?Int;
     category : ?BusinessType;
+    servicesWriteUp : Text;
+    workSampleImages : List.List<Storage.ExternalBlob>;
   };
 
   public type ProviderProfileView = {
@@ -132,6 +136,9 @@ actor {
     isEngaged : Bool;
     engagementEndTime : ?Int;
     category : ?BusinessType;
+    displayName : Text;
+    servicesWriteUp : Text;
+    workSampleImages : [Storage.ExternalBlob];
   };
 
   public type BioData = {
@@ -222,6 +229,14 @@ actor {
     profilePicture : ?ProfilePicture;
     description : Text;
     category : BusinessType;
+    servicesWriteUp : Text;
+  };
+
+  public type ProviderIdentityUpdate = {
+    middleName : Text;
+    lastName : Text;
+    idNumber : Text;
+    phoneNumber : Text;
   };
 
   // New ClientProfileUpdate type for updating required fields
@@ -251,7 +266,6 @@ actor {
   let documentStorage = Map.empty<Text, Document>();
   let profilePictures = Map.empty<Text, ProfilePicture>();
 
-  // Validation helper functions
   func isValidText(text : Text) : Bool {
     let trimmed = text.trim(#text " ");
     trimmed.size() > 0 and trimmed != "UNKNOWN" and trimmed != "0";
@@ -350,14 +364,32 @@ actor {
     };
   };
 
+  func buildDisplayName(profile : ProviderProfile) : Text {
+    let trimmed = profile.name.trim(#text " ");
+    if (trimmed.size() > 0 and trimmed != "UNKNOWN" and trimmed != profile.surname and trimmed != profile.lastName) {
+      trimmed;
+    } else {
+      let fullName = profile.surname.concat(" " # profile.lastName);
+      if (fullName.trim(#text " ").size() > 1) {
+        fullName;
+      } else {
+        profile.surname;
+      };
+    };
+  };
+
   // Function to convert ProviderProfile to ProviderProfileView
   func convertProviderProfileToView(profile : ProviderProfile) : ProviderProfileView {
     let ratingsArray = profile.ratings.toArray();
     let academicDocsArray = profile.academicDocuments.toArray();
+    let workImagesArray = profile.workSampleImages.toArray();
     {
       profile with
       ratings = ratingsArray;
       academicDocuments = academicDocsArray;
+      displayName = buildDisplayName(profile);
+      servicesWriteUp = profile.servicesWriteUp;
+      workSampleImages = workImagesArray;
     };
   };
 
@@ -383,7 +415,7 @@ actor {
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfileView {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view profiles");
+      Runtime.trap("Unauthorized: Only authenticated users can view profiles");
     };
     let profile = buildUserProfile(caller);
     convertUserProfileOptionToView(profile);
@@ -433,7 +465,7 @@ actor {
     };
   }) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can save profiles");
+      Runtime.trap("Unauthorized: Only authenticated users can save profiles");
     };
 
     let existingRole = userRoles.get(caller);
@@ -519,6 +551,8 @@ actor {
             isEngaged = pp.isEngaged;
             engagementEndTime = pp.engagementEndTime;
             category = ?pp.category;
+            servicesWriteUp = "";
+            workSampleImages = List.empty<Storage.ExternalBlob>();
           },
         );
       };
@@ -654,6 +688,47 @@ actor {
       profilePicture = update.profilePicture;
       description = update.description;
       category = ?update.category;
+      servicesWriteUp = update.servicesWriteUp;
+    };
+
+    providerProfiles.add(caller, updatedProfile);
+  };
+
+  // New endpoint for updating required identity fields in one call (Phase 3)
+  public shared ({ caller }) func updateProviderIdentityFields(update : ProviderIdentityUpdate) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can update provider identity fields");
+    };
+
+    let userRole = userRoles.get(caller);
+    switch (userRole) {
+      case (?#provider) {};
+      case (null) { Runtime.trap("User is not registered as a provider") };
+      case (_) { Runtime.trap("Only providers can update provider identity fields") };
+    };
+
+    let existingProfile = getProviderInternal(caller);
+
+    // Validate all required fields are provided and valid
+    if (not isValidText(update.middleName)) {
+      Runtime.trap("Middle name must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidText(update.lastName)) {
+      Runtime.trap("Last name must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidIdNumber(update.idNumber)) {
+      Runtime.trap("ID number must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidPhoneNumber(update.phoneNumber)) {
+      Runtime.trap("Phone number must be provided and cannot be empty or placeholder");
+    };
+
+    let updatedProfile = {
+      existingProfile with
+      middleName = update.middleName;
+      lastName = update.lastName;
+      idNumber = update.idNumber;
+      phoneNumber = update.phoneNumber;
     };
 
     providerProfiles.add(caller, updatedProfile);
@@ -852,7 +927,10 @@ actor {
     allViews.values().toArray();
   };
 
-  public query func getPlatformStats() : async PlatformStats {
+  public query ({ caller }) func getPlatformStats() : async PlatformStats {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view platform statistics");
+    };
     {
       totalClients = clientProfiles.size();
       totalProviders = providerProfiles.size();
@@ -933,6 +1011,8 @@ actor {
         isEngaged = profileView.isEngaged;
         engagementEndTime = profileView.engagementEndTime;
         category = profileView.category;
+        servicesWriteUp = profileView.servicesWriteUp;
+        workSampleImages = List.empty<Storage.ExternalBlob>(); // Initialize empty list for old providers
       });
     };
   };
@@ -974,5 +1054,46 @@ actor {
       };
       case (null) { null };
     };
+  };
+
+  // Work sample image management methods
+  public shared ({ caller }) func addWorkSampleImage(blob : Storage.ExternalBlob) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can add work sample image");
+    };
+
+    ensureIsProvider(caller);
+
+    var existingProfile = getProviderInternal(caller);
+    let workSampleImages = existingProfile.workSampleImages;
+
+    workSampleImages.add(blob);
+
+    let updatedProfile = {
+      existingProfile with workSampleImages
+    };
+    providerProfiles.add(caller, updatedProfile);
+  };
+
+  public shared ({ caller }) func removeWorkSampleImage(blob : Storage.ExternalBlob) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can remove work sample image");
+    };
+
+    ensureIsProvider(caller);
+
+    let existingProfile = getProviderInternal(caller);
+    let workSampleImages = existingProfile.workSampleImages;
+
+    let filteredImages = workSampleImages.filter(
+      func(image) {
+        image != blob;
+      }
+    );
+
+    let updatedProfile = {
+      existingProfile with workSampleImages = filteredImages;
+    };
+    providerProfiles.add(caller, updatedProfile);
   };
 };

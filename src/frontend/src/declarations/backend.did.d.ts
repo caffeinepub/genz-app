@@ -109,6 +109,12 @@ export interface PlatformStats {
   'totalClients' : bigint,
 }
 export interface ProfilePicture { 'id' : string, 'blob' : ExternalBlob }
+export interface ProviderIdentityUpdate {
+  'middleName' : string,
+  'idNumber' : string,
+  'phoneNumber' : string,
+  'lastName' : string,
+}
 export interface ProviderProfileUpdate {
   'yearOfBirth' : string,
   'rate' : bigint,
@@ -116,12 +122,15 @@ export interface ProviderProfileUpdate {
   'description' : string,
   'surname' : string,
   'category' : BusinessType,
+  'servicesWriteUp' : string,
   'profilePicture' : [] | [ProfilePicture],
   'location' : Location,
 }
 export interface ProviderProfileView {
   'yearOfBirth' : string,
   'principal' : Principal,
+  'workSampleImages' : Array<ExternalBlob>,
+  'displayName' : string,
   'engagementEndTime' : [] | [bigint],
   'name' : string,
   'rate' : bigint,
@@ -133,6 +142,7 @@ export interface ProviderProfileView {
   'idNumber' : string,
   'academicDocuments' : Array<Document>,
   'category' : [] | [BusinessType],
+  'servicesWriteUp' : string,
   'phoneNumber' : string,
   'profilePicture' : [] | [ProfilePicture],
   'lastName' : string,
@@ -189,6 +199,7 @@ export interface _SERVICE {
   >,
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'addWorkSampleImage' : ActorMethod<[ExternalBlob], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole__1], undefined>,
   'disengage' : ActorMethod<[], undefined>,
   'getAllProviders' : ActorMethod<[], Array<ProviderProfileView>>,
@@ -208,6 +219,7 @@ export interface _SERVICE {
   'getWhatsAppConfig' : ActorMethod<[], [] | [WhatsAppConfig]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'removeAllProviders' : ActorMethod<[], undefined>,
+  'removeWorkSampleImage' : ActorMethod<[ExternalBlob], undefined>,
   'saveCallerUserProfile' : ActorMethod<
     [
       {
@@ -265,6 +277,10 @@ export interface _SERVICE {
     undefined
   >,
   'updateClientProfile' : ActorMethod<[ClientProfileUpdate], undefined>,
+  'updateProviderIdentityFields' : ActorMethod<
+    [ProviderIdentityUpdate],
+    undefined
+  >,
   'updateProviderLocation' : ActorMethod<[number, number, string], undefined>,
   'updateProviderProfile' : ActorMethod<[ProviderProfileUpdate], undefined>,
 }

@@ -1,54 +1,62 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-12T09:30:00.448Z",
-  "summary": "Frontend Client Profile saving flow was changed to call a new `useUpdateClientProfile` mutation and to `preventDefault()` on submit, which likely addresses the reload/loop. However, the diff summary does not provide evidence that the required new backend shared update method (with validation/trap behavior) was implemented in `backend/main.mo`, and several unrelated frontend features/pages were modified or added beyond the stated scope.",
+  "generatedAt": "2026-02-12T13:34:14.900Z",
+  "summary": "Frontend verification-related pages and terminology updates appear to be implemented (admin review page, provider upload/status page, “Administrator Tools” wording). However, the diff summary does not provide clear evidence that the required backend verification/document endpoints (and their admin-only protections) were implemented, nor that React Query invalidations/refetching for the new verification flows were wired as required. Several unrelated UI/features were also modified/added beyond the verification workflow scope (e.g., landing page, support drawer, role onboarding changes, MPesa/bio-data hooks).",
   "missing_requirements": [
     {
-      "id": "REQ-2",
-      "requirement": "Add a dedicated backend update method for client required profile fields that validates input and updates the caller’s existing client profile record (with clear traps for unauthenticated/non-client/no-profile cases).",
-      "reason": "The `backend/main.mo` diff is truncated and does not show any new shared update method or its validation/trap logic. The only backend addition shown is a `backend/migration.mo` placeholder module with comments, not an implemented update method.",
+      "id": "REQ-1",
+      "requirement": "Implement backend endpoints for provider document submission and admin-only verification review (list providers for review, fetch full provider profile including documents/status, verify/reject with reason), rejecting non-admin callers for admin methods.",
+      "reason": "backend/main.mo is truncated and the diff summary does not show any of the required new backend methods/endpoints or the admin-only access checks; only type additions are visible.",
       "evidence": [
-        "backend/main.mo (truncated; no update method shown in provided excerpt)",
-        "backend/migration.mo"
+        "backend/main.mo"
       ]
     },
     {
-      "id": "REQ-3",
-      "requirement": "The Save button shows a loading state while the mutation is pending and is re-enabled afterward.",
-      "reason": "The `ClientProfilePage.tsx` excerpt shows the save handler and mutation usage, but does not show the button wired to `updateClientProfileMutation.isPending` (or equivalent) for disabled/loading state. Because the file is truncated, this may exist later, but it is not evidenced in the provided diff summary.",
+      "id": "REQ-5",
+      "requirement": "Add React Query hooks and UI wiring for verification/document endpoints with query invalidation/refetch so status changes appear immediately (invalidate לפחות ['currentUserProfile'] and provider/admin review lists), and surface non-admin errors in a user-readable way.",
+      "reason": "Although the file summary claims verification hooks exist, the provided truncated diff content for frontend/src/hooks/useQueries.ts does not show the new verification queries/mutations nor any onSuccess invalidations for them (beyond currentUserProfile invalidation for saveCallerUserProfile).",
       "evidence": [
-        "frontend/src/pages/client/ClientProfilePage.tsx (truncated)"
+        "frontend/src/hooks/useQueries.ts",
+        "frontend-file-summaries.txt"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added/modified multiple unrelated frontend features (landing page hero/background styling, support drawer content, categories browsing/results pages changes, provider detail polling, provider card engagement badges, navigation/header/footer updates, Tailwind/theme changes).",
-      "reason": "These changes are not requested by REQ-1/2/3 and go beyond the non-goals (fix saving/refresh behavior only).",
+      "description": "Added a backend upgrade migration module even though the migration shown is a no-op (OldActor/NewActor are empty and run returns {}).",
+      "reason": "BuildRequest constraint says to only generate backend/migration.mo if adding/changing stable state requiring an upgrade migration; the added migration appears unrelated/no-op based on the diff content.",
       "evidence": [
-        "frontend-file-summaries.txt",
-        "frontend/src/pages/provider/ProviderProfilePage.tsx (modified)",
-        "frontend/src/hooks/useQueries.ts (modified)"
+        "backend/migration.mo",
+        "backend/main.mo"
       ]
     },
     {
-      "description": "Introduced a backend migration module (`backend/migration.mo`).",
-      "reason": "The BuildRequest constraints specify keeping a single Motoko actor in `backend/main.mo`; while a module is not a separate service, adding a migration system/file was not requested by any requirement and is not evidenced as necessary for the save-loop fix.",
+      "description": "Added/modified unrelated frontend features: landing page overhaul, support drawer contact info, header/footer changes, role onboarding/category selection changes, Tailwind/theme/style changes, and additional hooks (e.g., M-Pesa config, client bio data).",
+      "reason": "These changes are not requested by REQ-1..REQ-5 (which are specific to provider verification workflow, related UI terminology, and React Query wiring for that workflow).",
       "evidence": [
-        "backend/migration.mo",
-        "backend/main.mo (imports Migration and uses `(with migration = Migration.run)`)"
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "description": "Introduced a polling interval state in ProviderResultsPage with an empty interval callback (commented “Trigger refetch by invalidating the query” but not implemented in the shown snippet).",
+      "reason": "Not part of requested verification workflow requirements and appears incomplete/unused in the shown diff excerpt.",
+      "evidence": [
+        "frontend/src/pages/client/ProviderResultsPage.tsx"
       ]
     }
   ],
-  "confidence": 0.58,
+  "confidence": 0.66,
   "changed_files": [
     "backend/main.mo",
     "backend/migration.mo",
     "frontend-file-summaries.txt",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/client/ClientProfilePage.tsx",
+    "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx",
+    "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
+    "frontend/src/pages/client/ProviderResultsPage.tsx",
     "frontend/src/pages/provider/ProviderProfilePage.tsx",
+    "frontend/src/pages/provider/VerificationUploadPage.tsx",
     "project_state.json"
   ]
 }

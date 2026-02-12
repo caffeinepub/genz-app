@@ -1,84 +1,120 @@
 {
   "kind": "build_request",
-  "title": "Fix client profile save loop (persist client profile updates instead of refreshing)",
+  "title": "Administrator-only provider verification workflow (documents + Verify button)",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the client profile “Save Required Information” action so it updates an existing client profile instead of calling the backend method intended only for initial profile creation, and ensure the save action does not trigger a full page reload/refresh.",
-      "target": "both",
+      "text": "Implement backend endpoints for a provider verification workflow where service providers can submit required verification documents and the Administrator can review a provider’s full profile and set the provider’s verification status via a single “Verify” action.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-4",
+          "msg-8"
         ],
         "quotes": [
-          "When i save the data in the profile in the client's section its not saving its keeps on refreshing the page without saving it. kindly resolve"
+          "the administrator has the sole responsibility of going through the service providers profile and if everything is okey. the admin can hit verify button",
+          "okey"
         ]
       },
       "acceptanceCriteria": [
-        "From the Client Profile page, clicking “Save Required Information” does not reload the browser page.",
-        "If the user already has a client profile, saving required fields updates the stored profile successfully (surname, middleName, lastName, yearOfBirth, idNumber, mobileNumber/phoneNumber, pinnedLocation).",
-        "After saving, reloading the app and revisiting the Client Profile page shows the newly saved values populated from the backend.",
-        "If saving fails due to validation/authorization, the UI shows a clear error message and does not reload the page."
+        "Backend exposes authenticated provider-facing methods to upload/submit required verification documents (at minimum: academic qualification(s) and certificate of good conduct) and transitions the provider verificationStatus to Pending when a submission is made.",
+        "Backend exposes Administrator-only methods to (a) list providers requiring review and (b) fetch a provider’s profile details including submitted documents and current verificationStatus.",
+        "Backend exposes an Administrator-only method to mark a provider as Verified (and optionally Rejected with a reason), updating the provider’s verificationStatus accordingly.",
+        "Non-admin callers are rejected when attempting to access admin-only verification review/verification methods."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add a dedicated backend update method for client required profile fields (names, yearOfBirth, idNumber, mobileNumber/phoneNumber, pinnedLocation) that validates input and updates the caller’s existing client profile record without requiring profile re-creation.",
-      "target": "backend",
+      "text": "Replace the placeholder “Verification Review” admin page with a functional Administrator verification review UI that allows the Administrator to browse providers, open a provider’s profile for review (identity + service info + uploaded verification documents + current status), and click a “Verify” button to mark the provider as Verified.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-4"
         ],
         "quotes": [
-          "When i save the data in the profile in the client's section its not saving its keeps on refreshing the page without saving it. kindly resolve"
+          "the administrator has the sole responsibility of going through the service providers profile and if everything is okey. the admin can hit verify button"
         ]
       },
       "acceptanceCriteria": [
-        "Backend exposes a new shared method to update the caller’s existing client profile required fields without trapping with “Profile already exists…”.",
-        "The update method enforces the same validation rules currently applied for client profiles (non-empty fields and pinnedLocation required with non-zero coordinates/address).",
-        "The update method traps with a clear message if the caller is not authenticated, is not a client, or has no existing client profile."
+        "frontend/src/pages/backoffice/VerificationReviewPage.tsx no longer shows a “future update” placeholder and instead renders a working review experience for admins.",
+        "The page is access-controlled using the existing admin check (useIsCallerAdmin) and shows a clear access denied state for non-admins.",
+        "The Administrator can select a provider, view their profile fields, see current verification status, and click “Verify” to set status to Verified; the UI refreshes to show the updated status.",
+        "Verification actions show loading/progress state and success/error feedback."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Update the frontend Client Profile page to use the new client-profile update mutation for saving required fields, and ensure React Query cache invalidation/refetch updates the UI state without navigation loops.",
+      "text": "Replace the placeholder provider “Verification Status / Document Upload” page with a working document upload & submission UI for providers, including status display (Unverified / Pending / Verified / Rejected) and a submission action that sends the required documents for Administrator review.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-2",
+          "msg-4"
         ],
         "quotes": [
-          "its not saving its keeps on refreshing the page without saving it"
+          "You want a new section where service providers can upload their required documents, and these documents should be viewed and approved by the Administrator (not “technical team”).",
+          "the administrator has the sole responsibility of going through the service providers profile and if everything is okey. the admin can hit verify button"
         ]
       },
       "acceptanceCriteria": [
-        "ClientProfilePage no longer calls the initial profile-creation mutation to save required fields.",
-        "On successful save, the current user profile query is invalidated and the updated profile is shown (either immediately or after refetch) without the page appearing to refresh repeatedly.",
-        "The Save button shows a loading state while the mutation is pending and is re-enabled afterward."
+        "frontend/src/pages/provider/VerificationUploadPage.tsx provides file upload inputs for the required document types (academic qualifications and certificate of good conduct) and a submission control to send them for review.",
+        "After submission, the provider’s verificationStatus becomes Pending and the UI reflects the updated state via refetch.",
+        "If verificationStatus is Rejected, the rejection reason is displayed to the provider.",
+        "All user-facing strings in this flow refer to “Administrator” (not “technical team”)."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Update all user-facing terminology in the verification-related UI to use “Administrator” instead of “technical team”, including admin-only tooling panels that are currently labeled “Technical Team Tools”.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-2"
+        ],
+        "quotes": [
+          "and these documents should be viewed and approved by the Administrator (not “technical team”)."
+        ]
+      },
+      "acceptanceCriteria": [
+        "frontend/src/pages/provider/VerificationUploadPage.tsx status descriptions mention “Administrator”.",
+        "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx headings/descriptions replace “Technical Team Tools” with “Administrator Tools” (or equivalent) while preserving meaning.",
+        "No remaining visible UI copy in verification/admin review areas refers to “technical team”."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Add React Query hooks and UI wiring needed to call the new backend verification/document endpoints, ensuring relevant queries are invalidated so status changes appear without a full reload.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "the admin can hit verify button"
+        ]
+      },
+      "acceptanceCriteria": [
+        "frontend/src/hooks/useQueries.ts (or a new non-immutable hooks file) includes mutations/queries for provider document submission and admin verification actions.",
+        "After successful mutations, the app invalidates/refetches at least ['currentUserProfile'] and any provider/admin review lists so updated verificationStatus is visible immediately.",
+        "Non-admin errors from admin endpoints are surfaced to the UI in a user-readable way."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
-    "Do not edit files under frontend/src/components/ui or any other frontend immutable paths listed in SYSTEM_CONTEXT."
+    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional backend services.",
+    "Only generate backend/migration.mo if adding/changing stable state in a way that requires an upgrade migration; avoid migrations if only adding methods that use existing stored fields.",
+    "Do not edit files in frontend immutablePaths (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*).",
+    "Use English for all user-facing UI text."
   ],
   "nonGoals": [
-    "Redesigning the client profile UI beyond what is required to fix saving and refresh behavior.",
-    "Changing authentication flows or Internet Identity integration."
+    "Adding real-time notifications for verification status changes.",
+    "Adding third-party authentication providers (only Internet Identity is supported).",
+    "Implementing external database storage or off-chain file storage beyond the existing IC/blob storage approach.",
+    "Building a separate “technical team” role; verification authority is the Administrator only."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

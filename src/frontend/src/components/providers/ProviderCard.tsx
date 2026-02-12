@@ -5,6 +5,7 @@ import { MapPin, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { getBusinessTypeLabel } from '../../lib/categories';
 import { ProviderAvatar } from './ProviderAvatar';
 import { StarRatingDisplay } from '../ratings/StarRatingDisplay';
+import { getProviderDisplayName } from '../../utils/providerDisplayName';
 
 interface ProviderCardProps {
   provider: ProviderProfileView;
@@ -17,7 +18,11 @@ export function ProviderCard({ provider, onClick }: ProviderCardProps) {
     ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
     : 0;
 
+  // Clamp rating to 0-5 range
+  const clampedRating = Math.max(0, Math.min(5, avgRating));
+
   const profilePictureUrl = provider.profilePicture?.blob.getDirectURL();
+  const displayName = getProviderDisplayName(provider);
 
   const getVerificationBadge = () => {
     if ('verified' in provider.verificationStatus) {
@@ -76,13 +81,13 @@ export function ProviderCard({ provider, onClick }: ProviderCardProps) {
       <CardHeader>
         <div className="mb-3 flex justify-center">
           <ProviderAvatar
-            name={provider.name}
+            name={displayName}
             profilePictureUrl={profilePictureUrl}
             size="md"
           />
         </div>
         <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-lg">{provider.name}</CardTitle>
+          <CardTitle className="text-lg">{displayName}</CardTitle>
           <div className="flex flex-col gap-1">
             {getVerificationBadge()}
             {getEngagementBadge()}
@@ -111,7 +116,7 @@ export function ProviderCard({ provider, onClick }: ProviderCardProps) {
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground">Rating</span>
           <StarRatingDisplay
-            averageRating={avgRating}
+            averageRating={clampedRating}
             totalRatings={ratings.length}
             size="sm"
           />

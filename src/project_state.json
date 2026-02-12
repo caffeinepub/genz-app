@@ -1,41 +1,67 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "Add a service-provider document upload section with administrator-only review and verification workflow.",
   "architectural_notes": [],
-  "known_issues": [
-    "Client profile data in client's section does not save; page refreshes repeatedly without persisting changes."
-  ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-fix-the-client-profile-save-required-information-action-so-it-updates-an-existing-client-profile-instead-of-calling-the-backend-method-intended-only-for-initial-profile-creation-and-ensure-the-save-action-does-not-trigger-a-full-page-reload-refresh",
-      "title": "Fix the client profile “Save Required Information” action so it updates an existing client profile instead of calling the backend method intended only for initial profile creation, and ensure the save action does not trigger a full page reload/refresh.",
+      "id": "feature-replace-the-placeholder-verification-review-admin-page-with-a-functional-administrator-verification-review-ui-that-allows-the-administrator-to-browse-providers-open-a-provider-s-profile-for-review-identity-service-info-uploaded-verification-documents-current-status-and-click-a-verify-button-to-mark-the-provider-as-verified",
+      "title": "Replace the placeholder “Verification Review” admin page with a functional Administrator verification review UI that allows the Administrator to browse providers, open a provider’s profile for review (identity + service info + uploaded verification documents + current status), and click a “Verify” button to mark the provider as Verified.",
       "reqIds": [
-        "REQ-1"
+        "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-the-frontend-client-profile-page-to-use-the-new-client-profile-update-mutation-for-saving-required-fields-and-ensure-react-query-cache-invalidation-refetch-updates-the-ui-state-without-navigation-loops",
-      "title": "Update the frontend Client Profile page to use the new client-profile update mutation for saving required fields, and ensure React Query cache invalidation/refetch updates the UI state without navigation loops.",
+      "id": "feature-replace-the-placeholder-provider-verification-status-document-upload-page-with-a-working-document-upload-submission-ui-for-providers-including-status-display-unverified-pending-verified-rejected-and-a-submission-action-that-sends-the-required-documents-for-administrator-review",
+      "title": "Replace the placeholder provider “Verification Status / Document Upload” page with a working document upload & submission UI for providers, including status display (Unverified / Pending / Verified / Rejected) and a submission action that sends the required documents for Administrator review.",
       "reqIds": [
         "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-all-user-facing-terminology-in-the-verification-related-ui-to-use-administrator-instead-of-technical-team-including-admin-only-tooling-panels-that-are-currently-labeled-technical-team-tools",
+      "title": "Update all user-facing terminology in the verification-related UI to use “Administrator” instead of “technical team”, including admin-only tooling panels that are currently labeled “Technical Team Tools”.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-react-query-hooks-and-ui-wiring-needed-to-call-the-new-backend-verification-document-endpoints-ensuring-relevant-queries-are-invalidated-so-status-changes-appear-without-a-full-reload",
+      "title": "Add React Query hooks and UI wiring needed to call the new backend verification/document endpoints, ensuring relevant queries are invalidated so status changes appear without a full reload.",
+      "reqIds": [
+        "REQ-5"
       ],
       "version": 1
     }
   ],
   "new_feature_requests": [
     {
+      "id": "AR-1",
+      "summary": "Service providers can upload required documents; Administrator can view and approve/reject them with statuses (Pending/Approved/Rejected), and terminology uses “Administrator” (not “technical team”).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
       "id": "AR-2",
-      "summary": "Add a dedicated backend update method for client required profile fields (names, yearOfBirth, idNumber, mobileNumber/phoneNumber, pinnedLocation) that validates input and updates the caller’s existing client profile record without requiring profile re-creation.",
+      "summary": "Administrator is solely responsible for reviewing a service provider’s profile and can confirm completion by clicking a “Verify” button.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Implement backend endpoints for a provider verification workflow where service providers can submit required verification documents and the Administrator can review a provider’s full profile and set the provider’s verification status via a single “Verify” action.",
       "reqIds": [
-        "REQ-2"
+        "REQ-1"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Fix client profile save loop (persist client profile updates instead of refreshing)",
+  "projectName": "Administrator-only provider verification workflow (documents + Verify button)",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

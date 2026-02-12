@@ -12,6 +12,7 @@ interface DemoProvider {
   location: string;
   verified: boolean;
   avatarPath: string;
+  servicesWriteUp: string;
 }
 
 const demoProviders: DemoProvider[] = [
@@ -24,6 +25,7 @@ const demoProviders: DemoProvider[] = [
     location: 'Nairobi, Lavington',
     verified: true,
     avatarPath: '/assets/generated/genz-demo-avatar-grace.dim_512x512.png',
+    servicesWriteUp: '',
   },
   {
     name: 'James Ochieng',
@@ -34,6 +36,7 @@ const demoProviders: DemoProvider[] = [
     location: 'Nairobi, Kilimani',
     verified: true,
     avatarPath: '/assets/generated/genz-demo-avatar-james.dim_512x512.png',
+    servicesWriteUp: '',
   },
   {
     name: 'Mary Wanjiru',
@@ -44,6 +47,7 @@ const demoProviders: DemoProvider[] = [
     location: 'Nairobi, Parklands',
     verified: true,
     avatarPath: '/assets/generated/genz-demo-avatar-mary.dim_512x512.png',
+    servicesWriteUp: '',
   },
   {
     name: 'David Kamau',
@@ -54,6 +58,7 @@ const demoProviders: DemoProvider[] = [
     location: 'Nairobi, Karen',
     verified: true,
     avatarPath: '/assets/generated/genz-demo-avatar-david.dim_512x512.png',
+    servicesWriteUp: '',
   },
 ];
 

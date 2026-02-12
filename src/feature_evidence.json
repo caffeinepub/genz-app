@@ -2,11 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-client-profile-save-required-information-action-so-it-updates-an-existing-client-profile-instead-of-calling-the-backend-method-intended-only-for-initial-profile-creation-and-ensure-the-save-action-does-not-trigger-a-full-page-reload-refresh",
-      "featureTitle": "Fix the client profile “Save Required Information” action so it updates an existing client profile instead of calling the backend method intended only for initial profile creation, and ensure the save action does not trigger a full page reload/refresh.",
+      "featureId": "feature-replace-the-placeholder-verification-review-admin-page-with-a-functional-administrator-verification-review-ui-that-allows-the-administrator-to-browse-providers-open-a-provider-s-profile-for-review-identity-service-info-uploaded-verification-documents-current-status-and-click-a-verify-button-to-mark-the-provider-as-verified",
+      "featureTitle": "Replace the placeholder “Verification Review” admin page with a functional Administrator verification review UI that allows the Administrator to browse providers, open a provider’s profile for review (identity + service info + uploaded verification documents + current status), and click a “Verify” button to mark the provider as Verified.",
       "files": [
         "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/client/ClientProfilePage.tsx"
+        "frontend/src/pages/backoffice/VerificationReviewPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -19,16 +19,16 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-1"
+        "REQ-2"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-frontend-client-profile-page-to-use-the-new-client-profile-update-mutation-for-saving-required-fields-and-ensure-react-query-cache-invalidation-refetch-updates-the-ui-state-without-navigation-loops",
-      "featureTitle": "Update the frontend Client Profile page to use the new client-profile update mutation for saving required fields, and ensure React Query cache invalidation/refetch updates the UI state without navigation loops.",
+      "featureId": "feature-replace-the-placeholder-provider-verification-status-document-upload-page-with-a-working-document-upload-submission-ui-for-providers-including-status-display-unverified-pending-verified-rejected-and-a-submission-action-that-sends-the-required-documents-for-administrator-review",
+      "featureTitle": "Replace the placeholder provider “Verification Status / Document Upload” page with a working document upload & submission UI for providers, including status display (Unverified / Pending / Verified / Rejected) and a submission action that sends the required documents for Administrator review.",
       "files": [
         "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/client/ClientProfilePage.tsx"
+        "frontend/src/pages/provider/VerificationUploadPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -42,6 +42,52 @@
       ],
       "testIds": [
         "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-all-user-facing-terminology-in-the-verification-related-ui-to-use-administrator-instead-of-technical-team-including-admin-only-tooling-panels-that-are-currently-labeled-technical-team-tools",
+      "featureTitle": "Update all user-facing terminology in the verification-related UI to use “Administrator” instead of “technical team”, including admin-only tooling panels that are currently labeled “Technical Team Tools”.",
+      "files": [
+        "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx",
+        "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
+        "frontend/src/pages/provider/VerificationUploadPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-react-query-hooks-and-ui-wiring-needed-to-call-the-new-backend-verification-document-endpoints-ensuring-relevant-queries-are-invalidated-so-status-changes-appear-without-a-full-reload",
+      "featureTitle": "Add React Query hooks and UI wiring needed to call the new backend verification/document endpoints, ensuring relevant queries are invalidated so status changes appear without a full reload.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
+        "frontend/src/pages/provider/VerificationUploadPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
       ],
       "confidence": "high"
     }

@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { getProviderInitials } from '../../utils/providerDisplayName';
 
 interface ProviderAvatarProps {
   name: string;
@@ -7,13 +8,7 @@ interface ProviderAvatarProps {
 }
 
 export function ProviderAvatar({ name, profilePictureUrl, size = 'md' }: ProviderAvatarProps) {
-  const getInitials = (name: string) => {
-    const parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return name.slice(0, 2).toUpperCase();
-  };
+  const initials = getProviderInitials(name);
 
   const sizeClasses = {
     sm: 'h-10 w-10 text-sm',
@@ -24,10 +19,10 @@ export function ProviderAvatar({ name, profilePictureUrl, size = 'md' }: Provide
   return (
     <Avatar className={sizeClasses[size]}>
       {profilePictureUrl && (
-        <AvatarImage src={profilePictureUrl} alt={name} />
+        <AvatarImage src={profilePictureUrl} alt={name || 'Provider'} />
       )}
       <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-        {getInitials(name)}
+        {initials}
       </AvatarFallback>
     </Avatar>
   );

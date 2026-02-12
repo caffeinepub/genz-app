@@ -17,6 +17,7 @@ import { useInternetIdentity } from './hooks/useInternetIdentity';
 import { useGetCallerUserProfile } from './hooks/useQueries';
 import { UserRole } from './backend';
 import { checkClientProfileCompletion, checkProviderProfileCompletion } from './utils/profileCompletion';
+import { clearPendingRole } from './utils/pendingRoleSelection';
 
 type Page =
   | 'landing'
@@ -54,11 +55,24 @@ function App() {
     setPageParams(params || {});
   };
 
+  // Clear pending role when a real backend profile is loaded
+  useEffect(() => {
+    if (isAuthenticated && userProfile && isFetched) {
+      clearPendingRole();
+    }
+  }, [isAuthenticated, userProfile, isFetched]);
+
   const handleAccessComplete = () => {
+    // Wait for profile query to settle before routing
+    if (profileLoading || !isFetched) {
+      return;
+    }
+
     if (!userProfile) {
+      // No profile exists - show role onboarding
       handleNavigate('role-onboarding');
     } else {
-      // Route based on role and profile completion
+      // Profile exists - route based on role and completion status
       if (userProfile.role === UserRole.client) {
         const completionStatus = checkClientProfileCompletion(userProfile.clientProfile);
         if (!completionStatus.isComplete) {
@@ -67,12 +81,7 @@ function App() {
           handleNavigate('categories');
         }
       } else if (userProfile.role === UserRole.provider) {
-        const completionStatus = checkProviderProfileCompletion(userProfile.providerProfile);
-        if (!completionStatus.isComplete) {
-          handleNavigate('provider-profile');
-        } else {
-          handleNavigate('provider-profile');
-        }
+        handleNavigate('provider-profile');
       } else if (userProfile.role === UserRole.backOffice) {
         handleNavigate('verification-review');
       }
@@ -83,7 +92,7 @@ function App() {
     handleAccessComplete();
   };
 
-  // Redirect authenticated users from access pages
+  // Redirect authenticated users from access pages once profile is loaded
   useEffect(() => {
     if (isAuthenticated && !profileLoading && isFetched) {
       if (currentPage === 'client-access' || currentPage === 'provider-access') {
@@ -144,9 +153,21 @@ function App() {
           />
         );
       case 'client-access':
-        return <ClientAccessPage onComplete={handleAccessComplete} />;
+        return (
+          <ClientAccessPage 
+            onComplete={handleAccessComplete}
+            profileLoading={profileLoading}
+            isFetched={isFetched}
+          />
+        );
       case 'provider-access':
-        return <ProviderAccessPage onComplete={handleAccessComplete} />;
+        return (
+          <ProviderAccessPage 
+            onComplete={handleAccessComplete}
+            profileLoading={profileLoading}
+            isFetched={isFetched}
+          />
+        );
       case 'role-onboarding':
         return <RoleOnboarding onComplete={handleRoleOnboardingComplete} />;
       case 'categories':
