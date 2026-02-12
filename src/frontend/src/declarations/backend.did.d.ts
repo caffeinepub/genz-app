@@ -10,6 +10,12 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface BioData {
+  'fullName' : string,
+  'email' : string,
+  'nationalId' : string,
+  'address' : string,
+}
 export type BusinessType = { 'it' : null } |
   { 'repair' : null } |
   { 'retail' : null } |
@@ -45,10 +51,27 @@ export type BusinessType = { 'it' : null } |
   { 'hairAndBeauty' : null } |
   { 'mediar' : null };
 export interface ClientProfile {
+  'yearOfBirth' : string,
   'principal' : Principal,
+  'mobileNumber' : string,
+  'surname' : string,
   'pinnedLocation' : [] | [Location],
+  'middleName' : string,
+  'idNumber' : string,
   'isVerified' : boolean,
   'phoneNumber' : string,
+  'lastName' : string,
+  'bioData' : [] | [BioData],
+}
+export interface ClientProfileUpdate {
+  'yearOfBirth' : string,
+  'mobileNumber' : string,
+  'surname' : string,
+  'pinnedLocation' : Location,
+  'middleName' : string,
+  'idNumber' : string,
+  'phoneNumber' : string,
+  'lastName' : string,
 }
 export interface Document {
   'blob' : ExternalBlob,
@@ -81,22 +104,23 @@ export interface MPesaConfig {
   'consumerKey' : string,
   'callbackUrl' : string,
 }
-export type OtpRole = { 'client' : null } |
-  { 'provider' : null };
 export interface PlatformStats {
   'totalProviders' : bigint,
   'totalClients' : bigint,
 }
 export interface ProfilePicture { 'id' : string, 'blob' : ExternalBlob }
 export interface ProviderProfileUpdate {
+  'yearOfBirth' : string,
   'rate' : bigint,
   'businessType' : BusinessType,
   'description' : string,
+  'surname' : string,
   'category' : BusinessType,
   'profilePicture' : [] | [ProfilePicture],
   'location' : Location,
 }
 export interface ProviderProfileView {
+  'yearOfBirth' : string,
   'principal' : Principal,
   'engagementEndTime' : [] | [bigint],
   'name' : string,
@@ -104,16 +128,19 @@ export interface ProviderProfileView {
   'businessType' : BusinessType,
   'ratings' : Array<bigint>,
   'description' : string,
+  'surname' : string,
+  'middleName' : string,
+  'idNumber' : string,
   'academicDocuments' : Array<Document>,
   'category' : [] | [BusinessType],
   'phoneNumber' : string,
   'profilePicture' : [] | [ProfilePicture],
+  'lastName' : string,
   'location' : Location,
   'goodConductCert' : [] | [Document],
   'verificationStatus' : VerificationStatus,
   'isEngaged' : boolean,
 }
-export type Time = bigint;
 export interface UserProfileView {
   'role' : UserRole,
   'clientProfile' : [] | [ClientProfile],
@@ -129,6 +156,11 @@ export type VerificationStatus = { 'verified' : null } |
   { 'pending' : null } |
   { 'unverified' : null } |
   { 'rejected' : string };
+export interface WhatsAppConfig {
+  'providerBaseUrl' : string,
+  'authToken' : string,
+  'senderPhoneNumber' : string,
+}
 export interface _CaffeineStorageCreateCertificateResult {
   'method' : string,
   'blob_hash' : string,
@@ -163,6 +195,7 @@ export interface _SERVICE {
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfileView]>,
   'getCallerUserRole' : ActorMethod<[], UserRole__1>,
   'getClient' : ActorMethod<[Principal], [] | [ClientProfile]>,
+  'getClientBioData' : ActorMethod<[Principal], [] | [BioData]>,
   'getJob' : ActorMethod<[string], [] | [Job]>,
   'getMpesaConfig' : ActorMethod<[], [] | [MPesaConfig]>,
   'getPlatformStats' : ActorMethod<[], PlatformStats>,
@@ -172,10 +205,7 @@ export interface _SERVICE {
     Array<ProviderProfileView>
   >,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfileView]>,
-  'initiateOtp' : ActorMethod<
-    [string, OtpRole],
-    { 'expiresAt' : Time, 'code' : string }
-  >,
+  'getWhatsAppConfig' : ActorMethod<[], [] | [WhatsAppConfig]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'removeAllProviders' : ActorMethod<[], undefined>,
   'saveCallerUserProfile' : ActorMethod<
@@ -183,19 +213,35 @@ export interface _SERVICE {
       {
         'role' : UserRole,
         'clientProfile' : [] | [
-          { 'pinnedLocation' : [] | [Location], 'phoneNumber' : string }
+          {
+            'yearOfBirth' : string,
+            'mobileNumber' : string,
+            'surname' : string,
+            'pinnedLocation' : [] | [Location],
+            'middleName' : string,
+            'idNumber' : string,
+            'phoneNumber' : string,
+            'lastName' : string,
+          }
         ],
         'providerProfile' : [] | [
           {
+            'id' : string,
+            'yearOfBirth' : string,
             'engagementEndTime' : [] | [bigint],
             'name' : string,
+            'rate' : [] | [bigint],
             'businessType' : BusinessType,
             'ratings' : Array<bigint>,
             'description' : string,
+            'surname' : string,
+            'middleName' : string,
+            'idNumber' : string,
             'academicDocuments' : Array<Document>,
             'category' : BusinessType,
             'phoneNumber' : string,
             'profilePicture' : [] | [ProfilePicture],
+            'lastName' : string,
             'location' : Location,
             'goodConductCert' : [] | [Document],
             'verificationStatus' : VerificationStatus,
@@ -206,19 +252,21 @@ export interface _SERVICE {
     ],
     undefined
   >,
+  'saveClientBioData' : ActorMethod<[BioData], undefined>,
   'seedProviders' : ActorMethod<
     [Array<[Principal, ProviderProfileView]>],
     undefined
   >,
   'setEngaged' : ActorMethod<[bigint], { 'engagementEndTime' : [] | [bigint] }>,
   'setMPesaConfig' : ActorMethod<[MPesaConfig], undefined>,
+  'setWhatsAppConfig' : ActorMethod<[WhatsAppConfig], undefined>,
   'updateClientPinnedLocation' : ActorMethod<
     [number, number, string],
     undefined
   >,
+  'updateClientProfile' : ActorMethod<[ClientProfileUpdate], undefined>,
   'updateProviderLocation' : ActorMethod<[number, number, string], undefined>,
   'updateProviderProfile' : ActorMethod<[ProviderProfileUpdate], undefined>,
-  'verifyOtp' : ActorMethod<[string], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Allow an admin/back-office user to wipe all existing service providers and seed a fresh set of category-specific providers so browsing results reflect the new dataset immediately.
+**Goal:** Fix the Client Profile “Save Required Information” flow so required profile fields persist correctly without triggering a page reload/refresh loop.
 
 **Planned changes:**
-- Add an admin-only backend operation to delete all existing service provider data (at minimum providerProfiles entries and provider role assignments) and ensure stats/results return zero providers after reset.
-- Add an admin-only backend operation to seed multiple realistic provider profiles with a stored category so they appear only in matching category browsing, and also appear in “All Providers” mode.
-- Add a simple back-office UI with two actions (“Delete All Providers” and “Seed Category Providers”), including confirmation for deletion, clear English success/error feedback, and invalidation of provider-related cached queries on success.
+- Backend: add a dedicated update method for required client profile fields (names, yearOfBirth, idNumber, mobile/phone number, pinnedLocation) that updates the caller’s existing profile with current validation and clear auth/role/existence errors.
+- Frontend: update Client Profile save to call the new update mutation (instead of the initial create method), show a pending/loading state during save, and display clear error messages on failure.
+- Frontend: ensure React Query invalidation/refetch updates the displayed profile after save without repeated refresh/navigation loops.
 
-**User-visible outcome:** An authenticated admin can delete all providers (immediately making browsing return no providers) and then seed a new set of providers that show up only in their respective categories (and in the all-providers view), with clear confirmation and feedback in the back-office UI.
+**User-visible outcome:** From the Client Profile page, users can click “Save Required Information” to update their existing profile fields without the page reloading; after saving, the updated values remain stored and are shown again when revisiting the page, and failures show a clear error message.

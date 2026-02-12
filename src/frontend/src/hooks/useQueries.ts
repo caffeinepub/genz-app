@@ -6,11 +6,12 @@ import {
   ProviderProfileView,
   ClientProfile,
   Location,
-  OtpRole,
   ProviderProfileUpdate,
+  ClientProfileUpdate,
   BusinessType,
   PlatformStats,
   MPesaConfig,
+  BioData,
 } from '../backend';
 import { getCategoryById } from '../lib/categories';
 
@@ -104,25 +105,61 @@ export function useGetMpesaConfig() {
   });
 }
 
-export function useInitiateOtp() {
-  const { actor } = useActor();
+export function useIsCallerAdmin() {
+  const { actor, isFetching } = useActor();
 
-  return useMutation({
-    mutationFn: async ({ phoneNumber, role }: { phoneNumber: string; role: OtpRole }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.initiateOtp(phoneNumber, role);
+  return useQuery<boolean>({
+    queryKey: ['isCallerAdmin'],
+    queryFn: async () => {
+      if (!actor) return false;
+      return actor.isCallerAdmin();
     },
+    enabled: !!actor && !isFetching,
   });
 }
 
-export function useVerifyOtp() {
+export function useSaveCallerUserProfile() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (code: string) => {
+    mutationFn: async (profile: {
+      role: import('../backend').UserRole;
+      clientProfile?: {
+        yearOfBirth: string;
+        mobileNumber: string;
+        surname: string;
+        pinnedLocation?: Location;
+        middleName: string;
+        idNumber: string;
+        phoneNumber: string;
+        lastName: string;
+      };
+      providerProfile?: {
+        id: string;
+        yearOfBirth: string;
+        engagementEndTime?: bigint;
+        name: string;
+        rate?: bigint;
+        businessType: BusinessType;
+        ratings: Array<bigint>;
+        description: string;
+        surname: string;
+        middleName: string;
+        idNumber: string;
+        academicDocuments: Array<import('../backend').Document>;
+        category: BusinessType;
+        phoneNumber: string;
+        profilePicture?: import('../backend').ProfilePicture;
+        lastName: string;
+        location: Location;
+        goodConductCert?: import('../backend').Document;
+        verificationStatus: import('../backend').VerificationStatus;
+        isEngaged: boolean;
+      };
+    }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.verifyOtp(code);
+      return actor.saveCallerUserProfile(profile);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
@@ -130,14 +167,44 @@ export function useVerifyOtp() {
   });
 }
 
-export function useUpdateClientPinnedLocation() {
+export function useUpdateClientProfile() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (location: Location) => {
+    mutationFn: async (update: ClientProfileUpdate) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateClientPinnedLocation(location.latitude, location.longitude, location.address);
+      return actor.updateClientProfile(update);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+export function useSaveClientBioData() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (bioData: BioData) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.saveClientBioData(bioData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+export function useUpdateProviderProfile() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (update: ProviderProfileUpdate) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateProviderProfile(update);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
@@ -160,14 +227,29 @@ export function useUpdateProviderPinnedLocation() {
   });
 }
 
+export function useUpdateClientPinnedLocation() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (location: Location) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateClientPinnedLocation(location.latitude, location.longitude, location.address);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
 export function useSetEngaged() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (hours: number) => {
+    mutationFn: async (hours: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.setEngaged(BigInt(hours));
+      return actor.setEngaged(hours);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
@@ -190,37 +272,6 @@ export function useDisengage() {
   });
 }
 
-export function useUpdateProviderProfile() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (update: ProviderProfileUpdate) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.updateProviderProfile(update);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['providerResults'] });
-      queryClient.invalidateQueries({ queryKey: ['provider'] });
-    },
-  });
-}
-
-// Admin operations for provider dataset management
-export function useIsCallerAdmin() {
-  const { actor, isFetching } = useActor();
-
-  return useQuery<boolean>({
-    queryKey: ['isCallerAdmin'],
-    queryFn: async () => {
-      if (!actor) return false;
-      return actor.isCallerAdmin();
-    },
-    enabled: !!actor && !isFetching,
-  });
-}
-
 export function useRemoveAllProviders() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -231,9 +282,7 @@ export function useRemoveAllProviders() {
       return actor.removeAllProviders();
     },
     onSuccess: () => {
-      // Invalidate all provider-related caches
       queryClient.invalidateQueries({ queryKey: ['providerResults'] });
-      queryClient.invalidateQueries({ queryKey: ['provider'] });
       queryClient.invalidateQueries({ queryKey: ['platformStats'] });
     },
   });
@@ -249,31 +298,8 @@ export function useSeedProviders() {
       return actor.seedProviders(providers);
     },
     onSuccess: () => {
-      // Invalidate all provider-related caches
       queryClient.invalidateQueries({ queryKey: ['providerResults'] });
-      queryClient.invalidateQueries({ queryKey: ['provider'] });
       queryClient.invalidateQueries({ queryKey: ['platformStats'] });
-    },
-  });
-}
-
-// Placeholder hooks for features not yet implemented in backend
-export function useProviderUnlockState(providerId: string) {
-  // Return a query-like object with data property
-  return {
-    data: false,
-    isLoading: false,
-    isError: false,
-    error: null,
-  };
-}
-
-export function useUnlockProvider() {
-  return useMutation({
-    mutationFn: async (providerId: string) => {
-      // Placeholder - backend doesn't support this yet
-      console.log('Unlock provider:', providerId);
-      return true;
     },
   });
 }

@@ -90,6 +90,7 @@ export class ExternalBlob {
     }
 }
 export interface ProviderProfileView {
+    yearOfBirth: string;
     principal: Principal;
     engagementEndTime?: bigint;
     name: string;
@@ -97,10 +98,14 @@ export interface ProviderProfileView {
     businessType: BusinessType;
     ratings: Array<bigint>;
     description: string;
+    surname: string;
+    middleName: string;
+    idNumber: string;
     academicDocuments: Array<Document>;
     category?: BusinessType;
     phoneNumber: string;
     profilePicture?: ProfilePicture;
+    lastName: string;
     location: Location;
     goodConductCert?: Document;
     verificationStatus: VerificationStatus;
@@ -111,7 +116,6 @@ export interface Location {
     longitude: number;
     address: string;
 }
-export type Time = bigint;
 export type BusinessType = {
     __kind__: "it";
     it: null;
@@ -223,21 +227,44 @@ export interface Document {
     filename: string;
     docType: DocumentType;
 }
+export interface ClientProfileUpdate {
+    yearOfBirth: string;
+    mobileNumber: string;
+    surname: string;
+    pinnedLocation: Location;
+    middleName: string;
+    idNumber: string;
+    phoneNumber: string;
+    lastName: string;
+}
 export interface _CaffeineStorageCreateCertificateResult {
     method: string;
     blob_hash: string;
 }
 export interface ProviderProfileUpdate {
+    yearOfBirth: string;
     rate: bigint;
     businessType: BusinessType;
     description: string;
+    surname: string;
     category: BusinessType;
     profilePicture?: ProfilePicture;
     location: Location;
 }
+export interface BioData {
+    fullName: string;
+    email: string;
+    nationalId: string;
+    address: string;
+}
 export interface ProfilePicture {
     id: string;
     blob: ExternalBlob;
+}
+export interface WhatsAppConfig {
+    providerBaseUrl: string;
+    authToken: string;
+    senderPhoneNumber: string;
 }
 export type VerificationStatus = {
     __kind__: "verified";
@@ -280,10 +307,17 @@ export interface UserProfileView {
     providerProfile?: ProviderProfileView;
 }
 export interface ClientProfile {
+    yearOfBirth: string;
     principal: Principal;
+    mobileNumber: string;
+    surname: string;
     pinnedLocation?: Location;
+    middleName: string;
+    idNumber: string;
     isVerified: boolean;
     phoneNumber: string;
+    lastName: string;
+    bioData?: BioData;
 }
 export interface PlatformStats {
     totalProviders: bigint;
@@ -303,10 +337,6 @@ export interface MPesaConfig {
 export enum DocumentType {
     goodConductCertificate = "goodConductCertificate",
     academicQualification = "academicQualification"
-}
-export enum OtpRole {
-    client = "client",
-    provider = "provider"
 }
 export enum UserRole {
     client = "client",
@@ -332,51 +362,64 @@ export interface backendInterface {
     getCallerUserProfile(): Promise<UserProfileView | null>;
     getCallerUserRole(): Promise<UserRole__1>;
     getClient(client: Principal): Promise<ClientProfile | null>;
+    getClientBioData(client: Principal): Promise<BioData | null>;
     getJob(jobId: string): Promise<Job | null>;
     getMpesaConfig(): Promise<MPesaConfig | null>;
     getPlatformStats(): Promise<PlatformStats>;
     getProvider(provider: Principal): Promise<ProviderProfileView | null>;
     getProviderResults(category: BusinessType | null): Promise<Array<ProviderProfileView>>;
     getUserProfile(user: Principal): Promise<UserProfileView | null>;
-    initiateOtp(phoneNumber: string, role: OtpRole): Promise<{
-        expiresAt: Time;
-        code: string;
-    }>;
+    getWhatsAppConfig(): Promise<WhatsAppConfig | null>;
     isCallerAdmin(): Promise<boolean>;
     removeAllProviders(): Promise<void>;
     saveCallerUserProfile(profile: {
         role: UserRole;
         clientProfile?: {
+            yearOfBirth: string;
+            mobileNumber: string;
+            surname: string;
             pinnedLocation?: Location;
+            middleName: string;
+            idNumber: string;
             phoneNumber: string;
+            lastName: string;
         };
         providerProfile?: {
+            id: string;
+            yearOfBirth: string;
             engagementEndTime?: bigint;
             name: string;
+            rate?: bigint;
             businessType: BusinessType;
             ratings: Array<bigint>;
             description: string;
+            surname: string;
+            middleName: string;
+            idNumber: string;
             academicDocuments: Array<Document>;
             category: BusinessType;
             phoneNumber: string;
             profilePicture?: ProfilePicture;
+            lastName: string;
             location: Location;
             goodConductCert?: Document;
             verificationStatus: VerificationStatus;
             isEngaged: boolean;
         };
     }): Promise<void>;
+    saveClientBioData(bioData: BioData): Promise<void>;
     seedProviders(providers: Array<[Principal, ProviderProfileView]>): Promise<void>;
     setEngaged(hours: bigint): Promise<{
         engagementEndTime?: bigint;
     }>;
     setMPesaConfig(config: MPesaConfig): Promise<void>;
+    setWhatsAppConfig(config: WhatsAppConfig): Promise<void>;
     updateClientPinnedLocation(latitude: number, longitude: number, address: string): Promise<void>;
+    updateClientProfile(update: ClientProfileUpdate): Promise<void>;
     updateProviderLocation(latitude: number, longitude: number, address: string): Promise<void>;
     updateProviderProfile(update: ProviderProfileUpdate): Promise<void>;
-    verifyOtp(code: string): Promise<boolean>;
 }
-import type { BusinessType as _BusinessType, ClientProfile as _ClientProfile, Document as _Document, DocumentType as _DocumentType, ExternalBlob as _ExternalBlob, Job as _Job, Location as _Location, MPesaConfig as _MPesaConfig, OtpRole as _OtpRole, ProfilePicture as _ProfilePicture, ProviderProfileUpdate as _ProviderProfileUpdate, ProviderProfileView as _ProviderProfileView, UserProfileView as _UserProfileView, UserRole as _UserRole, UserRole__1 as _UserRole__1, VerificationStatus as _VerificationStatus, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { BioData as _BioData, BusinessType as _BusinessType, ClientProfile as _ClientProfile, Document as _Document, DocumentType as _DocumentType, ExternalBlob as _ExternalBlob, Job as _Job, Location as _Location, MPesaConfig as _MPesaConfig, ProfilePicture as _ProfilePicture, ProviderProfileUpdate as _ProviderProfileUpdate, ProviderProfileView as _ProviderProfileView, UserProfileView as _UserProfileView, UserRole as _UserRole, UserRole__1 as _UserRole__1, VerificationStatus as _VerificationStatus, WhatsAppConfig as _WhatsAppConfig, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -537,14 +580,14 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole__1_n39(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole__1_n40(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole__1_n39(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole__1_n40(this._uploadFile, this._downloadFile, result);
         }
     }
     async getClient(arg0: Principal): Promise<ClientProfile | null> {
@@ -561,32 +604,46 @@ export class Backend implements backendInterface {
             return from_candid_opt_n34(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getClientBioData(arg0: Principal): Promise<BioData | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getClientBioData(arg0);
+                return from_candid_opt_n38(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getClientBioData(arg0);
+            return from_candid_opt_n38(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getJob(arg0: string): Promise<Job | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getJob(arg0);
-                return from_candid_opt_n41(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n42(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getJob(arg0);
-            return from_candid_opt_n41(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n42(this._uploadFile, this._downloadFile, result);
         }
     }
     async getMpesaConfig(): Promise<MPesaConfig | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getMpesaConfig();
-                return from_candid_opt_n45(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n46(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getMpesaConfig();
-            return from_candid_opt_n45(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n46(this._uploadFile, this._downloadFile, result);
         }
     }
     async getPlatformStats(): Promise<PlatformStats> {
@@ -607,27 +664,27 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getProvider(arg0);
-                return from_candid_opt_n38(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n39(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getProvider(arg0);
-            return from_candid_opt_n38(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n39(this._uploadFile, this._downloadFile, result);
         }
     }
     async getProviderResults(arg0: BusinessType | null): Promise<Array<ProviderProfileView>> {
         if (this.processError) {
             try {
-                const result = await this.actor.getProviderResults(to_candid_opt_n46(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.getProviderResults(to_candid_opt_n47(this._uploadFile, this._downloadFile, arg0));
                 return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getProviderResults(to_candid_opt_n46(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.getProviderResults(to_candid_opt_n47(this._uploadFile, this._downloadFile, arg0));
             return from_candid_vec_n10(this._uploadFile, this._downloadFile, result);
         }
     }
@@ -645,21 +702,18 @@ export class Backend implements backendInterface {
             return from_candid_opt_n29(this._uploadFile, this._downloadFile, result);
         }
     }
-    async initiateOtp(arg0: string, arg1: OtpRole): Promise<{
-        expiresAt: Time;
-        code: string;
-    }> {
+    async getWhatsAppConfig(): Promise<WhatsAppConfig | null> {
         if (this.processError) {
             try {
-                const result = await this.actor.initiateOtp(arg0, to_candid_OtpRole_n49(this._uploadFile, this._downloadFile, arg1));
-                return result;
+                const result = await this.actor.getWhatsAppConfig();
+                return from_candid_opt_n50(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.initiateOtp(arg0, to_candid_OtpRole_n49(this._uploadFile, this._downloadFile, arg1));
-            return result;
+            const result = await this.actor.getWhatsAppConfig();
+            return from_candid_opt_n50(this._uploadFile, this._downloadFile, result);
         }
     }
     async isCallerAdmin(): Promise<boolean> {
@@ -693,19 +747,32 @@ export class Backend implements backendInterface {
     async saveCallerUserProfile(arg0: {
         role: UserRole;
         clientProfile?: {
+            yearOfBirth: string;
+            mobileNumber: string;
+            surname: string;
             pinnedLocation?: Location;
+            middleName: string;
+            idNumber: string;
             phoneNumber: string;
+            lastName: string;
         };
         providerProfile?: {
+            id: string;
+            yearOfBirth: string;
             engagementEndTime?: bigint;
             name: string;
+            rate?: bigint;
             businessType: BusinessType;
             ratings: Array<bigint>;
             description: string;
+            surname: string;
+            middleName: string;
+            idNumber: string;
             academicDocuments: Array<Document>;
             category: BusinessType;
             phoneNumber: string;
             profilePicture?: ProfilePicture;
+            lastName: string;
             location: Location;
             goodConductCert?: Document;
             verificationStatus: VerificationStatus;
@@ -722,6 +789,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.saveCallerUserProfile(await to_candid_record_n51(this._uploadFile, this._downloadFile, arg0));
+            return result;
+        }
+    }
+    async saveClientBioData(arg0: BioData): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.saveClientBioData(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.saveClientBioData(arg0);
             return result;
         }
     }
@@ -769,6 +850,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async setWhatsAppConfig(arg0: WhatsAppConfig): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.setWhatsAppConfig(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.setWhatsAppConfig(arg0);
+            return result;
+        }
+    }
     async updateClientPinnedLocation(arg0: number, arg1: number, arg2: string): Promise<void> {
         if (this.processError) {
             try {
@@ -780,6 +875,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.updateClientPinnedLocation(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async updateClientProfile(arg0: ClientProfileUpdate): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateClientProfile(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateClientProfile(arg0);
             return result;
         }
     }
@@ -811,20 +920,6 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async verifyOtp(arg0: string): Promise<boolean> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.verifyOtp(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.verifyOtp(arg0);
-            return result;
-        }
-    }
 }
 function from_candid_BusinessType_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _BusinessType): BusinessType {
     return from_candid_variant_n15(_uploadFile, _downloadFile, value);
@@ -841,8 +936,8 @@ async function from_candid_Document_n17(_uploadFile: (file: ExternalBlob) => Pro
 async function from_candid_ExternalBlob_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ExternalBlob): Promise<ExternalBlob> {
     return await _downloadFile(value);
 }
-function from_candid_Job_n42(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Job): Job {
-    return from_candid_record_n43(_uploadFile, _downloadFile, value);
+function from_candid_Job_n43(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Job): Job {
+    return from_candid_record_n44(_uploadFile, _downloadFile, value);
 }
 async function from_candid_ProfilePicture_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ProfilePicture): Promise<ProfilePicture> {
     return await from_candid_record_n25(_uploadFile, _downloadFile, value);
@@ -853,8 +948,8 @@ async function from_candid_ProviderProfileView_n11(_uploadFile: (file: ExternalB
 async function from_candid_UserProfileView_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserProfileView): Promise<UserProfileView> {
     return await from_candid_record_n31(_uploadFile, _downloadFile, value);
 }
-function from_candid_UserRole__1_n39(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole__1): UserRole__1 {
-    return from_candid_variant_n40(_uploadFile, _downloadFile, value);
+function from_candid_UserRole__1_n40(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole__1): UserRole__1 {
+    return from_candid_variant_n41(_uploadFile, _downloadFile, value);
 }
 function from_candid_UserRole_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
     return from_candid_variant_n33(_uploadFile, _downloadFile, value);
@@ -886,13 +981,19 @@ function from_candid_opt_n34(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
 function from_candid_opt_n37(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Location]): Location | null {
     return value.length === 0 ? null : value[0];
 }
-async function from_candid_opt_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ProviderProfileView]): Promise<ProviderProfileView | null> {
+function from_candid_opt_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_BioData]): BioData | null {
+    return value.length === 0 ? null : value[0];
+}
+async function from_candid_opt_n39(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ProviderProfileView]): Promise<ProviderProfileView | null> {
     return value.length === 0 ? null : await from_candid_ProviderProfileView_n11(_uploadFile, _downloadFile, value[0]);
 }
-function from_candid_opt_n41(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Job]): Job | null {
-    return value.length === 0 ? null : from_candid_Job_n42(_uploadFile, _downloadFile, value[0]);
+function from_candid_opt_n42(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Job]): Job | null {
+    return value.length === 0 ? null : from_candid_Job_n43(_uploadFile, _downloadFile, value[0]);
 }
-function from_candid_opt_n45(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_MPesaConfig]): MPesaConfig | null {
+function from_candid_opt_n46(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_MPesaConfig]): MPesaConfig | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n50(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_WhatsAppConfig]): WhatsAppConfig | null {
     return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
@@ -902,6 +1003,7 @@ function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
     return value.length === 0 ? null : value[0];
 }
 async function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    yearOfBirth: string;
     principal: Principal;
     engagementEndTime: [] | [bigint];
     name: string;
@@ -909,15 +1011,20 @@ async function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promi
     businessType: _BusinessType;
     ratings: Array<bigint>;
     description: string;
+    surname: string;
+    middleName: string;
+    idNumber: string;
     academicDocuments: Array<_Document>;
     category: [] | [_BusinessType];
     phoneNumber: string;
     profilePicture: [] | [_ProfilePicture];
+    lastName: string;
     location: _Location;
     goodConductCert: [] | [_Document];
     verificationStatus: _VerificationStatus;
     isEngaged: boolean;
 }): Promise<{
+    yearOfBirth: string;
     principal: Principal;
     engagementEndTime?: bigint;
     name: string;
@@ -925,16 +1032,21 @@ async function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promi
     businessType: BusinessType;
     ratings: Array<bigint>;
     description: string;
+    surname: string;
+    middleName: string;
+    idNumber: string;
     academicDocuments: Array<Document>;
     category?: BusinessType;
     phoneNumber: string;
     profilePicture?: ProfilePicture;
+    lastName: string;
     location: Location;
     goodConductCert?: Document;
     verificationStatus: VerificationStatus;
     isEngaged: boolean;
 }> {
     return {
+        yearOfBirth: value.yearOfBirth,
         principal: value.principal,
         engagementEndTime: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.engagementEndTime)),
         name: value.name,
@@ -942,10 +1054,14 @@ async function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promi
         businessType: from_candid_BusinessType_n14(_uploadFile, _downloadFile, value.businessType),
         ratings: value.ratings,
         description: value.description,
+        surname: value.surname,
+        middleName: value.middleName,
+        idNumber: value.idNumber,
         academicDocuments: await from_candid_vec_n16(_uploadFile, _downloadFile, value.academicDocuments),
         category: record_opt_to_undefined(from_candid_opt_n22(_uploadFile, _downloadFile, value.category)),
         phoneNumber: value.phoneNumber,
         profilePicture: record_opt_to_undefined(await from_candid_opt_n23(_uploadFile, _downloadFile, value.profilePicture)),
+        lastName: value.lastName,
         location: value.location,
         goodConductCert: record_opt_to_undefined(await from_candid_opt_n26(_uploadFile, _downloadFile, value.goodConductCert)),
         verificationStatus: from_candid_VerificationStatus_n27(_uploadFile, _downloadFile, value.verificationStatus),
@@ -991,28 +1107,49 @@ async function from_candid_record_n31(_uploadFile: (file: ExternalBlob) => Promi
     return {
         role: from_candid_UserRole_n32(_uploadFile, _downloadFile, value.role),
         clientProfile: record_opt_to_undefined(from_candid_opt_n34(_uploadFile, _downloadFile, value.clientProfile)),
-        providerProfile: record_opt_to_undefined(await from_candid_opt_n38(_uploadFile, _downloadFile, value.providerProfile))
+        providerProfile: record_opt_to_undefined(await from_candid_opt_n39(_uploadFile, _downloadFile, value.providerProfile))
     };
 }
 function from_candid_record_n36(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    yearOfBirth: string;
     principal: Principal;
+    mobileNumber: string;
+    surname: string;
     pinnedLocation: [] | [_Location];
+    middleName: string;
+    idNumber: string;
     isVerified: boolean;
     phoneNumber: string;
+    lastName: string;
+    bioData: [] | [_BioData];
 }): {
+    yearOfBirth: string;
     principal: Principal;
+    mobileNumber: string;
+    surname: string;
     pinnedLocation?: Location;
+    middleName: string;
+    idNumber: string;
     isVerified: boolean;
     phoneNumber: string;
+    lastName: string;
+    bioData?: BioData;
 } {
     return {
+        yearOfBirth: value.yearOfBirth,
         principal: value.principal,
+        mobileNumber: value.mobileNumber,
+        surname: value.surname,
         pinnedLocation: record_opt_to_undefined(from_candid_opt_n37(_uploadFile, _downloadFile, value.pinnedLocation)),
+        middleName: value.middleName,
+        idNumber: value.idNumber,
         isVerified: value.isVerified,
-        phoneNumber: value.phoneNumber
+        phoneNumber: value.phoneNumber,
+        lastName: value.lastName,
+        bioData: record_opt_to_undefined(from_candid_opt_n38(_uploadFile, _downloadFile, value.bioData))
     };
 }
-function from_candid_record_n43(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n44(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: string;
     status: {
         requested: null;
@@ -1053,7 +1190,7 @@ function from_candid_record_n43(_uploadFile: (file: ExternalBlob) => Promise<Uin
 } {
     return {
         id: value.id,
-        status: from_candid_variant_n44(_uploadFile, _downloadFile, value.status),
+        status: from_candid_variant_n45(_uploadFile, _downloadFile, value.status),
         client: value.client,
         provider: value.provider,
         description: value.description,
@@ -1407,7 +1544,7 @@ function from_candid_variant_n33(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): UserRole {
     return "client" in value ? UserRole.client : "provider" in value ? UserRole.provider : "backOffice" in value ? UserRole.backOffice : value;
 }
-function from_candid_variant_n40(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n41(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -1416,7 +1553,7 @@ function from_candid_variant_n40(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): UserRole__1 {
     return "admin" in value ? UserRole__1.admin : "user" in value ? UserRole__1.user : "guest" in value ? UserRole__1.guest : value;
 }
-function from_candid_variant_n44(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n45(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     requested: null;
 } | {
     cancelled: string;
@@ -1461,8 +1598,8 @@ async function from_candid_vec_n10(_uploadFile: (file: ExternalBlob) => Promise<
 async function from_candid_vec_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Document>): Promise<Array<Document>> {
     return await Promise.all(value.map(async (x)=>await from_candid_Document_n17(_uploadFile, _downloadFile, x)));
 }
-function to_candid_BusinessType_n47(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: BusinessType): _BusinessType {
-    return to_candid_variant_n48(_uploadFile, _downloadFile, value);
+function to_candid_BusinessType_n48(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: BusinessType): _BusinessType {
+    return to_candid_variant_n49(_uploadFile, _downloadFile, value);
 }
 function to_candid_DocumentType_n60(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: DocumentType): _DocumentType {
     return to_candid_variant_n61(_uploadFile, _downloadFile, value);
@@ -1472,9 +1609,6 @@ async function to_candid_Document_n57(_uploadFile: (file: ExternalBlob) => Promi
 }
 async function to_candid_ExternalBlob_n59(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ExternalBlob): Promise<_ExternalBlob> {
     return await _uploadFile(value);
-}
-function to_candid_OtpRole_n49(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: OtpRole): _OtpRole {
-    return to_candid_variant_n50(_uploadFile, _downloadFile, value);
 }
 async function to_candid_ProfilePicture_n62(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ProfilePicture): Promise<_ProfilePicture> {
     return await to_candid_record_n63(_uploadFile, _downloadFile, value);
@@ -1500,8 +1634,8 @@ function to_candid__CaffeineStorageRefillInformation_n2(_uploadFile: (file: Exte
 function to_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _CaffeineStorageRefillInformation | null): [] | [__CaffeineStorageRefillInformation] {
     return value === null ? candid_none() : candid_some(to_candid__CaffeineStorageRefillInformation_n2(_uploadFile, _downloadFile, value));
 }
-function to_candid_opt_n46(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: BusinessType | null): [] | [_BusinessType] {
-    return value === null ? candid_none() : candid_some(to_candid_BusinessType_n47(_uploadFile, _downloadFile, value));
+function to_candid_opt_n47(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: BusinessType | null): [] | [_BusinessType] {
+    return value === null ? candid_none() : candid_some(to_candid_BusinessType_n48(_uploadFile, _downloadFile, value));
 }
 function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     proposed_top_up_amount?: bigint;
@@ -1515,19 +1649,32 @@ function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
 async function to_candid_record_n51(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     role: UserRole;
     clientProfile?: {
+        yearOfBirth: string;
+        mobileNumber: string;
+        surname: string;
         pinnedLocation?: Location;
+        middleName: string;
+        idNumber: string;
         phoneNumber: string;
+        lastName: string;
     };
     providerProfile?: {
+        id: string;
+        yearOfBirth: string;
         engagementEndTime?: bigint;
         name: string;
+        rate?: bigint;
         businessType: BusinessType;
         ratings: Array<bigint>;
         description: string;
+        surname: string;
+        middleName: string;
+        idNumber: string;
         academicDocuments: Array<Document>;
         category: BusinessType;
         phoneNumber: string;
         profilePicture?: ProfilePicture;
+        lastName: string;
         location: Location;
         goodConductCert?: Document;
         verificationStatus: VerificationStatus;
@@ -1536,19 +1683,32 @@ async function to_candid_record_n51(_uploadFile: (file: ExternalBlob) => Promise
 }): Promise<{
     role: _UserRole;
     clientProfile: [] | [{
+            yearOfBirth: string;
+            mobileNumber: string;
+            surname: string;
             pinnedLocation: [] | [_Location];
+            middleName: string;
+            idNumber: string;
             phoneNumber: string;
+            lastName: string;
         }];
     providerProfile: [] | [{
+            id: string;
+            yearOfBirth: string;
             engagementEndTime: [] | [bigint];
             name: string;
+            rate: [] | [bigint];
             businessType: _BusinessType;
             ratings: Array<bigint>;
             description: string;
+            surname: string;
+            middleName: string;
+            idNumber: string;
             academicDocuments: Array<_Document>;
             category: _BusinessType;
             phoneNumber: string;
             profilePicture: [] | [_ProfilePicture];
+            lastName: string;
             location: _Location;
             goodConductCert: [] | [_Document];
             verificationStatus: _VerificationStatus;
@@ -1562,56 +1722,95 @@ async function to_candid_record_n51(_uploadFile: (file: ExternalBlob) => Promise
     };
 }
 function to_candid_record_n54(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    yearOfBirth: string;
+    mobileNumber: string;
+    surname: string;
     pinnedLocation?: Location;
+    middleName: string;
+    idNumber: string;
     phoneNumber: string;
+    lastName: string;
 }): {
+    yearOfBirth: string;
+    mobileNumber: string;
+    surname: string;
     pinnedLocation: [] | [_Location];
+    middleName: string;
+    idNumber: string;
     phoneNumber: string;
+    lastName: string;
 } {
     return {
+        yearOfBirth: value.yearOfBirth,
+        mobileNumber: value.mobileNumber,
+        surname: value.surname,
         pinnedLocation: value.pinnedLocation ? candid_some(value.pinnedLocation) : candid_none(),
-        phoneNumber: value.phoneNumber
+        middleName: value.middleName,
+        idNumber: value.idNumber,
+        phoneNumber: value.phoneNumber,
+        lastName: value.lastName
     };
 }
 async function to_candid_record_n55(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: string;
+    yearOfBirth: string;
     engagementEndTime?: bigint;
     name: string;
+    rate?: bigint;
     businessType: BusinessType;
     ratings: Array<bigint>;
     description: string;
+    surname: string;
+    middleName: string;
+    idNumber: string;
     academicDocuments: Array<Document>;
     category: BusinessType;
     phoneNumber: string;
     profilePicture?: ProfilePicture;
+    lastName: string;
     location: Location;
     goodConductCert?: Document;
     verificationStatus: VerificationStatus;
     isEngaged: boolean;
 }): Promise<{
+    id: string;
+    yearOfBirth: string;
     engagementEndTime: [] | [bigint];
     name: string;
+    rate: [] | [bigint];
     businessType: _BusinessType;
     ratings: Array<bigint>;
     description: string;
+    surname: string;
+    middleName: string;
+    idNumber: string;
     academicDocuments: Array<_Document>;
     category: _BusinessType;
     phoneNumber: string;
     profilePicture: [] | [_ProfilePicture];
+    lastName: string;
     location: _Location;
     goodConductCert: [] | [_Document];
     verificationStatus: _VerificationStatus;
     isEngaged: boolean;
 }> {
     return {
+        id: value.id,
+        yearOfBirth: value.yearOfBirth,
         engagementEndTime: value.engagementEndTime ? candid_some(value.engagementEndTime) : candid_none(),
         name: value.name,
-        businessType: to_candid_BusinessType_n47(_uploadFile, _downloadFile, value.businessType),
+        rate: value.rate ? candid_some(value.rate) : candid_none(),
+        businessType: to_candid_BusinessType_n48(_uploadFile, _downloadFile, value.businessType),
         ratings: value.ratings,
         description: value.description,
+        surname: value.surname,
+        middleName: value.middleName,
+        idNumber: value.idNumber,
         academicDocuments: await to_candid_vec_n56(_uploadFile, _downloadFile, value.academicDocuments),
-        category: to_candid_BusinessType_n47(_uploadFile, _downloadFile, value.category),
+        category: to_candid_BusinessType_n48(_uploadFile, _downloadFile, value.category),
         phoneNumber: value.phoneNumber,
         profilePicture: value.profilePicture ? candid_some(await to_candid_ProfilePicture_n62(_uploadFile, _downloadFile, value.profilePicture)) : candid_none(),
+        lastName: value.lastName,
         location: value.location,
         goodConductCert: value.goodConductCert ? candid_some(await to_candid_Document_n57(_uploadFile, _downloadFile, value.goodConductCert)) : candid_none(),
         verificationStatus: to_candid_VerificationStatus_n64(_uploadFile, _downloadFile, value.verificationStatus),
@@ -1646,6 +1845,7 @@ async function to_candid_record_n63(_uploadFile: (file: ExternalBlob) => Promise
     };
 }
 async function to_candid_record_n69(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    yearOfBirth: string;
     principal: Principal;
     engagementEndTime?: bigint;
     name: string;
@@ -1653,15 +1853,20 @@ async function to_candid_record_n69(_uploadFile: (file: ExternalBlob) => Promise
     businessType: BusinessType;
     ratings: Array<bigint>;
     description: string;
+    surname: string;
+    middleName: string;
+    idNumber: string;
     academicDocuments: Array<Document>;
     category?: BusinessType;
     phoneNumber: string;
     profilePicture?: ProfilePicture;
+    lastName: string;
     location: Location;
     goodConductCert?: Document;
     verificationStatus: VerificationStatus;
     isEngaged: boolean;
 }): Promise<{
+    yearOfBirth: string;
     principal: Principal;
     engagementEndTime: [] | [bigint];
     name: string;
@@ -1669,27 +1874,36 @@ async function to_candid_record_n69(_uploadFile: (file: ExternalBlob) => Promise
     businessType: _BusinessType;
     ratings: Array<bigint>;
     description: string;
+    surname: string;
+    middleName: string;
+    idNumber: string;
     academicDocuments: Array<_Document>;
     category: [] | [_BusinessType];
     phoneNumber: string;
     profilePicture: [] | [_ProfilePicture];
+    lastName: string;
     location: _Location;
     goodConductCert: [] | [_Document];
     verificationStatus: _VerificationStatus;
     isEngaged: boolean;
 }> {
     return {
+        yearOfBirth: value.yearOfBirth,
         principal: value.principal,
         engagementEndTime: value.engagementEndTime ? candid_some(value.engagementEndTime) : candid_none(),
         name: value.name,
         rate: value.rate,
-        businessType: to_candid_BusinessType_n47(_uploadFile, _downloadFile, value.businessType),
+        businessType: to_candid_BusinessType_n48(_uploadFile, _downloadFile, value.businessType),
         ratings: value.ratings,
         description: value.description,
+        surname: value.surname,
+        middleName: value.middleName,
+        idNumber: value.idNumber,
         academicDocuments: await to_candid_vec_n56(_uploadFile, _downloadFile, value.academicDocuments),
-        category: value.category ? candid_some(to_candid_BusinessType_n47(_uploadFile, _downloadFile, value.category)) : candid_none(),
+        category: value.category ? candid_some(to_candid_BusinessType_n48(_uploadFile, _downloadFile, value.category)) : candid_none(),
         phoneNumber: value.phoneNumber,
         profilePicture: value.profilePicture ? candid_some(await to_candid_ProfilePicture_n62(_uploadFile, _downloadFile, value.profilePicture)) : candid_none(),
+        lastName: value.lastName,
         location: value.location,
         goodConductCert: value.goodConductCert ? candid_some(await to_candid_Document_n57(_uploadFile, _downloadFile, value.goodConductCert)) : candid_none(),
         verificationStatus: to_candid_VerificationStatus_n64(_uploadFile, _downloadFile, value.verificationStatus),
@@ -1697,25 +1911,31 @@ async function to_candid_record_n69(_uploadFile: (file: ExternalBlob) => Promise
     };
 }
 async function to_candid_record_n72(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    yearOfBirth: string;
     rate: bigint;
     businessType: BusinessType;
     description: string;
+    surname: string;
     category: BusinessType;
     profilePicture?: ProfilePicture;
     location: Location;
 }): Promise<{
+    yearOfBirth: string;
     rate: bigint;
     businessType: _BusinessType;
     description: string;
+    surname: string;
     category: _BusinessType;
     profilePicture: [] | [_ProfilePicture];
     location: _Location;
 }> {
     return {
+        yearOfBirth: value.yearOfBirth,
         rate: value.rate,
-        businessType: to_candid_BusinessType_n47(_uploadFile, _downloadFile, value.businessType),
+        businessType: to_candid_BusinessType_n48(_uploadFile, _downloadFile, value.businessType),
         description: value.description,
-        category: to_candid_BusinessType_n47(_uploadFile, _downloadFile, value.category),
+        surname: value.surname,
+        category: to_candid_BusinessType_n48(_uploadFile, _downloadFile, value.category),
         profilePicture: value.profilePicture ? candid_some(await to_candid_ProfilePicture_n62(_uploadFile, _downloadFile, value.profilePicture)) : candid_none(),
         location: value.location
     };
@@ -1726,7 +1946,7 @@ async function to_candid_tuple_n67(_uploadFile: (file: ExternalBlob) => Promise<
         await to_candid_ProviderProfileView_n68(_uploadFile, _downloadFile, value[1])
     ];
 }
-function to_candid_variant_n48(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function to_candid_variant_n49(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     __kind__: "it";
     it: null;
 } | {
@@ -1965,17 +2185,6 @@ function to_candid_variant_n48(_uploadFile: (file: ExternalBlob) => Promise<Uint
         hairAndBeauty: value.hairAndBeauty
     } : value.__kind__ === "mediar" ? {
         mediar: value.mediar
-    } : value;
-}
-function to_candid_variant_n50(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: OtpRole): {
-    client: null;
-} | {
-    provider: null;
-} {
-    return value == OtpRole.client ? {
-        client: null
-    } : value == OtpRole.provider ? {
-        provider: null
     } : value;
 }
 function to_candid_variant_n53(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {

@@ -1,41 +1,37 @@
-import { Button } from '../../components/ui/button';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
-import { getBusinessTypeLabel } from '../../lib/categories';
-import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
-import { BusinessType } from '../../backend';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { MapPin } from 'lucide-react';
 
 interface MapViewPageProps {
-  selectedCategory: BusinessType | null;
-  focusProvider?: string | null;
+  selectedCategory: string | null;
   onNavigate: (page: string, params?: any) => void;
 }
 
-export function MapViewPage({ selectedCategory, focusProvider, onNavigate }: MapViewPageProps) {
+export function MapViewPage({ selectedCategory, onNavigate }: MapViewPageProps) {
   return (
     <div className="container py-12">
       <div className="mx-auto max-w-4xl">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onNavigate('results', { businessType: selectedCategory })}
-          className="mb-6"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Results
-        </Button>
-
-        <h1 className="mb-6 text-3xl font-bold tracking-tight">
-          Map View - {selectedCategory ? getBusinessTypeLabel(selectedCategory) : 'All Services'}
-        </h1>
-
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Map View Unavailable</AlertTitle>
-          <AlertDescription>
-            Map view and provider search functionality will be available in a future update.
-            Please check back later.
-          </AlertDescription>
-        </Alert>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-6 w-6" />
+              Map View
+            </CardTitle>
+            <CardDescription>
+              Find service providers near you
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex min-h-[400px] items-center justify-center rounded-lg border-2 border-dashed">
+              <div className="text-center">
+                <MapPin className="mx-auto h-12 w-12 text-muted-foreground" />
+                <p className="mt-4 text-lg font-medium">Map View Coming Soon</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Interactive map functionality will be available in a future update
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

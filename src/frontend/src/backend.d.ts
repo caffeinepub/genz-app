@@ -15,6 +15,7 @@ export class ExternalBlob {
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
 export interface ProviderProfileView {
+    yearOfBirth: string;
     principal: Principal;
     engagementEndTime?: bigint;
     name: string;
@@ -22,10 +23,14 @@ export interface ProviderProfileView {
     businessType: BusinessType;
     ratings: Array<bigint>;
     description: string;
+    surname: string;
+    middleName: string;
+    idNumber: string;
     academicDocuments: Array<Document>;
     category?: BusinessType;
     phoneNumber: string;
     profilePicture?: ProfilePicture;
+    lastName: string;
     location: Location;
     goodConductCert?: Document;
     verificationStatus: VerificationStatus;
@@ -36,7 +41,6 @@ export interface Location {
     longitude: number;
     address: string;
 }
-export type Time = bigint;
 export type BusinessType = {
     __kind__: "it";
     it: null;
@@ -145,17 +149,40 @@ export interface Document {
     filename: string;
     docType: DocumentType;
 }
+export interface ClientProfileUpdate {
+    yearOfBirth: string;
+    mobileNumber: string;
+    surname: string;
+    pinnedLocation: Location;
+    middleName: string;
+    idNumber: string;
+    phoneNumber: string;
+    lastName: string;
+}
 export interface ProviderProfileUpdate {
+    yearOfBirth: string;
     rate: bigint;
     businessType: BusinessType;
     description: string;
+    surname: string;
     category: BusinessType;
     profilePicture?: ProfilePicture;
     location: Location;
 }
+export interface BioData {
+    fullName: string;
+    email: string;
+    nationalId: string;
+    address: string;
+}
 export interface ProfilePicture {
     id: string;
     blob: ExternalBlob;
+}
+export interface WhatsAppConfig {
+    providerBaseUrl: string;
+    authToken: string;
+    senderPhoneNumber: string;
 }
 export type VerificationStatus = {
     __kind__: "verified";
@@ -198,10 +225,17 @@ export interface UserProfileView {
     providerProfile?: ProviderProfileView;
 }
 export interface ClientProfile {
+    yearOfBirth: string;
     principal: Principal;
+    mobileNumber: string;
+    surname: string;
     pinnedLocation?: Location;
+    middleName: string;
+    idNumber: string;
     isVerified: boolean;
     phoneNumber: string;
+    lastName: string;
+    bioData?: BioData;
 }
 export interface PlatformStats {
     totalProviders: bigint;
@@ -217,10 +251,6 @@ export interface MPesaConfig {
 export enum DocumentType {
     goodConductCertificate = "goodConductCertificate",
     academicQualification = "academicQualification"
-}
-export enum OtpRole {
-    client = "client",
-    provider = "provider"
 }
 export enum UserRole {
     client = "client",
@@ -239,47 +269,60 @@ export interface backendInterface {
     getCallerUserProfile(): Promise<UserProfileView | null>;
     getCallerUserRole(): Promise<UserRole__1>;
     getClient(client: Principal): Promise<ClientProfile | null>;
+    getClientBioData(client: Principal): Promise<BioData | null>;
     getJob(jobId: string): Promise<Job | null>;
     getMpesaConfig(): Promise<MPesaConfig | null>;
     getPlatformStats(): Promise<PlatformStats>;
     getProvider(provider: Principal): Promise<ProviderProfileView | null>;
     getProviderResults(category: BusinessType | null): Promise<Array<ProviderProfileView>>;
     getUserProfile(user: Principal): Promise<UserProfileView | null>;
-    initiateOtp(phoneNumber: string, role: OtpRole): Promise<{
-        expiresAt: Time;
-        code: string;
-    }>;
+    getWhatsAppConfig(): Promise<WhatsAppConfig | null>;
     isCallerAdmin(): Promise<boolean>;
     removeAllProviders(): Promise<void>;
     saveCallerUserProfile(profile: {
         role: UserRole;
         clientProfile?: {
+            yearOfBirth: string;
+            mobileNumber: string;
+            surname: string;
             pinnedLocation?: Location;
+            middleName: string;
+            idNumber: string;
             phoneNumber: string;
+            lastName: string;
         };
         providerProfile?: {
+            id: string;
+            yearOfBirth: string;
             engagementEndTime?: bigint;
             name: string;
+            rate?: bigint;
             businessType: BusinessType;
             ratings: Array<bigint>;
             description: string;
+            surname: string;
+            middleName: string;
+            idNumber: string;
             academicDocuments: Array<Document>;
             category: BusinessType;
             phoneNumber: string;
             profilePicture?: ProfilePicture;
+            lastName: string;
             location: Location;
             goodConductCert?: Document;
             verificationStatus: VerificationStatus;
             isEngaged: boolean;
         };
     }): Promise<void>;
+    saveClientBioData(bioData: BioData): Promise<void>;
     seedProviders(providers: Array<[Principal, ProviderProfileView]>): Promise<void>;
     setEngaged(hours: bigint): Promise<{
         engagementEndTime?: bigint;
     }>;
     setMPesaConfig(config: MPesaConfig): Promise<void>;
+    setWhatsAppConfig(config: WhatsAppConfig): Promise<void>;
     updateClientPinnedLocation(latitude: number, longitude: number, address: string): Promise<void>;
+    updateClientProfile(update: ClientProfileUpdate): Promise<void>;
     updateProviderLocation(latitude: number, longitude: number, address: string): Promise<void>;
     updateProviderProfile(update: ProviderProfileUpdate): Promise<void>;
-    verifyOtp(code: string): Promise<boolean>;
 }

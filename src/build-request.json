@@ -1,76 +1,71 @@
 {
   "kind": "build_request",
-  "title": "Reset existing providers and seed new category-specific service providers",
+  "title": "Fix client profile save loop (persist client profile updates instead of refreshing)",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-108",
-      "text": "Add an admin-only backend operation that deletes/removes all existing Service Provider accounts/data from the canister state (at minimum: providerProfiles entries and their provider role assignment), so that client browsing returns zero providers immediately after the reset.",
-      "target": "backend",
+      "id": "REQ-1",
+      "text": "Fix the client profile “Save Required Information” action so it updates an existing client profile instead of calling the backend method intended only for initial profile creation, and ensure the save action does not trigger a full page reload/refresh.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-1"
         ],
         "quotes": [
-          "remove all the service providers"
+          "When i save the data in the profile in the client's section its not saving its keeps on refreshing the page without saving it. kindly resolve"
         ]
       },
       "acceptanceCriteria": [
-        "When called by an admin, all existing ProviderProfile records are removed from backend storage.",
-        "After reset, getPlatformStats().totalProviders returns 0.",
-        "After reset, getProviderResults(category) returns an empty array for any category.",
-        "Non-admin callers receive an authorization error (English error message)."
+        "From the Client Profile page, clicking “Save Required Information” does not reload the browser page.",
+        "If the user already has a client profile, saving required fields updates the stored profile successfully (surname, middleName, lastName, yearOfBirth, idNumber, mobileNumber/phoneNumber, pinnedLocation).",
+        "After saving, reloading the app and revisiting the Client Profile page shows the newly saved values populated from the backend.",
+        "If saving fails due to validation/authorization, the UI shows a clear error message and does not reload the page."
       ]
     },
     {
-      "id": "REQ-109",
-      "text": "Add an admin-only backend operation to seed a new set of service provider entries that are tied to specific service categories so they only appear when clients browse those categories (and do not appear in unrelated categories).",
+      "id": "REQ-2",
+      "text": "Add a dedicated backend update method for client required profile fields (names, yearOfBirth, idNumber, mobileNumber/phoneNumber, pinnedLocation) that validates input and updates the caller’s existing client profile record without requiring profile re-creation.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-1"
         ],
         "quotes": [
-          "create a new that will be appearing on specific category of services"
+          "When i save the data in the profile in the client's section its not saving its keeps on refreshing the page without saving it. kindly resolve"
         ]
       },
       "acceptanceCriteria": [
-        "Seeding creates multiple new provider entries with realistic profile fields (name, rate, location, description, verificationStatus, isEngaged/engagementEndTime) and a non-null stored category value.",
-        "For each seeded provider, getProviderResults(filterCategory) includes the provider only when filterCategory matches the provider’s stored category.",
-        "Seeded providers do not appear in getProviderResults() for non-matching categories.",
-        "Seeded providers appear in the “All Providers” mode (category = null) returned by getProviderResults(null) and/or getAllProviders() (whichever is used by the client UI).",
-        "Non-admin callers receive an authorization error (English error message)."
+        "Backend exposes a new shared method to update the caller’s existing client profile required fields without trapping with “Profile already exists…”.",
+        "The update method enforces the same validation rules currently applied for client profiles (non-empty fields and pinnedLocation required with non-zero coordinates/address).",
+        "The update method traps with a clear message if the caller is not authenticated, is not a client, or has no existing client profile."
       ]
     },
     {
-      "id": "REQ-110",
-      "text": "Add a simple Technical Team (Back-office) UI control that allows an authenticated back-office/admin user to run (1) the provider reset and (2) the provider seeding actions, with clear English confirmation prompts and success/error feedback.",
+      "id": "REQ-3",
+      "text": "Update the frontend Client Profile page to use the new client-profile update mutation for saving required fields, and ensure React Query cache invalidation/refetch updates the UI state without navigation loops.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-1"
         ],
         "quotes": [
-          "remove all the service providers and create a new that will be appearing on specific category of services"
+          "its not saving its keeps on refreshing the page without saving it"
         ]
       },
       "acceptanceCriteria": [
-        "The back-office screen shows two clearly labeled actions (e.g., “Delete All Providers” and “Seed Category Providers”).",
-        "A confirmation step is required before deleting providers.",
-        "On success, the UI shows an English success message and React Query caches related to provider lists/results are invalidated so client pages reflect the new dataset.",
-        "If the user is not authorized, the UI shows an English error message explaining they do not have permission to perform the action."
+        "ClientProfilePage no longer calls the initial profile-creation mutation to save required fields.",
+        "On successful save, the current user profile query is invalidated and the updated profile is shown (either immediately or after refetch) without the page appearing to refresh repeatedly.",
+        "The Save button shows a loading state while the mutation is pending and is re-enabled afterward."
       ]
     }
   ],
   "constraints": [
     "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
-    "Do not edit frontend files under frontend/immutablePaths; compose existing UI components instead.",
-    "Use English for all user-facing text."
+    "Do not edit files under frontend/src/components/ui or any other frontend immutable paths listed in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Implementing real provider account creation flows for the seeded providers (e.g., enabling those seeded principals to log in and manage their profiles).",
-    "Changing the existing category model or adding new category types beyond using the existing predefined category/businessType mapping.",
-    "Adding external databases or third-party admin tooling."
+    "Redesigning the client profile UI beyond what is required to fix saving and refresh behavior.",
+    "Changing authentication flows or Internet Identity integration."
   ],
   "imageRequirements": {
     "required": [],

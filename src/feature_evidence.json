@@ -2,12 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-simple-technical-team-back-office-ui-control-that-allows-an-authenticated-back-office-admin-user-to-run-1-the-provider-reset-and-2-the-provider-seeding-actions-with-clear-english-confirmation-prompts-and-success-error-feedback",
-      "featureTitle": "Add a simple Technical Team (Back-office) UI control that allows an authenticated back-office/admin user to run (1) the provider reset and (2) the provider seeding actions, with clear English confirmation prompts and success/error feedback.",
+      "featureId": "feature-fix-the-client-profile-save-required-information-action-so-it-updates-an-existing-client-profile-instead-of-calling-the-backend-method-intended-only-for-initial-profile-creation-and-ensure-the-save-action-does-not-trigger-a-full-page-reload-refresh",
+      "featureTitle": "Fix the client profile “Save Required Information” action so it updates an existing client profile instead of calling the backend method intended only for initial profile creation, and ensure the save action does not trigger a full page reload/refresh.",
       "files": [
         "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx",
-        "frontend/src/pages/backoffice/VerificationReviewPage.tsx"
+        "frontend/src/pages/client/ClientProfilePage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -20,7 +19,29 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-110"
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-frontend-client-profile-page-to-use-the-new-client-profile-update-mutation-for-saving-required-fields-and-ensure-react-query-cache-invalidation-refetch-updates-the-ui-state-without-navigation-loops",
+      "featureTitle": "Update the frontend Client Profile page to use the new client-profile update mutation for saving required fields, and ensure React Query cache invalidation/refetch updates the UI state without navigation loops.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/client/ClientProfilePage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
       ],
       "confidence": "high"
     }

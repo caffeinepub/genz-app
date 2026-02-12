@@ -226,6 +226,11 @@ function generateSeedData(): Array<[Principal, ProviderProfileView]> {
       
       const provider: ProviderProfileView = {
         principal,
+        surname: sampleNames[nameIndex].split(' ')[1] || 'Unknown',
+        middleName: 'M',
+        lastName: sampleNames[nameIndex].split(' ')[0] || 'Unknown',
+        yearOfBirth: String(1980 + Math.floor(Math.random() * 30)),
+        idNumber: String(10000000 + Math.floor(Math.random() * 90000000)),
         name: sampleNames[nameIndex],
         rate: BigInt(500 + Math.floor(Math.random() * 2000)),
         businessType: category.businessType,

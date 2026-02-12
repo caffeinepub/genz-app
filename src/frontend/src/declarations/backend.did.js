@@ -86,6 +86,7 @@ export const VerificationStatus = IDL.Variant({
   'rejected' : IDL.Text,
 });
 export const ProviderProfileView = IDL.Record({
+  'yearOfBirth' : IDL.Text,
   'principal' : IDL.Principal,
   'engagementEndTime' : IDL.Opt(IDL.Int),
   'name' : IDL.Text,
@@ -93,10 +94,14 @@ export const ProviderProfileView = IDL.Record({
   'businessType' : BusinessType,
   'ratings' : IDL.Vec(IDL.Nat),
   'description' : IDL.Text,
+  'surname' : IDL.Text,
+  'middleName' : IDL.Text,
+  'idNumber' : IDL.Text,
   'academicDocuments' : IDL.Vec(Document),
   'category' : IDL.Opt(BusinessType),
   'phoneNumber' : IDL.Text,
   'profilePicture' : IDL.Opt(ProfilePicture),
+  'lastName' : IDL.Text,
   'location' : Location,
   'goodConductCert' : IDL.Opt(Document),
   'verificationStatus' : VerificationStatus,
@@ -107,11 +112,24 @@ export const UserRole = IDL.Variant({
   'provider' : IDL.Null,
   'backOffice' : IDL.Null,
 });
+export const BioData = IDL.Record({
+  'fullName' : IDL.Text,
+  'email' : IDL.Text,
+  'nationalId' : IDL.Text,
+  'address' : IDL.Text,
+});
 export const ClientProfile = IDL.Record({
+  'yearOfBirth' : IDL.Text,
   'principal' : IDL.Principal,
+  'mobileNumber' : IDL.Text,
+  'surname' : IDL.Text,
   'pinnedLocation' : IDL.Opt(Location),
+  'middleName' : IDL.Text,
+  'idNumber' : IDL.Text,
   'isVerified' : IDL.Bool,
   'phoneNumber' : IDL.Text,
+  'lastName' : IDL.Text,
+  'bioData' : IDL.Opt(BioData),
 });
 export const UserProfileView = IDL.Record({
   'role' : UserRole,
@@ -142,15 +160,27 @@ export const PlatformStats = IDL.Record({
   'totalProviders' : IDL.Nat,
   'totalClients' : IDL.Nat,
 });
-export const OtpRole = IDL.Variant({
-  'client' : IDL.Null,
-  'provider' : IDL.Null,
+export const WhatsAppConfig = IDL.Record({
+  'providerBaseUrl' : IDL.Text,
+  'authToken' : IDL.Text,
+  'senderPhoneNumber' : IDL.Text,
 });
-export const Time = IDL.Int;
+export const ClientProfileUpdate = IDL.Record({
+  'yearOfBirth' : IDL.Text,
+  'mobileNumber' : IDL.Text,
+  'surname' : IDL.Text,
+  'pinnedLocation' : Location,
+  'middleName' : IDL.Text,
+  'idNumber' : IDL.Text,
+  'phoneNumber' : IDL.Text,
+  'lastName' : IDL.Text,
+});
 export const ProviderProfileUpdate = IDL.Record({
+  'yearOfBirth' : IDL.Text,
   'rate' : IDL.Nat,
   'businessType' : BusinessType,
   'description' : IDL.Text,
+  'surname' : IDL.Text,
   'category' : BusinessType,
   'profilePicture' : IDL.Opt(ProfilePicture),
   'location' : Location,
@@ -190,6 +220,7 @@ export const idlService = IDL.Service({
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfileView)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
   'getClient' : IDL.Func([IDL.Principal], [IDL.Opt(ClientProfile)], ['query']),
+  'getClientBioData' : IDL.Func([IDL.Principal], [IDL.Opt(BioData)], ['query']),
   'getJob' : IDL.Func([IDL.Text], [IDL.Opt(Job)], ['query']),
   'getMpesaConfig' : IDL.Func([], [IDL.Opt(MPesaConfig)], ['query']),
   'getPlatformStats' : IDL.Func([], [PlatformStats], ['query']),
@@ -208,11 +239,7 @@ export const idlService = IDL.Service({
       [IDL.Opt(UserProfileView)],
       ['query'],
     ),
-  'initiateOtp' : IDL.Func(
-      [IDL.Text, OtpRole],
-      [IDL.Record({ 'expiresAt' : Time, 'code' : IDL.Text })],
-      [],
-    ),
+  'getWhatsAppConfig' : IDL.Func([], [IDL.Opt(WhatsAppConfig)], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'removeAllProviders' : IDL.Func([], [], []),
   'saveCallerUserProfile' : IDL.Func(
@@ -221,21 +248,34 @@ export const idlService = IDL.Service({
           'role' : UserRole,
           'clientProfile' : IDL.Opt(
             IDL.Record({
+              'yearOfBirth' : IDL.Text,
+              'mobileNumber' : IDL.Text,
+              'surname' : IDL.Text,
               'pinnedLocation' : IDL.Opt(Location),
+              'middleName' : IDL.Text,
+              'idNumber' : IDL.Text,
               'phoneNumber' : IDL.Text,
+              'lastName' : IDL.Text,
             })
           ),
           'providerProfile' : IDL.Opt(
             IDL.Record({
+              'id' : IDL.Text,
+              'yearOfBirth' : IDL.Text,
               'engagementEndTime' : IDL.Opt(IDL.Int),
               'name' : IDL.Text,
+              'rate' : IDL.Opt(IDL.Nat),
               'businessType' : BusinessType,
               'ratings' : IDL.Vec(IDL.Nat),
               'description' : IDL.Text,
+              'surname' : IDL.Text,
+              'middleName' : IDL.Text,
+              'idNumber' : IDL.Text,
               'academicDocuments' : IDL.Vec(Document),
               'category' : BusinessType,
               'phoneNumber' : IDL.Text,
               'profilePicture' : IDL.Opt(ProfilePicture),
+              'lastName' : IDL.Text,
               'location' : Location,
               'goodConductCert' : IDL.Opt(Document),
               'verificationStatus' : VerificationStatus,
@@ -247,6 +287,7 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'saveClientBioData' : IDL.Func([BioData], [], []),
   'seedProviders' : IDL.Func(
       [IDL.Vec(IDL.Tuple(IDL.Principal, ProviderProfileView))],
       [],
@@ -258,18 +299,19 @@ export const idlService = IDL.Service({
       [],
     ),
   'setMPesaConfig' : IDL.Func([MPesaConfig], [], []),
+  'setWhatsAppConfig' : IDL.Func([WhatsAppConfig], [], []),
   'updateClientPinnedLocation' : IDL.Func(
       [IDL.Float64, IDL.Float64, IDL.Text],
       [],
       [],
     ),
+  'updateClientProfile' : IDL.Func([ClientProfileUpdate], [], []),
   'updateProviderLocation' : IDL.Func(
       [IDL.Float64, IDL.Float64, IDL.Text],
       [],
       [],
     ),
   'updateProviderProfile' : IDL.Func([ProviderProfileUpdate], [], []),
-  'verifyOtp' : IDL.Func([IDL.Text], [IDL.Bool], []),
 });
 
 export const idlInitArgs = [];
@@ -350,6 +392,7 @@ export const idlFactory = ({ IDL }) => {
     'rejected' : IDL.Text,
   });
   const ProviderProfileView = IDL.Record({
+    'yearOfBirth' : IDL.Text,
     'principal' : IDL.Principal,
     'engagementEndTime' : IDL.Opt(IDL.Int),
     'name' : IDL.Text,
@@ -357,10 +400,14 @@ export const idlFactory = ({ IDL }) => {
     'businessType' : BusinessType,
     'ratings' : IDL.Vec(IDL.Nat),
     'description' : IDL.Text,
+    'surname' : IDL.Text,
+    'middleName' : IDL.Text,
+    'idNumber' : IDL.Text,
     'academicDocuments' : IDL.Vec(Document),
     'category' : IDL.Opt(BusinessType),
     'phoneNumber' : IDL.Text,
     'profilePicture' : IDL.Opt(ProfilePicture),
+    'lastName' : IDL.Text,
     'location' : Location,
     'goodConductCert' : IDL.Opt(Document),
     'verificationStatus' : VerificationStatus,
@@ -371,11 +418,24 @@ export const idlFactory = ({ IDL }) => {
     'provider' : IDL.Null,
     'backOffice' : IDL.Null,
   });
+  const BioData = IDL.Record({
+    'fullName' : IDL.Text,
+    'email' : IDL.Text,
+    'nationalId' : IDL.Text,
+    'address' : IDL.Text,
+  });
   const ClientProfile = IDL.Record({
+    'yearOfBirth' : IDL.Text,
     'principal' : IDL.Principal,
+    'mobileNumber' : IDL.Text,
+    'surname' : IDL.Text,
     'pinnedLocation' : IDL.Opt(Location),
+    'middleName' : IDL.Text,
+    'idNumber' : IDL.Text,
     'isVerified' : IDL.Bool,
     'phoneNumber' : IDL.Text,
+    'lastName' : IDL.Text,
+    'bioData' : IDL.Opt(BioData),
   });
   const UserProfileView = IDL.Record({
     'role' : UserRole,
@@ -406,12 +466,27 @@ export const idlFactory = ({ IDL }) => {
     'totalProviders' : IDL.Nat,
     'totalClients' : IDL.Nat,
   });
-  const OtpRole = IDL.Variant({ 'client' : IDL.Null, 'provider' : IDL.Null });
-  const Time = IDL.Int;
+  const WhatsAppConfig = IDL.Record({
+    'providerBaseUrl' : IDL.Text,
+    'authToken' : IDL.Text,
+    'senderPhoneNumber' : IDL.Text,
+  });
+  const ClientProfileUpdate = IDL.Record({
+    'yearOfBirth' : IDL.Text,
+    'mobileNumber' : IDL.Text,
+    'surname' : IDL.Text,
+    'pinnedLocation' : Location,
+    'middleName' : IDL.Text,
+    'idNumber' : IDL.Text,
+    'phoneNumber' : IDL.Text,
+    'lastName' : IDL.Text,
+  });
   const ProviderProfileUpdate = IDL.Record({
+    'yearOfBirth' : IDL.Text,
     'rate' : IDL.Nat,
     'businessType' : BusinessType,
     'description' : IDL.Text,
+    'surname' : IDL.Text,
     'category' : BusinessType,
     'profilePicture' : IDL.Opt(ProfilePicture),
     'location' : Location,
@@ -459,6 +534,11 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(ClientProfile)],
         ['query'],
       ),
+    'getClientBioData' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(BioData)],
+        ['query'],
+      ),
     'getJob' : IDL.Func([IDL.Text], [IDL.Opt(Job)], ['query']),
     'getMpesaConfig' : IDL.Func([], [IDL.Opt(MPesaConfig)], ['query']),
     'getPlatformStats' : IDL.Func([], [PlatformStats], ['query']),
@@ -477,11 +557,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(UserProfileView)],
         ['query'],
       ),
-    'initiateOtp' : IDL.Func(
-        [IDL.Text, OtpRole],
-        [IDL.Record({ 'expiresAt' : Time, 'code' : IDL.Text })],
-        [],
-      ),
+    'getWhatsAppConfig' : IDL.Func([], [IDL.Opt(WhatsAppConfig)], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'removeAllProviders' : IDL.Func([], [], []),
     'saveCallerUserProfile' : IDL.Func(
@@ -490,21 +566,34 @@ export const idlFactory = ({ IDL }) => {
             'role' : UserRole,
             'clientProfile' : IDL.Opt(
               IDL.Record({
+                'yearOfBirth' : IDL.Text,
+                'mobileNumber' : IDL.Text,
+                'surname' : IDL.Text,
                 'pinnedLocation' : IDL.Opt(Location),
+                'middleName' : IDL.Text,
+                'idNumber' : IDL.Text,
                 'phoneNumber' : IDL.Text,
+                'lastName' : IDL.Text,
               })
             ),
             'providerProfile' : IDL.Opt(
               IDL.Record({
+                'id' : IDL.Text,
+                'yearOfBirth' : IDL.Text,
                 'engagementEndTime' : IDL.Opt(IDL.Int),
                 'name' : IDL.Text,
+                'rate' : IDL.Opt(IDL.Nat),
                 'businessType' : BusinessType,
                 'ratings' : IDL.Vec(IDL.Nat),
                 'description' : IDL.Text,
+                'surname' : IDL.Text,
+                'middleName' : IDL.Text,
+                'idNumber' : IDL.Text,
                 'academicDocuments' : IDL.Vec(Document),
                 'category' : BusinessType,
                 'phoneNumber' : IDL.Text,
                 'profilePicture' : IDL.Opt(ProfilePicture),
+                'lastName' : IDL.Text,
                 'location' : Location,
                 'goodConductCert' : IDL.Opt(Document),
                 'verificationStatus' : VerificationStatus,
@@ -516,6 +605,7 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'saveClientBioData' : IDL.Func([BioData], [], []),
     'seedProviders' : IDL.Func(
         [IDL.Vec(IDL.Tuple(IDL.Principal, ProviderProfileView))],
         [],
@@ -527,18 +617,19 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'setMPesaConfig' : IDL.Func([MPesaConfig], [], []),
+    'setWhatsAppConfig' : IDL.Func([WhatsAppConfig], [], []),
     'updateClientPinnedLocation' : IDL.Func(
         [IDL.Float64, IDL.Float64, IDL.Text],
         [],
         [],
       ),
+    'updateClientProfile' : IDL.Func([ClientProfileUpdate], [], []),
     'updateProviderLocation' : IDL.Func(
         [IDL.Float64, IDL.Float64, IDL.Text],
         [],
         [],
       ),
     'updateProviderProfile' : IDL.Func([ProviderProfileUpdate], [], []),
-    'verifyOtp' : IDL.Func([IDL.Text], [IDL.Bool], []),
   });
 };
 

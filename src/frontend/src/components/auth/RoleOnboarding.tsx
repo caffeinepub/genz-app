@@ -1,218 +1,200 @@
-import { useState, useEffect } from 'react';
-import { UserRole, BusinessType } from '../../backend';
-import { useGetCallerUserProfile } from '../../hooks/useQueries';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Label } from '../ui/label';
-import { Users, Briefcase, Shield, AlertCircle } from 'lucide-react';
-import { getPendingRole, clearPendingRole } from '../../utils/pendingRoleSelection';
-import { useActor } from '../../hooks/useActor';
-import { useQueryClient } from '@tanstack/react-query';
-import { useInternetIdentity } from '../../hooks/useInternetIdentity';
-import { CATEGORIES } from '../../lib/categories';
-import { Alert, AlertDescription } from '../ui/alert';
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useSaveCallerUserProfile } from '@/hooks/useQueries';
+import { UserRole, BusinessType } from '@/backend';
+import { CATEGORIES } from '@/lib/categories';
+import { Briefcase, Users, Shield, AlertCircle } from 'lucide-react';
 
-export function RoleOnboarding() {
+interface RoleOnboardingProps {
+  onComplete: () => void;
+}
+
+export function RoleOnboarding({ onComplete }: RoleOnboardingProps) {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [validationError, setValidationError] = useState<string>('');
-  const { actor } = useActor();
-  const { identity } = useInternetIdentity();
-  const queryClient = useQueryClient();
-  const { data: userProfile } = useGetCallerUserProfile();
+  const [error, setError] = useState<string | null>(null);
 
-  // Check for pending role selection on mount
-  useEffect(() => {
-    const pendingRole = getPendingRole();
-    if (pendingRole) {
-      setSelectedRole(pendingRole);
-    }
-  }, []);
+  const saveProfileMutation = useSaveCallerUserProfile();
+
+  const handleRoleSelect = (role: UserRole) => {
+    setSelectedRole(role);
+    setError(null);
+  };
 
   const handleSubmit = async () => {
-    if (!selectedRole || !actor || !identity) return;
-    
-    // Validate provider category selection
-    if (selectedRole === UserRole.provider && !selectedCategory) {
-      setValidationError('Please select a service category to continue');
+    if (!selectedRole) {
+      setError('Please select a role');
       return;
     }
 
-    setValidationError('');
-    setIsSubmitting(true);
+    if (selectedRole === UserRole.provider && !selectedCategory) {
+      setError('Please select a service category');
+      return;
+    }
+
     try {
-      // Create a minimal profile based on role
+      const category = CATEGORIES.find((cat) => cat.id === selectedCategory);
+      const businessType: BusinessType = category?.businessType || { __kind__: 'cleaning', cleaning: null };
+
       if (selectedRole === UserRole.client) {
-        await actor.saveCallerUserProfile({
-          role: selectedRole,
+        await saveProfileMutation.mutateAsync({
+          role: UserRole.client,
           clientProfile: {
-            phoneNumber: '',
-            pinnedLocation: undefined,
+            surname: 'UNKNOWN',
+            middleName: 'UNKNOWN',
+            lastName: 'UNKNOWN',
+            yearOfBirth: 'UNKNOWN',
+            idNumber: '0',
+            mobileNumber: 'UNKNOWN',
+            phoneNumber: 'UNKNOWN',
+            pinnedLocation: {
+              latitude: 0,
+              longitude: 0,
+              address: '',
+            },
           },
           providerProfile: undefined,
         });
       } else if (selectedRole === UserRole.provider) {
-        const category = CATEGORIES.find((cat) => cat.id === selectedCategory);
-        if (!category) {
-          setValidationError('Invalid category selected');
-          setIsSubmitting(false);
-          return;
-        }
-
-        await actor.saveCallerUserProfile({
-          role: selectedRole,
+        await saveProfileMutation.mutateAsync({
+          role: UserRole.provider,
           providerProfile: {
-            name: '',
-            businessType: category.businessType,
-            location: { latitude: 0, longitude: 0, address: '' },
+            id: '',
+            surname: 'UNKNOWN',
+            middleName: 'UNKNOWN',
+            lastName: 'UNKNOWN',
+            yearOfBirth: 'UNKNOWN',
+            idNumber: '0',
+            name: 'UNKNOWN',
+            rate: undefined,
+            businessType,
+            location: {
+              latitude: 0,
+              longitude: 0,
+              address: '',
+            },
+            verificationStatus: { __kind__: 'unverified', unverified: null },
             ratings: [],
+            profilePicture: undefined,
+            phoneNumber: 'UNKNOWN',
             description: '',
             academicDocuments: [],
-            phoneNumber: '',
-            profilePicture: undefined,
             goodConductCert: undefined,
-            verificationStatus: { __kind__: 'unverified', unverified: null },
             isEngaged: false,
             engagementEndTime: undefined,
-            category: category.businessType,
+            category: businessType,
           },
           clientProfile: undefined,
         });
       } else if (selectedRole === UserRole.backOffice) {
-        await actor.saveCallerUserProfile({
-          role: selectedRole,
+        await saveProfileMutation.mutateAsync({
+          role: UserRole.backOffice,
           clientProfile: undefined,
           providerProfile: undefined,
         });
       }
-      
-      clearPendingRole();
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-    } catch (error) {
-      console.error('Error setting user role:', error);
-      setValidationError('Failed to set role. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+
+      onComplete();
+    } catch (err: any) {
+      setError(err.message || 'Failed to save profile');
     }
   };
 
-  const roles = [
-    {
-      value: UserRole.client,
-      icon: Users,
-      title: 'Client',
-      description: 'I need services from professionals',
-    },
-    {
-      value: UserRole.provider,
-      icon: Briefcase,
-      title: 'Service Provider',
-      description: 'I offer professional services',
-    },
-    {
-      value: UserRole.backOffice,
-      icon: Shield,
-      title: 'Technical Team',
-      description: 'I verify service providers',
-    },
-  ];
-
   return (
-    <div className="container flex min-h-[80vh] items-center justify-center py-12">
-      <div className="w-full max-w-2xl">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold tracking-tight">Welcome to Genz App</h1>
-          <p className="mt-2 text-muted-foreground">
-            Please select your role to get started
-          </p>
-        </div>
+    <div className="container mx-auto max-w-2xl px-4 py-12">
+      <Card>
+        <CardHeader>
+          <CardTitle>Select Your Role</CardTitle>
+          <CardDescription>
+            Choose how you want to use Genz App
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-        <div className="grid gap-4 sm:grid-cols-3">
-          {roles.map((role) => {
-            const Icon = role.icon;
-            const isSelected = selectedRole === role.value;
-            return (
-              <Card
-                key={role.value}
-                className={`cursor-pointer transition-all hover:shadow-soft ${
-                  isSelected ? 'border-primary ring-2 ring-primary ring-offset-2' : ''
-                }`}
-                onClick={() => {
-                  setSelectedRole(role.value);
-                  setValidationError('');
-                  if (role.value !== UserRole.provider) {
-                    setSelectedCategory('');
-                  }
-                }}
-              >
-                <CardHeader className="text-center">
-                  <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <CardTitle className="text-lg">{role.title}</CardTitle>
-                  <CardDescription className="text-xs">{role.description}</CardDescription>
-                </CardHeader>
-              </Card>
-            );
-          })}
-        </div>
-
-        {selectedRole === UserRole.provider && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle className="text-lg">Select Your Service Category</CardTitle>
-              <CardDescription>Choose the category that best describes your services</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="category-select">Service Category *</Label>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger id="category-select">
-                    <SelectValue placeholder="Select a category..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  You will only appear in this category when clients search for services
-                </p>
+          <div className="grid gap-4">
+            <Button
+              variant={selectedRole === UserRole.client ? 'default' : 'outline'}
+              onClick={() => handleRoleSelect(UserRole.client)}
+              className="h-auto flex-col gap-2 p-6"
+            >
+              <Users className="h-8 w-8" />
+              <div>
+                <div className="font-semibold">Client</div>
+                <div className="text-sm font-normal text-muted-foreground">
+                  Find and hire service providers
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </Button>
 
-        {validationError && (
-          <Alert variant="destructive" className="mt-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{validationError}</AlertDescription>
-          </Alert>
-        )}
+            <Button
+              variant={selectedRole === UserRole.provider ? 'default' : 'outline'}
+              onClick={() => handleRoleSelect(UserRole.provider)}
+              className="h-auto flex-col gap-2 p-6"
+            >
+              <Briefcase className="h-8 w-8" />
+              <div>
+                <div className="font-semibold">Service Provider</div>
+                <div className="text-sm font-normal text-muted-foreground">
+                  Offer your services to clients
+                </div>
+              </div>
+            </Button>
 
-        <div className="mt-8 text-center">
+            <Button
+              variant={selectedRole === UserRole.backOffice ? 'default' : 'outline'}
+              onClick={() => handleRoleSelect(UserRole.backOffice)}
+              className="h-auto flex-col gap-2 p-6"
+            >
+              <Shield className="h-8 w-8" />
+              <div>
+                <div className="font-semibold">Technical Team</div>
+                <div className="text-sm font-normal text-muted-foreground">
+                  Manage platform operations
+                </div>
+              </div>
+            </Button>
+          </div>
+
+          {selectedRole === UserRole.provider && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Service Category *</label>
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your service category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Choose the category that best describes your services
+              </p>
+            </div>
+          )}
+
           <Button
             onClick={handleSubmit}
-            disabled={!selectedRole || isSubmitting}
+            disabled={!selectedRole || saveProfileMutation.isPending || (selectedRole === UserRole.provider && !selectedCategory)}
+            className="w-full"
             size="lg"
-            className="min-w-[200px]"
           >
-            {isSubmitting ? (
-              <>
-                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                Setting up...
-              </>
-            ) : (
-              'Continue'
-            )}
+            {saveProfileMutation.isPending ? 'Creating Profile...' : 'Continue'}
           </Button>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

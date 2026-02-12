@@ -1,10 +1,6 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { AppLayout } from './components/AppLayout';
 import { LandingPage } from './pages/LandingPage';
-import { useInternetIdentity } from './hooks/useInternetIdentity';
-import { useGetCallerUserProfile } from './hooks/useQueries';
-import { RoleOnboarding } from './components/auth/RoleOnboarding';
 import { CategoriesPage } from './pages/client/CategoriesPage';
 import { ProviderResultsPage } from './pages/client/ProviderResultsPage';
 import { ProviderDetailPage } from './pages/client/ProviderDetailPage';
@@ -16,28 +12,17 @@ import { VerificationUploadPage } from './pages/provider/VerificationUploadPage'
 import { VerificationReviewPage } from './pages/backoffice/VerificationReviewPage';
 import { ClientAccessPage } from './pages/auth/ClientAccessPage';
 import { ProviderAccessPage } from './pages/auth/ProviderAccessPage';
+import { RoleOnboarding } from './components/auth/RoleOnboarding';
+import { useInternetIdentity } from './hooks/useInternetIdentity';
+import { useGetCallerUserProfile } from './hooks/useQueries';
 import { UserRole } from './backend';
-import { Toaster } from './components/ui/sonner';
-import { ThemeProvider } from 'next-themes';
-import { InstallPromptBanner } from './components/pwa/InstallPromptBanner';
-import { UpdateAvailableBanner } from './components/pwa/UpdateAvailableBanner';
-import { getCategoryById } from './lib/categories';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 0,
-      refetchOnMount: 'always',
-      refetchOnWindowFocus: false,
-      retry: 1,
-    },
-  },
-});
+import { checkClientProfileCompletion, checkProviderProfileCompletion } from './utils/profileCompletion';
 
 type Page =
   | 'landing'
   | 'client-access'
   | 'provider-access'
+  | 'role-onboarding'
   | 'categories'
   | 'results'
   | 'provider-detail'
@@ -48,152 +33,170 @@ type Page =
   | 'verification-upload'
   | 'verification-review';
 
-function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('landing');
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
-  const [focusProviderId, setFocusProviderId] = useState<string | null>(null);
+interface PageParams {
+  categoryId?: string | null;
+  categoryLabel?: string;
+  provider?: string;
+  focusProvider?: string;
+}
 
+function App() {
   const { identity, isInitializing } = useInternetIdentity();
   const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
 
-  const isAuthenticated = !!identity;
-  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
+  const [currentPage, setCurrentPage] = useState<Page>('landing');
+  const [pageParams, setPageParams] = useState<PageParams>({});
 
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch((error) => {
-        console.error('Service Worker registration failed:', error);
-      });
-    }
-  }, []);
+  const isAuthenticated = !!identity;
 
   const handleNavigate = (page: string, params?: any) => {
     setCurrentPage(page as Page);
-    if (params?.categoryId !== undefined) {
-      setSelectedCategoryId(params.categoryId);
-    }
-    if (params?.provider) {
-      setSelectedProviderId(params.provider);
-    }
-    if (params?.focusProvider) {
-      setFocusProviderId(params.focusProvider);
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setPageParams(params || {});
   };
 
-  if (isInitializing || (isAuthenticated && profileLoading)) {
+  const handleAccessComplete = () => {
+    if (!userProfile) {
+      handleNavigate('role-onboarding');
+    } else {
+      // Route based on role and profile completion
+      if (userProfile.role === UserRole.client) {
+        const completionStatus = checkClientProfileCompletion(userProfile.clientProfile);
+        if (!completionStatus.isComplete) {
+          handleNavigate('client-profile');
+        } else {
+          handleNavigate('categories');
+        }
+      } else if (userProfile.role === UserRole.provider) {
+        const completionStatus = checkProviderProfileCompletion(userProfile.providerProfile);
+        if (!completionStatus.isComplete) {
+          handleNavigate('provider-profile');
+        } else {
+          handleNavigate('provider-profile');
+        }
+      } else if (userProfile.role === UserRole.backOffice) {
+        handleNavigate('verification-review');
+      }
+    }
+  };
+
+  const handleRoleOnboardingComplete = () => {
+    handleAccessComplete();
+  };
+
+  // Redirect authenticated users from access pages
+  useEffect(() => {
+    if (isAuthenticated && !profileLoading && isFetched) {
+      if (currentPage === 'client-access' || currentPage === 'provider-access') {
+        handleAccessComplete();
+      }
+    }
+  }, [isAuthenticated, profileLoading, isFetched, currentPage]);
+
+  // Check profile completion for gating
+  const clientCompletionStatus = userProfile?.role === UserRole.client 
+    ? checkClientProfileCompletion(userProfile.clientProfile)
+    : null;
+  
+  const providerCompletionStatus = userProfile?.role === UserRole.provider
+    ? checkProviderProfileCompletion(userProfile.providerProfile)
+    : null;
+
+  const isClientProfileIncomplete = clientCompletionStatus && !clientCompletionStatus.isComplete;
+  const isProviderProfileIncomplete = providerCompletionStatus && !providerCompletionStatus.isComplete;
+
+  // Gate client pages if profile is incomplete
+  useEffect(() => {
+    if (isAuthenticated && userProfile?.role === UserRole.client && isClientProfileIncomplete) {
+      const clientPages: Page[] = ['categories', 'results', 'provider-detail', 'map-view', 'my-jobs'];
+      if (clientPages.includes(currentPage)) {
+        handleNavigate('client-profile');
+      }
+    }
+  }, [isAuthenticated, userProfile, isClientProfileIncomplete, currentPage]);
+
+  // Gate provider pages if profile is incomplete
+  useEffect(() => {
+    if (isAuthenticated && userProfile?.role === UserRole.provider && isProviderProfileIncomplete) {
+      const providerPages: Page[] = ['verification-upload'];
+      if (providerPages.includes(currentPage)) {
+        handleNavigate('provider-profile');
+      }
+    }
+  }, [isAuthenticated, userProfile, isProviderProfileIncomplete, currentPage]);
+
+  if (isInitializing) {
     return (
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-        </div>
-      </ThemeProvider>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      </div>
     );
   }
 
-  if (showProfileSetup) {
-    return (
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <QueryClientProvider client={queryClient}>
-          <AppLayout currentPage="landing" onNavigate={handleNavigate}>
-            <RoleOnboarding />
-          </AppLayout>
-          <Toaster />
-        </QueryClientProvider>
-      </ThemeProvider>
-    );
-  }
-
-  const userRole = userProfile?.role;
-
-  let content: React.ReactNode;
-
-  switch (currentPage) {
-    case 'landing':
-      content = (
-        <LandingPage
-          isAuthenticated={isAuthenticated}
-          userRole={userRole}
-          profileLoading={profileLoading}
-          onNavigate={handleNavigate}
-        />
-      );
-      break;
-    case 'client-access':
-      content = <ClientAccessPage onComplete={() => handleNavigate('landing')} />;
-      break;
-    case 'provider-access':
-      content = <ProviderAccessPage onComplete={() => handleNavigate('landing')} />;
-      break;
-    case 'categories':
-      content = <CategoriesPage onNavigate={handleNavigate} />;
-      break;
-    case 'results':
-      const category = selectedCategoryId ? getCategoryById(selectedCategoryId) : null;
-      content = (
-        <ProviderResultsPage
-          categoryId={selectedCategoryId}
-          categoryLabel={category?.label || null}
-          onNavigate={handleNavigate}
-        />
-      );
-      break;
-    case 'provider-detail':
-      content = (
-        <ProviderDetailPage
-          providerId={selectedProviderId || ''}
-          onNavigate={handleNavigate}
-        />
-      );
-      break;
-    case 'map-view':
-      const mapCategory = selectedCategoryId ? getCategoryById(selectedCategoryId) : null;
-      content = (
-        <MapViewPage
-          selectedCategory={mapCategory?.businessType || null}
-          focusProvider={focusProviderId}
-          onNavigate={handleNavigate}
-        />
-      );
-      break;
-    case 'my-jobs':
-      content = <MyJobsPage onNavigate={handleNavigate} />;
-      break;
-    case 'client-profile':
-      content = <ClientProfilePage />;
-      break;
-    case 'provider-profile':
-      content = <ProviderProfilePage />;
-      break;
-    case 'verification-upload':
-      content = <VerificationUploadPage />;
-      break;
-    case 'verification-review':
-      content = <VerificationReviewPage />;
-      break;
-    default:
-      content = (
-        <LandingPage
-          isAuthenticated={isAuthenticated}
-          userRole={userRole}
-          profileLoading={profileLoading}
-          onNavigate={handleNavigate}
-        />
-      );
-  }
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'landing':
+        return (
+          <LandingPage
+            isAuthenticated={isAuthenticated}
+            userRole={userProfile?.role}
+            profileLoading={profileLoading}
+            onNavigate={handleNavigate}
+          />
+        );
+      case 'client-access':
+        return <ClientAccessPage onComplete={handleAccessComplete} />;
+      case 'provider-access':
+        return <ProviderAccessPage onComplete={handleAccessComplete} />;
+      case 'role-onboarding':
+        return <RoleOnboarding onComplete={handleRoleOnboardingComplete} />;
+      case 'categories':
+        return <CategoriesPage onNavigate={handleNavigate} />;
+      case 'results':
+        return (
+          <ProviderResultsPage
+            categoryId={pageParams.categoryId || null}
+            categoryLabel={pageParams.categoryLabel || 'All Providers'}
+            onNavigate={handleNavigate}
+          />
+        );
+      case 'provider-detail':
+        return pageParams.provider ? (
+          <ProviderDetailPage providerId={pageParams.provider} onNavigate={handleNavigate} />
+        ) : (
+          <div>Provider not found</div>
+        );
+      case 'map-view':
+        return <MapViewPage selectedCategory={null} onNavigate={handleNavigate} />;
+      case 'my-jobs':
+        return <MyJobsPage onNavigate={handleNavigate} />;
+      case 'client-profile':
+        return <ClientProfilePage />;
+      case 'provider-profile':
+        return <ProviderProfilePage />;
+      case 'verification-upload':
+        return <VerificationUploadPage />;
+      case 'verification-review':
+        return <VerificationReviewPage />;
+      default:
+        return (
+          <LandingPage
+            isAuthenticated={isAuthenticated}
+            userRole={userProfile?.role}
+            profileLoading={profileLoading}
+            onNavigate={handleNavigate}
+          />
+        );
+    }
+  };
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <QueryClientProvider client={queryClient}>
-        <AppLayout currentPage={currentPage} onNavigate={handleNavigate} userRole={userRole}>
-          {content}
-        </AppLayout>
-        <InstallPromptBanner />
-        <UpdateAvailableBanner />
-        <Toaster />
-      </QueryClientProvider>
-    </ThemeProvider>
+    <AppLayout
+      currentPage={currentPage}
+      onNavigate={handleNavigate}
+      userRole={userProfile?.role}
+    >
+      {renderPage()}
+    </AppLayout>
   );
 }
 

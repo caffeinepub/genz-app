@@ -1,32 +1,48 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Back-office controls to reset and seed category-specific service providers",
+  "title": "Fix client profile save loop by updating existing profile and stabilizing React Query state",
   "requirements": [
     {
-      "id": "REQ-110",
-      "summary": "Add an admin-only back-office UI to run provider reset and provider seeding with confirmation, feedback, and cache invalidation.",
+      "id": "REQ-1",
+      "summary": "Update the Client Profile “Save Required Information” action to persist changes via an update flow (not initial profile creation) and prevent any browser page reload/refresh during save.",
       "acceptanceCriteria": [
-        "The back-office screen shows two clearly labeled actions (e.g., “Delete All Providers” and “Seed Category Providers”).",
-        "A confirmation step is required before deleting providers.",
-        "On success, the UI shows an English success message and React Query caches related to provider lists/results are invalidated so client pages reflect the new dataset.",
-        "If the user is not authorized, the UI shows an English error message explaining they do not have permission to perform the action."
+        "From the Client Profile page, clicking “Save Required Information” does not reload the browser page.",
+        "If the user already has a client profile, saving required fields updates the stored profile successfully (surname, middleName, lastName, yearOfBirth, idNumber, mobileNumber/phoneNumber, pinnedLocation).",
+        "After saving, reloading the app and revisiting the Client Profile page shows the newly saved values populated from the backend.",
+        "If saving fails due to validation/authorization, the UI shows a clear error message and does not reload the page."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add React Query hooks for the back-office operations: (1) a query hook to check admin authorization (using the backend capability that indicates whether the caller is an admin) and (2) mutation hooks to run provider reset and provider seeding. Ensure mutations invalidate provider-related caches (e.g., provider results, provider detail, platform stats, and all-providers queries where applicable). Use the authorization component system for role-aware behavior where needed; verify the component's usage instructions before implementing."
+          "description": "Add a dedicated React Query mutation hook for updating an existing client profile’s required fields using the backend update capability (use the authorization + core-infrastructure actor connection already provided). Ensure onSuccess invalidates the ['currentUserProfile'] query so refreshed data repopulates the form. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
+          "path": "frontend/src/pages/client/ClientProfilePage.tsx",
           "operation": "modify",
-          "description": "Extend the existing back-office screen to include a new “Technical Team Tools” section containing two clearly labeled controls: “Delete All Providers” and “Seed Category Providers”. Gate the controls behind an admin check (show an English permission error if not authorized). Require an explicit English confirmation prompt before deletion. Show clear English success/error feedback after each action, and trigger React Query invalidation (via the mutations’ onSuccess) so client browsing reflects the updated dataset. Use shadcn-ui primitives already present in the project (e.g., Card, Button) to keep UI consistent; verify the component's usage instructions before implementing."
+          "description": "Switch “Save Required Information” to call the new client update mutation (instead of the initial save/creation mutation). Ensure the click handler cannot trigger a native form submission/page reload (e.g., by preventing default submission if applicable and/or ensuring the button behaves as a non-submit action). Show a clear, non-refreshing error state/message when the mutation fails due to validation/authorization and keep the user on the page. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Refactor the Client Profile page save behavior to use the new client-profile update mutation and ensure React Query invalidation/refetch updates UI state without navigation loops, with proper loading states.",
+      "acceptanceCriteria": [
+        "ClientProfilePage no longer calls the initial profile-creation mutation to save required fields.",
+        "On successful save, the current user profile query is invalidated and the updated profile is shown (either immediately or after refetch) without the page appearing to refresh repeatedly.",
+        "The Save button shows a loading state while the mutation is pending and is re-enabled afterward."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Ensure the new client required-fields update mutation hook cleanly integrates with React Query by invalidating/refetching ['currentUserProfile'] on success and surfacing errors for UI display, avoiding any manual navigation triggers. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx",
-          "operation": "create",
-          "description": "Create a focused back-office panel component that renders the two actions, handles confirmation UX for deletion, and displays success/error states in English. This panel should call the new mutation hooks (reset + seed) and remain reusable/testable. Use shadcn-ui components (e.g., Card/Button/alerts if available) for layout and feedback; verify the component's usage instructions before implementing. Ensure this component is imported and rendered by the existing VerificationReviewPage so it is not orphaned."
+          "path": "frontend/src/pages/client/ClientProfilePage.tsx",
+          "operation": "modify",
+          "description": "Use the new update mutation for required fields; drive the Save button disabled/loading state from the mutation pending state; after success, rely on query invalidation/refetch (not navigation) so the profile completion gating in App.tsx stabilizes without repeated apparent refreshes. Verify the component's usage instructions before implementing."
         }
       ]
     }

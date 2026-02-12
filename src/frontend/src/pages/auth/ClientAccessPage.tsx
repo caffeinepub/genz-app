@@ -1,10 +1,7 @@
-import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useInternetIdentity } from '@/hooks/useInternetIdentity';
-import { PhoneOtpVerificationPanel } from '@/components/auth/PhoneOtpVerificationPanel';
-import { OtpRole } from '@/backend';
 import { LogIn, UserPlus } from 'lucide-react';
 
 interface ClientAccessPageProps {
@@ -13,8 +10,6 @@ interface ClientAccessPageProps {
 
 export function ClientAccessPage({ onComplete }: ClientAccessPageProps) {
   const { identity, login, loginStatus } = useInternetIdentity();
-  const [activeTab, setActiveTab] = useState<'login' | 'create'>('login');
-  const [showOtpVerification, setShowOtpVerification] = useState(false);
 
   const isAuthenticated = !!identity;
   const isLoggingIn = loginStatus === 'logging-in';
@@ -23,43 +18,20 @@ export function ClientAccessPage({ onComplete }: ClientAccessPageProps) {
     if (!isAuthenticated) {
       try {
         await login();
+        // After successful login, proceed immediately
+        onComplete();
       } catch (error: any) {
         console.error('Login error:', error);
         if (error.message === 'User is already authenticated') {
-          // Already authenticated, proceed to OTP
-          setShowOtpVerification(true);
+          // Already authenticated, proceed
+          onComplete();
         }
       }
     } else {
-      // Already authenticated, show OTP verification
-      setShowOtpVerification(true);
+      // Already authenticated, proceed
+      onComplete();
     }
   };
-
-  const handleOtpVerified = () => {
-    onComplete();
-  };
-
-  if (showOtpVerification && isAuthenticated) {
-    return (
-      <div className="container mx-auto max-w-2xl px-4 py-12">
-        <Card>
-          <CardHeader>
-            <CardTitle>Verify Your Phone Number</CardTitle>
-            <CardDescription>
-              Complete phone verification to access your client account
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PhoneOtpVerificationPanel
-              role={OtpRole.client}
-              onVerified={handleOtpVerified}
-            />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-12">
@@ -70,7 +42,7 @@ export function ClientAccessPage({ onComplete }: ClientAccessPageProps) {
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'login' | 'create')}>
+      <Tabs defaultValue="login">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="login">Log in</TabsTrigger>
           <TabsTrigger value="create">Create new account</TabsTrigger>
@@ -86,7 +58,7 @@ export function ClientAccessPage({ onComplete }: ClientAccessPageProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Click below to authenticate with Internet Identity and verify your phone number.
+                Click below to authenticate with Internet Identity.
               </p>
               <Button
                 onClick={handleAuthAction}
@@ -111,7 +83,7 @@ export function ClientAccessPage({ onComplete }: ClientAccessPageProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Click below to create your Internet Identity and verify your phone number.
+                Click below to create your Internet Identity.
               </p>
               <Button
                 onClick={handleAuthAction}

@@ -6,14 +6,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LocationPicker } from '@/components/location/LocationPicker';
 import { useGetCallerUserProfile, useUpdateProviderPinnedLocation, useSetEngaged, useDisengage, useUpdateProviderProfile } from '@/hooks/useQueries';
 import { BusinessType, Location, ProviderProfileUpdate } from '@/backend';
 import { getBusinessTypeLabel, CATEGORIES } from '@/lib/categories';
-import { MapPin, Save, Clock, CheckCircle, Edit, X, AlertCircle } from 'lucide-react';
+import { MapPin, Save, Clock, CheckCircle, Edit, X, AlertCircle, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatRemainingTime } from '@/utils/engagementTime';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { checkProviderProfileCompletion } from '@/utils/profileCompletion';
 
 export function ProviderProfilePage() {
   const { data: userProfile, isLoading } = useGetCallerUserProfile();
@@ -36,6 +37,8 @@ export function ProviderProfilePage() {
   // Edit mode state
   const [editMode, setEditMode] = useState(false);
   const [editDraft, setEditDraft] = useState<{
+    surname: string;
+    yearOfBirth: string;
     rate: string;
     category: string;
     description: string;
@@ -50,50 +53,32 @@ export function ProviderProfilePage() {
     }
   }, [providerProfile]);
 
-  const handleUpdateLocation = async () => {
-    if (!location.address) {
-      toast.error('Please enter an address');
-      return;
-    }
-
-    try {
-      await updateLocationMutation.mutateAsync(location);
-      toast.success('Pinned location updated successfully');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to update location');
-    }
-  };
+  const completionStatus = checkProviderProfileCompletion(providerProfile);
 
   const handleEngagementToggle = async (checked: boolean) => {
-    // Update local state immediately for responsive UI
     setLocalIsEngaged(checked);
 
     if (checked) {
-      // Setting to Engaged - need hours
       const hours = parseInt(hoursEngaged, 10);
       if (isNaN(hours) || hours < 1 || hours > 24) {
         toast.error('Please enter a valid number of hours (1-24)');
-        // Revert local state on validation error
         setLocalIsEngaged(false);
         return;
       }
 
       try {
-        await setEngagedMutation.mutateAsync(hours);
+        await setEngagedMutation.mutateAsync(BigInt(hours));
         toast.success(`Engagement status set to Engaged for ${hours} hour${hours > 1 ? 's' : ''}`);
       } catch (error: any) {
         toast.error(error.message || 'Failed to update engagement status');
-        // Revert local state on error
         setLocalIsEngaged(false);
       }
     } else {
-      // Setting to Not Engaged
       try {
         await disengageMutation.mutateAsync();
         toast.success('Engagement status set to Not Engaged');
       } catch (error: any) {
         toast.error(error.message || 'Failed to update engagement status');
-        // Revert local state on error
         setLocalIsEngaged(true);
       }
     }
@@ -102,12 +87,13 @@ export function ProviderProfilePage() {
   const handleEnterEditMode = () => {
     if (!providerProfile) return;
     
-    // Find the category ID that matches the provider's category
     const matchingCategory = CATEGORIES.find(
       (cat) => JSON.stringify(cat.businessType) === JSON.stringify(providerProfile.category || providerProfile.businessType)
     );
     
     setEditDraft({
+      surname: providerProfile.surname || '',
+      yearOfBirth: providerProfile.yearOfBirth || '',
       rate: String(Number(providerProfile.rate)),
       category: matchingCategory?.id || '',
       description: providerProfile.description,
@@ -124,22 +110,24 @@ export function ProviderProfilePage() {
   const handleSaveChanges = async () => {
     if (!editDraft || !providerProfile) return;
 
-    // Validate rate
+    if (!editDraft.surname || !editDraft.yearOfBirth) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
     const rateNum = parseFloat(editDraft.rate);
     if (isNaN(rateNum) || rateNum < 0) {
       toast.error('Please enter a valid hourly rate');
       return;
     }
 
-    // Validate category selection
     if (!editDraft.category) {
       toast.error('Please select a service category');
       return;
     }
 
-    // Validate location
-    if (!editDraft.location.address) {
-      toast.error('Please enter a valid address');
+    if (!editDraft.location.address || editDraft.location.latitude === 0 || editDraft.location.longitude === 0) {
+      toast.error('Please enter a valid address and coordinates');
       return;
     }
 
@@ -149,24 +137,9 @@ export function ProviderProfilePage() {
       return;
     }
 
-    // Check if anything changed
-    const currentCategoryId = CATEGORIES.find(
-      (cat) => JSON.stringify(cat.businessType) === JSON.stringify(providerProfile.category || providerProfile.businessType)
-    )?.id;
-
-    const hasChanges = 
-      String(Number(providerProfile.rate)) !== editDraft.rate ||
-      currentCategoryId !== editDraft.category ||
-      providerProfile.description !== editDraft.description ||
-      JSON.stringify(providerProfile.location) !== JSON.stringify(editDraft.location);
-
-    if (!hasChanges) {
-      toast.info('No changes to save');
-      setEditMode(false);
-      return;
-    }
-
     const update: ProviderProfileUpdate = {
+      surname: editDraft.surname,
+      yearOfBirth: editDraft.yearOfBirth,
       rate: BigInt(Math.round(rateNum)),
       businessType: selectedCategory.businessType,
       description: editDraft.description,
@@ -214,7 +187,6 @@ export function ProviderProfilePage() {
   const isUpdatingEngagement = setEngagedMutation.isPending || disengageMutation.isPending;
   const isSaving = updateProfileMutation.isPending;
 
-  // Get current category label
   const currentCategory = CATEGORIES.find(
     (cat) => JSON.stringify(cat.businessType) === JSON.stringify(providerProfile.category || providerProfile.businessType)
   );
@@ -232,6 +204,24 @@ export function ProviderProfilePage() {
       </div>
 
       <div className="space-y-6">
+        {!completionStatus.isComplete && (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Profile Incomplete:</strong> Please complete the following required fields to access all features: {completionStatus.missingFields.join(', ')}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {completionStatus.isComplete && !editMode && (
+          <Alert className="border-green-500 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-100">
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>
+              Your profile is complete! You can now access all provider features.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>Engagement Status</CardTitle>
@@ -299,53 +289,56 @@ export function ProviderProfilePage() {
                 </CardDescription>
               </div>
               {!editMode && (
-                <Button onClick={handleEnterEditMode} variant="outline" className="gap-2">
+                <Button onClick={handleEnterEditMode} variant="outline" size="sm" className="gap-2">
                   <Edit className="h-4 w-4" />
-                  Change Info
+                  Edit
                 </Button>
               )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Bio-data section - always read-only */}
-            <div className="space-y-4 rounded-lg border bg-muted/30 p-4">
-              <div className="flex items-start gap-2">
-                <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Bio-data from ID Document</p>
-                  <p className="text-xs text-muted-foreground">
-                    The following information is taken from your ID document and cannot be changed
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <Label className="text-xs text-muted-foreground">Name</Label>
-                  <p className="text-sm font-medium">{providerProfile.name}</p>
-                </div>
-
-                <div>
-                  <Label className="text-xs text-muted-foreground">Phone Number</Label>
-                  <p className="text-sm font-medium">{providerProfile.phoneNumber}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Editable fields */}
+          <CardContent className="space-y-4">
             {editMode && editDraft ? (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-category">Service Category *</Label>
-                  <Select
-                    value={editDraft.category}
-                    onValueChange={(value) => {
-                      setEditDraft({ ...editDraft, category: value });
-                    }}
-                    disabled={isSaving}
-                  >
-                    <SelectTrigger id="edit-category">
-                      <SelectValue placeholder="Select a category..." />
+                  <Label htmlFor="surname">Surname *</Label>
+                  <Input
+                    id="surname"
+                    type="text"
+                    placeholder="Enter surname"
+                    value={editDraft.surname}
+                    onChange={(e) => setEditDraft({ ...editDraft, surname: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="yearOfBirth">Year of Birth *</Label>
+                  <Input
+                    id="yearOfBirth"
+                    type="text"
+                    placeholder="e.g., 1990"
+                    value={editDraft.yearOfBirth}
+                    onChange={(e) => setEditDraft({ ...editDraft, yearOfBirth: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="rate">Hourly Rate (KES) *</Label>
+                  <Input
+                    id="rate"
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="Enter hourly rate"
+                    value={editDraft.rate}
+                    onChange={(e) => setEditDraft({ ...editDraft, rate: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="category">Service Category *</Label>
+                  <Select value={editDraft.category} onValueChange={(value) => setEditDraft({ ...editDraft, category: value })}>
+                    <SelectTrigger id="category">
+                      <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
                       {CATEGORIES.map((cat) => (
@@ -355,60 +348,36 @@ export function ProviderProfilePage() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-muted-foreground">
-                    You will only appear in this category when clients search for services
-                  </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-rate">Hourly Rate (KES)</Label>
-                  <Input
-                    id="edit-rate"
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={editDraft.rate}
-                    onChange={(e) => setEditDraft({ ...editDraft, rate: e.target.value })}
-                    placeholder="Enter your hourly rate"
-                    disabled={isSaving}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="edit-description">Service Description</Label>
+                  <Label htmlFor="description">Description</Label>
                   <Textarea
-                    id="edit-description"
+                    id="description"
+                    placeholder="Describe your services"
                     value={editDraft.description}
                     onChange={(e) => setEditDraft({ ...editDraft, description: e.target.value })}
-                    placeholder="Describe your services..."
                     rows={4}
-                    disabled={isSaving}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Service Location</Label>
+                  <Label>Exact Location *</Label>
                   <LocationPicker
                     value={editDraft.location}
                     onChange={(loc) => setEditDraft({ ...editDraft, location: loc })}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Provide your exact address and coordinates
+                  </p>
                 </div>
 
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-2">
                   <Button onClick={handleSaveChanges} disabled={isSaving} className="flex-1 gap-2">
-                    {isSaving ? (
-                      <>
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4" />
-                        Update Profile
-                      </>
-                    )}
+                    <Save className="h-4 w-4" />
+                    {isSaving ? 'Saving...' : 'Save Changes'}
                   </Button>
-                  <Button onClick={handleCancelEdit} variant="outline" disabled={isSaving} className="gap-2">
+                  <Button onClick={handleCancelEdit} variant="outline" className="gap-2">
                     <X className="h-4 w-4" />
                     Cancel
                   </Button>
@@ -416,26 +385,44 @@ export function ProviderProfilePage() {
               </>
             ) : (
               <>
-                <div className="space-y-3">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <Label className="text-xs text-muted-foreground">Service Category</Label>
-                    <p className="text-sm font-medium">{currentCategory?.label || 'Not set'}</p>
+                    <p className="text-sm font-medium text-muted-foreground">Name</p>
+                    <p className="text-base">{providerProfile.name || 'Not set'}</p>
                   </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Surname</p>
+                    <p className="text-base">{providerProfile.surname || 'Not set'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Year of Birth</p>
+                    <p className="text-base">{providerProfile.yearOfBirth || 'Not set'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Phone Number</p>
+                    <p className="text-base">{providerProfile.phoneNumber || 'Not set'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Hourly Rate</p>
+                    <p className="text-base">KES {Number(providerProfile.rate).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Category</p>
+                    <p className="text-base">{currentCategory?.label || 'Not set'}</p>
+                  </div>
+                </div>
 
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Hourly Rate</Label>
-                    <p className="text-sm font-medium">KES {Number(providerProfile.rate).toLocaleString()}</p>
-                  </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Description</p>
+                  <p className="text-base">{providerProfile.description || 'No description provided'}</p>
+                </div>
 
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Service Description</Label>
-                    <p className="text-sm">{providerProfile.description || 'No description provided'}</p>
-                  </div>
-
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Service Location</Label>
-                    <p className="text-sm">{providerProfile.location.address || 'No location set'}</p>
-                  </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Location</p>
+                  <p className="text-base">{providerProfile.location.address || 'Not set'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {providerProfile.location.latitude}, {providerProfile.location.longitude}
+                  </p>
                 </div>
               </>
             )}

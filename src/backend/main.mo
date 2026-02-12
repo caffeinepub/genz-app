@@ -1,6 +1,5 @@
 import Map "mo:core/Map";
 import List "mo:core/List";
-import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 import Text "mo:core/Text";
 import Runtime "mo:core/Runtime";
@@ -8,16 +7,13 @@ import Nat "mo:core/Nat";
 import Time "mo:core/Time";
 import Int "mo:core/Int";
 import Array "mo:core/Array";
-
-
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
-import OutCall "http-outcalls/outcall";
+import Migration "migration";
 
-// Use migration mechanism to upgrade custom data model. Critical for persistence!
-
+(with migration = Migration.run)
 actor {
   // Types
   type Location = {
@@ -94,6 +90,11 @@ actor {
 
   public type ProviderProfile = {
     principal : Principal;
+    surname : Text;
+    middleName : Text;
+    lastName : Text;
+    yearOfBirth : Text;
+    idNumber : Text;
     name : Text;
     rate : Nat;
     businessType : BusinessType;
@@ -112,6 +113,11 @@ actor {
 
   public type ProviderProfileView = {
     principal : Principal;
+    surname : Text;
+    middleName : Text;
+    lastName : Text;
+    yearOfBirth : Text;
+    idNumber : Text;
     name : Text;
     rate : Nat;
     businessType : BusinessType;
@@ -128,11 +134,25 @@ actor {
     category : ?BusinessType;
   };
 
+  public type BioData = {
+    fullName : Text;
+    email : Text;
+    address : Text;
+    nationalId : Text;
+  };
+
   public type ClientProfile = {
     principal : Principal;
+    mobileNumber : Text;
+    surname : Text;
+    middleName : Text;
+    lastName : Text;
+    yearOfBirth : Text;
+    idNumber : Text;
     phoneNumber : Text;
     pinnedLocation : ?Location;
     isVerified : Bool;
+    bioData : ?BioData;
   };
 
   public type UserProfile = {
@@ -179,6 +199,12 @@ actor {
     callbackUrl : Text;
   };
 
+  public type WhatsAppConfig = {
+    providerBaseUrl : Text;
+    senderPhoneNumber : Text;
+    authToken : Text;
+  };
+
   public type OtpRole = { #client; #provider };
   public type PendingOtp = {
     phoneNumber : Text;
@@ -188,12 +214,26 @@ actor {
   };
 
   public type ProviderProfileUpdate = {
+    surname : Text;
+    yearOfBirth : Text;
     rate : Nat;
     businessType : BusinessType;
     location : Location;
     profilePicture : ?ProfilePicture;
     description : Text;
     category : BusinessType;
+  };
+
+  // New ClientProfileUpdate type for updating required fields
+  public type ClientProfileUpdate = {
+    mobileNumber : Text;
+    surname : Text;
+    middleName : Text;
+    lastName : Text;
+    yearOfBirth : Text;
+    idNumber : Text;
+    phoneNumber : Text;
+    pinnedLocation : Location;
   };
 
   let accessControlState = AccessControl.initState();
@@ -206,10 +246,111 @@ actor {
   let jobs = Map.empty<Text, Job>();
   let otpState = Map.empty<Principal, PendingOtp>();
   var mpesaConfig : ?MPesaConfig = null;
+  var whatsAppConfig : ?WhatsAppConfig = null;
 
   let documentStorage = Map.empty<Text, Document>();
   let profilePictures = Map.empty<Text, ProfilePicture>();
 
+  // Validation helper functions
+  func isValidText(text : Text) : Bool {
+    let trimmed = text.trim(#text " ");
+    trimmed.size() > 0 and trimmed != "UNKNOWN" and trimmed != "0";
+  };
+
+  func isValidIdNumber(idNumber : Text) : Bool {
+    let trimmed = idNumber.trim(#text " ");
+    trimmed.size() > 0 and trimmed != "0" and trimmed != "UNKNOWN";
+  };
+
+  func isValidPhoneNumber(phone : Text) : Bool {
+    let trimmed = phone.trim(#text " ");
+    trimmed.size() > 0 and trimmed != "UNKNOWN";
+  };
+
+  func isValidLocation(location : Location) : Bool {
+    location.latitude != 0.0 and location.longitude != 0.0 and isValidText(location.address);
+  };
+
+  func validateProviderProfile(pp : {
+    surname : Text;
+    middleName : Text;
+    lastName : Text;
+    yearOfBirth : Text;
+    idNumber : Text;
+    name : Text;
+    phoneNumber : Text;
+    location : Location;
+  }) {
+    if (not isValidText(pp.surname)) {
+      Runtime.trap("Invalid surname: must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidText(pp.middleName)) {
+      Runtime.trap("Invalid middle name: must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidText(pp.lastName)) {
+      Runtime.trap("Invalid last name: must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidText(pp.yearOfBirth)) {
+      Runtime.trap("Invalid year of birth: must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidIdNumber(pp.idNumber)) {
+      Runtime.trap("Invalid ID number: must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidText(pp.name)) {
+      Runtime.trap("Invalid name: must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidPhoneNumber(pp.phoneNumber)) {
+      Runtime.trap("Invalid phone number: must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidLocation(pp.location)) {
+      Runtime.trap("Invalid location: must provide valid coordinates and address");
+    };
+  };
+
+  func validateClientProfile(cp : {
+    surname : Text;
+    middleName : Text;
+    lastName : Text;
+    yearOfBirth : Text;
+    idNumber : Text;
+    mobileNumber : Text;
+    phoneNumber : Text;
+    pinnedLocation : ?Location;
+  }) {
+    if (not isValidText(cp.surname)) {
+      Runtime.trap("Invalid surname: must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidText(cp.middleName)) {
+      Runtime.trap("Invalid middle name: must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidText(cp.lastName)) {
+      Runtime.trap("Invalid last name: must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidText(cp.yearOfBirth)) {
+      Runtime.trap("Invalid year of birth: must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidIdNumber(cp.idNumber)) {
+      Runtime.trap("Invalid ID number: must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidPhoneNumber(cp.mobileNumber)) {
+      Runtime.trap("Invalid mobile number: must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidPhoneNumber(cp.phoneNumber)) {
+      Runtime.trap("Invalid phone number: must be provided and cannot be empty or placeholder");
+    };
+    switch (cp.pinnedLocation) {
+      case (?loc) {
+        if (not isValidLocation(loc)) {
+          Runtime.trap("Invalid pinned location: must provide valid coordinates and address");
+        };
+      };
+      case (null) {
+        Runtime.trap("Pinned location is required for client profiles");
+      };
+    };
+  };
+
+  // Function to convert ProviderProfile to ProviderProfileView
   func convertProviderProfileToView(profile : ProviderProfile) : ProviderProfileView {
     let ratingsArray = profile.ratings.toArray();
     let academicDocsArray = profile.academicDocuments.toArray();
@@ -227,12 +368,6 @@ actor {
     };
   };
 
-  func convertProviderProfileListToView(profiles : List.List<ProviderProfile>) : List.List<ProviderProfileView> {
-    profiles.map<ProviderProfile, ProviderProfileView>(
-      func(profile) { convertProviderProfileToView(profile) }
-    );
-  };
-
   func convertUserProfileToView(profile : UserProfile) : UserProfileView {
     {
       profile with providerProfile = convertProviderProfileOptionToView(profile.providerProfile)
@@ -243,83 +378,6 @@ actor {
     switch (profile) {
       case (null) { null };
       case (?p) { ?convertUserProfileToView(p) };
-    };
-  };
-
-  public shared ({ caller }) func initiateOtp(phoneNumber : Text, role : OtpRole) : async {
-    expiresAt : Time.Time; code : Text;
-  } {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can initiate OTP");
-    };
-
-    let code = "1234";
-    let expiresAt = Time.now() + 600_000_000_000;
-
-    let pendingOtp : PendingOtp = {
-      phoneNumber;
-      code;
-      role;
-      expiresAt;
-    };
-
-    otpState.add(caller, pendingOtp);
-    { code; expiresAt };
-  };
-
-  public shared ({ caller }) func verifyOtp(code : Text) : async Bool {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can verify OTP");
-    };
-
-    let pending = switch (otpState.get(caller)) {
-      case (?otp) {
-        if (Time.now() > otp.expiresAt) {
-          otpState.remove(caller);
-          Runtime.trap("OTP expired");
-        };
-        otp;
-      };
-      case (null) { Runtime.trap("No pending OTP for caller") };
-    };
-
-    if (code != pending.code) {
-      Runtime.trap("Invalid OTP code");
-    };
-
-    switch (pending.role) {
-      case (#client) {
-        switch (clientProfiles.get(caller)) {
-          case (null) { Runtime.trap("Client profile not found") };
-          case (?profile) {
-            let updatedProfile = { profile with isVerified = true };
-            clientProfiles.add(caller, updatedProfile);
-          };
-        };
-      };
-      case (#provider) {
-        switch (providerProfiles.get(caller)) {
-          case (null) { Runtime.trap("Provider profile not found") };
-          case (?profile) {
-            let updatedProfile = { profile with phoneNumber = pending.phoneNumber };
-            providerProfiles.add(caller, updatedProfile);
-          };
-        };
-      };
-    };
-
-    otpState.remove(caller);
-    true;
-  };
-
-  func ensureVerifiedClient(caller : Principal) {
-    switch (clientProfiles.get(caller)) {
-      case (null) { Runtime.trap("Client profile not found") };
-      case (?profile) {
-        if (not profile.isVerified) {
-          Runtime.trap("Client phone number not verified");
-        };
-      };
     };
   };
 
@@ -342,7 +400,13 @@ actor {
   public shared ({ caller }) func saveCallerUserProfile(profile : {
     role : UserRole;
     providerProfile : ?{
+      surname : Text;
+      middleName : Text;
+      lastName : Text;
+      yearOfBirth : Text;
+      idNumber : Text;
       name : Text;
+      rate : ?Nat;
       businessType : BusinessType;
       location : Location;
       verificationStatus : VerificationStatus;
@@ -355,8 +419,15 @@ actor {
       isEngaged : Bool;
       engagementEndTime : ?Int;
       category : BusinessType;
+      id : Text;
     };
     clientProfile : ?{
+      surname : Text;
+      middleName : Text;
+      lastName : Text;
+      yearOfBirth : Text;
+      idNumber : Text;
+      mobileNumber : Text;
       phoneNumber : Text;
       pinnedLocation : ?Location;
     };
@@ -373,6 +444,51 @@ actor {
       case (null) {};
     };
 
+    // Validate mandatory fields based on role
+    switch (profile.role) {
+      case (#provider) {
+        switch (profile.providerProfile) {
+          case (?pp) {
+            validateProviderProfile({
+              surname = pp.surname;
+              middleName = pp.middleName;
+              lastName = pp.lastName;
+              yearOfBirth = pp.yearOfBirth;
+              idNumber = pp.idNumber;
+              name = pp.name;
+              phoneNumber = pp.phoneNumber;
+              location = pp.location;
+            });
+          };
+          case (null) {
+            Runtime.trap("Provider profile is required for provider role");
+          };
+        };
+      };
+      case (#client) {
+        switch (profile.clientProfile) {
+          case (?cp) {
+            validateClientProfile({
+              surname = cp.surname;
+              middleName = cp.middleName;
+              lastName = cp.lastName;
+              yearOfBirth = cp.yearOfBirth;
+              idNumber = cp.idNumber;
+              mobileNumber = cp.mobileNumber;
+              phoneNumber = cp.phoneNumber;
+              pinnedLocation = cp.pinnedLocation;
+            });
+          };
+          case (null) {
+            Runtime.trap("Client profile is required for client role");
+          };
+        };
+      };
+      case (#backOffice) {
+        // Back office users may have different requirements
+      };
+    };
+
     userRoles.add(caller, profile.role);
 
     switch (profile.providerProfile) {
@@ -381,8 +497,16 @@ actor {
           caller,
           {
             principal = caller;
+            surname = pp.surname;
+            middleName = pp.middleName;
+            lastName = pp.lastName;
+            yearOfBirth = pp.yearOfBirth;
+            idNumber = pp.idNumber;
             name = pp.name;
-            rate = 0;
+            rate = switch (pp.rate) {
+              case (?r) { r };
+              case (null) { 0 };
+            };
             businessType = pp.businessType;
             location = pp.location;
             verificationStatus = pp.verificationStatus;
@@ -405,12 +529,99 @@ actor {
       case (?cp) {
         clientProfiles.add(caller, {
           principal = caller;
+          surname = cp.surname;
+          middleName = cp.middleName;
+          lastName = cp.lastName;
+          yearOfBirth = cp.yearOfBirth;
+          mobileNumber = cp.mobileNumber;
+          idNumber = cp.idNumber;
           phoneNumber = cp.phoneNumber;
           pinnedLocation = cp.pinnedLocation;
           isVerified = false;
+          bioData = null;
         });
       };
       case (null) {};
+    };
+  };
+
+  // New updateClientProfile method for updating required fields
+  public shared ({ caller }) func updateClientProfile(update : ClientProfileUpdate) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can update client profiles");
+    };
+
+    let userRole = userRoles.get(caller);
+    switch (userRole) {
+      case (?#client) {};
+      case (null) { Runtime.trap("User is not registered as a client") };
+      case (_) { Runtime.trap("Only Clients can update client profile") };
+    };
+
+    let existingProfile = getClientInternal(caller);
+
+    // Validate all required fields are provided and valid
+    if (not isValidText(update.surname)) {
+      Runtime.trap("Surname must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidText(update.middleName)) {
+      Runtime.trap("Middle name must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidText(update.lastName)) {
+      Runtime.trap("Last name must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidText(update.yearOfBirth)) {
+      Runtime.trap("Year of birth must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidIdNumber(update.idNumber)) {
+      Runtime.trap("ID number must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidPhoneNumber(update.mobileNumber)) {
+      Runtime.trap("Mobile number must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidPhoneNumber(update.phoneNumber)) {
+      Runtime.trap("Phone number must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidLocation(update.pinnedLocation)) {
+      Runtime.trap("Pinned location must provide valid coordinates and address");
+    };
+
+    let updatedProfile = {
+      existingProfile with
+      surname = update.surname;
+      middleName = update.middleName;
+      lastName = update.lastName;
+      yearOfBirth = update.yearOfBirth;
+      mobileNumber = update.mobileNumber;
+      idNumber = update.idNumber;
+      phoneNumber = update.phoneNumber;
+      pinnedLocation = ?update.pinnedLocation;
+    };
+
+    clientProfiles.add(caller, updatedProfile);
+  };
+
+  public shared ({ caller }) func saveClientBioData(bioData : BioData) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can save bio-data");
+    };
+
+    // Verify caller is a client
+    let userRole = userRoles.get(caller);
+    switch (userRole) {
+      case (?#client) {};
+      case (null) { Runtime.trap("User profile not found") };
+      case (_) { Runtime.trap("Only clients can save bio-data") };
+    };
+
+    switch (clientProfiles.get(caller)) {
+      case (?profile) {
+        let updatedProfile = { profile with bioData = ?bioData };
+        clientProfiles.add(caller, updatedProfile);
+      };
+      case (null) {
+        Runtime.trap("Client profile does not exist");
+      };
     };
   };
 
@@ -422,8 +633,21 @@ actor {
     ensureIsProvider(caller);
     let existingProfile = getProviderInternal(caller);
 
+    // Validate updated fields
+    if (not isValidText(update.surname)) {
+      Runtime.trap("Invalid surname: must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidText(update.yearOfBirth)) {
+      Runtime.trap("Invalid year of birth: must be provided and cannot be empty or placeholder");
+    };
+    if (not isValidLocation(update.location)) {
+      Runtime.trap("Invalid location: must provide valid coordinates and address");
+    };
+
     let updatedProfile = {
       existingProfile with
+      surname = update.surname;
+      yearOfBirth = update.yearOfBirth;
       rate = update.rate;
       businessType = update.businessType;
       location = update.location;
@@ -463,6 +687,11 @@ actor {
     ensureIsProvider(caller);
     let profile = getProviderInternal(caller);
     let newLocation = { latitude; longitude; address };
+
+    if (not isValidLocation(newLocation)) {
+      Runtime.trap("Invalid location: must provide valid coordinates and address");
+    };
+
     providerProfiles.add(caller, { profile with location = newLocation });
   };
 
@@ -476,6 +705,11 @@ actor {
     };
     let profile = getClientInternal(caller);
     let newLocation = { latitude; longitude; address };
+
+    if (not isValidLocation(newLocation)) {
+      Runtime.trap("Invalid location: must provide valid coordinates and address");
+    };
+
     let updatedProfile = { profile with pinnedLocation = ?newLocation };
     clientProfiles.add(caller, updatedProfile);
   };
@@ -557,6 +791,7 @@ actor {
     };
 
     let isAdmin = AccessControl.isAdmin(accessControlState, caller);
+
     if (caller != client and not isAdmin) {
       Runtime.trap("Unauthorized: Can only view your own client profile");
     };
@@ -577,29 +812,6 @@ actor {
           Runtime.trap("Unauthorized: Can only view your own jobs");
         };
         job;
-      };
-      case (null) { null };
-    };
-  };
-
-  func updateProviderEngagementState(principal : Principal) : ?ProviderProfile {
-    switch (providerProfiles.get(principal)) {
-      case (?profile) {
-        switch (profile.engagementEndTime) {
-          case (?endTime) {
-            if (Time.now() > endTime) {
-              let updatedProfile = {
-                profile with isEngaged = false;
-                engagementEndTime = null;
-              };
-              providerProfiles.add(principal, updatedProfile);
-              ?updatedProfile;
-            } else {
-              ?profile;
-            };
-          };
-          case (null) { ?profile };
-        };
       };
       case (null) { null };
     };
@@ -661,8 +873,24 @@ actor {
     mpesaConfig;
   };
 
-  // Admin operation: Remove all service providers
-  public func removeAllProviders() : async () {
+  public shared ({ caller }) func setWhatsAppConfig(config : WhatsAppConfig) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admin users can set WhatsApp config");
+    };
+    whatsAppConfig := ?config;
+  };
+
+  public query ({ caller }) func getWhatsAppConfig() : async ?WhatsAppConfig {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admin users can view WhatsApp config");
+    };
+    whatsAppConfig;
+  };
+
+  public shared ({ caller }) func removeAllProviders() : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admin users can remove all providers");
+    };
     for ((provider, _) in providerProfiles.entries()) {
       let existingRole = userRoles.get(provider);
       switch (existingRole) {
@@ -678,12 +906,19 @@ actor {
     providerProfiles.clear();
   };
 
-  // Admin operation: Seed new set of providers tied to categories
   public shared ({ caller }) func seedProviders(providers : [(Principal, ProviderProfileView)]) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admin users can seed providers");
+    };
     for ((principal, profileView) in providers.values()) {
       userRoles.add(principal, #provider);
       providerProfiles.add(principal, {
         principal = profileView.principal;
+        surname = profileView.surname;
+        middleName = profileView.middleName;
+        lastName = profileView.lastName;
+        yearOfBirth = profileView.yearOfBirth;
+        idNumber = profileView.idNumber;
         name = profileView.name;
         rate = profileView.rate;
         businessType = profileView.businessType;
@@ -699,6 +934,45 @@ actor {
         engagementEndTime = profileView.engagementEndTime;
         category = profileView.category;
       });
+    };
+  };
+
+  public query ({ caller }) func getClientBioData(client : Principal) : async ?BioData {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view bio-data");
+    };
+
+    // Only allow viewing own bio-data or admin access
+    if (caller != client and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own bio-data");
+    };
+
+    switch (clientProfiles.get(client)) {
+      case (?profile) { profile.bioData };
+      case (null) { null };
+    };
+  };
+
+  func updateProviderEngagementState(principal : Principal) : ?ProviderProfile {
+    switch (providerProfiles.get(principal)) {
+      case (?profile) {
+        switch (profile.engagementEndTime) {
+          case (?endTime) {
+            if (Time.now() > endTime) {
+              let updatedProfile = {
+                profile with isEngaged = false;
+                engagementEndTime = null;
+              };
+              providerProfiles.add(principal, updatedProfile);
+              ?updatedProfile;
+            } else {
+              ?profile;
+            };
+          };
+          case (null) { ?profile };
+        };
+      };
+      case (null) { null };
     };
   };
 };

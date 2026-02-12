@@ -1,48 +1,53 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-11T16:22:52.566Z",
+  "generatedAt": "2026-02-12T09:30:00.451Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 3,
-    "implemented": 1,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-108",
-        "summary": "Add an admin-only backend operation that deletes/removes all existing Service Provider accounts/data from the canister state (at minimum: providerProfiles entries and their provider role assignment), so that client browsing returns zero providers immediately after the reset.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-109",
-        "summary": "Add an admin-only backend operation to seed a new set of service provider entries that are tied to specific service categories so they only appear when clients browse those categories (and do not appear in unrelated categories).",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-110",
-        "summary": "Add a simple Technical Team (Back-office) UI control that allows an authenticated back-office/admin user to run (1) the provider reset and (2) the provider seeding actions, with clear English confirmation prompts and success/error feedback.",
+        "id": "REQ-1",
+        "summary": "Fix the client profile “Save Required Information” action so it updates an existing client profile instead of calling the backend method intended only for initial profile creation, and ensure the save action does not trigger a full page reload/refresh.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
-          "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx"
+          "frontend/src/pages/client/ClientProfilePage.tsx"
         ],
         "matchedFiles": [
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
-          "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx"
+          "frontend/src/pages/client/ClientProfilePage.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Add a dedicated backend update method for client required profile fields (names, yearOfBirth, idNumber, mobileNumber/phoneNumber, pinnedLocation) that validates input and updates the caller’s existing client profile record without requiring profile re-creation.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Update the frontend Client Profile page to use the new client-profile update mutation for saving required fields, and ensure React Query cache invalidation/refetch updates the UI state without navigation loops.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/client/ClientProfilePage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/client/ClientProfilePage.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
@@ -52,8 +57,8 @@
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/backoffice/ProviderDatasetToolsPanel.tsx",
-    "frontend/src/pages/backoffice/VerificationReviewPage.tsx",
+    "frontend/src/pages/client/ClientProfilePage.tsx",
+    "frontend/src/pages/provider/ProviderProfilePage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",
